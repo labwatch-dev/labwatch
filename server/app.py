@@ -16,6 +16,8 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.templating import Jinja2Templates
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
+logging.basicConfig(level=logging.INFO, stream=sys.stderr, format="%(name)s: %(message)s")
+
 import config
 import database as db
 import mailer
