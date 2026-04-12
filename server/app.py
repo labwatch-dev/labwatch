@@ -1925,9 +1925,9 @@ def billing_checkout(request_body: dict, request: Request):
             cancel_url=f"{config.BASE_URL}/billing/cancel",
             allow_promotion_codes=True,
         )
-    except Exception as e:
+    except Exception:
         logging.getLogger("labwatch").exception("Stripe checkout session create failed")
-        raise HTTPException(status_code=502, detail=f"Stripe error: {e}")
+        raise HTTPException(status_code=502, detail="Could not start checkout")
 
     return {"url": session.url, "session_id": session.id}
 
@@ -1964,19 +1964,28 @@ async def billing_webhook(request: Request):
         session = event["data"]["object"]
         metadata = session.get("metadata") or {}
         email = metadata.get("email") or session.get("customer_email") or session.get("client_reference_id")
-        plan = (metadata.get("plan") or "pro").lower()
+        plan = (metadata.get("plan") or "").lower()
         if not email:
             logger.warning(f"Stripe checkout.session.completed with no email: {session.get('id')}")
             return {"ok": True, "noop": "no email"}
         if plan not in config.TIER_LIMITS:
-            logger.warning(f"Stripe event with unknown plan {plan} for {email}")
+            # Missing/unknown metadata.plan means we'd guess — refuse to ship
+            # the wrong plan. 200 so Stripe doesn't retry, but loud log.
+            logger.error(f"Stripe event with missing/unknown plan {plan!r} for {email} ({session.get('id')})")
             return {"ok": True, "noop": "unknown plan"}
         rows = db.set_plan_for_email(email, plan)
-        logger.info(f"Stripe upgrade: {email} → {plan} ({rows} rows updated)")
+        if rows == 0:
+            # User paid but we couldn't find their row — worth paging on.
+            logger.error(f"Stripe upgrade: {email} → {plan} matched 0 rows ({session.get('id')})")
+        else:
+            logger.info(f"Stripe upgrade: {email} → {plan} ({rows} rows updated)")
         # Best-effort confirmation email. mailer catches and logs its own
-        # errors so a Resend outage never causes Stripe to retry.
+        # errors so a Resend outage never causes Stripe to retry. Offload to
+        # a thread so the ~10s Resend timeout can't starve the event loop.
         if rows > 0:
-            mailer.send_plan_upgrade_receipt(email, plan, session_id=session.get("id", ""))
+            await asyncio.to_thread(
+                mailer.send_plan_upgrade_receipt, email, plan, session.get("id", "")
+            )
         return {"ok": True, "email": email, "plan": plan, "rows": rows}
 
     if event_type == "customer.subscription.deleted":
@@ -1989,7 +1998,7 @@ async def billing_webhook(request: Request):
             rows = db.set_plan_for_email(email, config.DEFAULT_PLAN)
             logger.info(f"Stripe cancellation: {email} → {config.DEFAULT_PLAN} ({rows} rows)")
             if rows > 0:
-                mailer.send_plan_downgrade_notice(email, config.DEFAULT_PLAN)
+                await asyncio.to_thread(mailer.send_plan_downgrade_notice, email)
             return {"ok": True, "email": email, "plan": config.DEFAULT_PLAN, "rows": rows}
 
     # Unhandled event types are acknowledged with 200 so Stripe doesn't retry.
