@@ -1166,7 +1166,7 @@ def demo_lab_detail(request: Request, lab_id: str):
     lab["last_seen"] = now.isoformat() if detail["_online"] else (now - timedelta(hours=3)).isoformat()
 
     system = {
-        "cpu_percent": detail["_cpu"], "memory_percent": detail["_mem"],
+        "cpu_percent": detail["_cpu"], "cpu_count": 4, "memory_percent": detail["_mem"],
         "disk_percent": detail["_disk"], "load_1m": detail["_load"],
         "load_5m": detail["_load"] * 0.9, "load_15m": detail["_load"] * 0.8,
         "memory_total_gb": 32.0, "memory_used_gb": 32.0 * detail["_mem"] / 100,
@@ -1183,7 +1183,8 @@ def demo_lab_detail(request: Request, lab_id: str):
         gpu={}, system=system, docker=docker,
         metrics=[], history_count=24, alerts=detail["_alerts"],
         stats={"total_metrics": 1440, "oldest_metric": (now - timedelta(days=7)).isoformat()},
-        secret="demo", is_demo=True, digest=None,
+        secret="demo", is_demo=True,
+        digest=_DEMO_DIGESTS.get(lab_id),
     ))
 
 
@@ -2504,9 +2505,72 @@ def natural_language_query(
     raise HTTPException(status_code=403, detail="Forbidden")
 
 
+_DEMO_DIGESTS = {
+    "demo-1": {
+        "hostname": "pve-main", "grade": "A",
+        "created_at": "2026-04-12T10:00:00", "period_start": "2026-04-05T10:00:00", "period_end": "2026-04-12T10:00:00",
+        "summary": "pve-main had a quiet last 24 hours. Running well below capacity.\n\n"
+                   "CPU usage averaged just 23% \u2014 significant headroom for additional workloads.\n"
+                   "Memory is moderate at 61% but stable with no swapping detected.\n"
+                   "Disk sits at 45% \u2014 plenty of room.\n\n"
+                   "**Health Grade: A**\n\n"
+                   "CPU: 23.4% avg, peaked at 41.2%, currently 23.4%\n"
+                   "Memory: 61.2% avg, range 58.1%-64.3%, currently 61.2%\n"
+                   "Disk: 44.8% avg, currently 44.8%\n"
+                   "Alerts: Clean \u2014 zero alerts this period",
+    },
+    "demo-2": {
+        "hostname": "docker-host", "grade": "B+",
+        "created_at": "2026-04-12T10:00:00", "period_start": "2026-04-05T10:00:00", "period_end": "2026-04-12T10:00:00",
+        "summary": "docker-host is running warm but stable. 14 containers active with no restart loops.\n\n"
+                   "CPU averaged 67% \u2014 busy but not concerning. Memory at 78% is the main constraint.\n"
+                   "Consider migrating lower-priority containers if memory pressure increases.\n\n"
+                   "**Health Grade: B+**\n\n"
+                   "CPU: 67.8% avg, peaked at 84.1%, currently 67.8%\n"
+                   "Memory: 78.4% avg, range 71.2%-82.6%, currently 78.4%\n"
+                   "Disk: 62.1% avg, currently 62.1%\n"
+                   "Alerts: 1 warning (memory_high) \u2014 auto-resolved",
+    },
+    "demo-3": {
+        "hostname": "nas-storage", "grade": "B-",
+        "created_at": "2026-04-12T10:00:00", "period_start": "2026-04-05T10:00:00", "period_end": "2026-04-12T10:00:00",
+        "summary": "nas-storage needs attention. Disk usage at 81% is approaching the warning threshold.\n\n"
+                   "CPU and memory are fine \u2014 this is a storage-bound node. Load average of 4.2 suggests sustained I/O.\n"
+                   "Recommend reviewing large files or scheduling cleanup before hitting 85%.\n\n"
+                   "**Health Grade: B-**\n\n"
+                   "CPU: 12.1% avg, peaked at 28.4%, currently 12.1%\n"
+                   "Memory: 45.6% avg, range 42.1%-48.9%, currently 45.6%\n"
+                   "Disk: 81.3% avg, currently 81.3%\n"
+                   "Alerts: 1 active warning (disk_high at 81%)",
+    },
+    "demo-4": {
+        "hostname": "gpu-server", "grade": "A-",
+        "created_at": "2026-04-12T10:00:00", "period_start": "2026-04-05T10:00:00", "period_end": "2026-04-12T10:00:00",
+        "summary": "gpu-server is healthy with moderate GPU utilization. Good balance of compute and idle time.\n\n"
+                   "CPU at 34% with GPU inference running smoothly. Memory comfortable at 52%.\n"
+                   "GPU temp steady at 62\u00b0C \u2014 well within safe range.\n\n"
+                   "**Health Grade: A-**\n\n"
+                   "CPU: 34.2% avg, peaked at 56.8%, currently 34.2%\n"
+                   "Memory: 52.8% avg, range 48.1%-57.4%, currently 52.8%\n"
+                   "Disk: 55.4% avg, currently 55.4%\n"
+                   "GPU: 72% utilization, 62\u00b0C, 6.2/8.0 GB VRAM\n"
+                   "Alerts: Clean \u2014 zero alerts this period",
+    },
+}
+
+
 @app.post("/api/v1/admin/digest/{lab_id}")
-def generate_lab_digest(lab_id: str, hours: int = 168, _: str = Depends(_require_admin)):
+def generate_lab_digest(lab_id: str, hours: int = 168, x_admin_secret: Optional[str] = Header(None)):
     """Generate an intelligence digest for a specific lab."""
+    # Demo mode: return synthetic digest
+    if x_admin_secret == "demo" and lab_id.startswith("demo-"):
+        d = _DEMO_DIGESTS.get(lab_id)
+        if d:
+            return {"lab_id": lab_id, "hostname": d["hostname"], "grade": d["grade"], "summary": d["summary"], "hours": hours}
+        raise HTTPException(status_code=404, detail="Demo lab not found")
+    # Real mode: require admin
+    if not x_admin_secret or x_admin_secret != config.ADMIN_SECRET:
+        raise HTTPException(status_code=401, detail="Invalid admin secret")
     from digest import generate_digest
     lab = db.get_lab(lab_id)
     if not lab:

@@ -633,7 +633,7 @@
 
 {% block content %}
 <div class="container">
-    <a href="{% if user_email %}/my/dashboard{% else %}/dashboard{% endif %}" class="back-link">
+    <a href="{% if is_demo %}/demo{% elif user_email %}/my/dashboard{% else %}/dashboard{% endif %}" class="back-link">
         <span class="arrow">&larr;</span> {{ t.lab_back }}
     </a>
 
