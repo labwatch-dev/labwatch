@@ -1004,7 +1004,7 @@
         </div>
         <p class="install-note">
             {{ t.landing_install_note }} <a href="/download/labwatch-linux-amd64">amd64</a> / <a href="/download/labwatch-linux-arm64">arm64</a>.
-            {{ t.landing_install_note2 }}
+            {{ t.landing_install_note2 if t and t.landing_install_note2 else 'Open source — AGPL-3.0 server, MIT agent.' }} <a href="https://github.com/labwatch-dev/labwatch" target="_blank" rel="noopener">{{ t.landing_install_github if t and t.landing_install_github else 'Source on GitHub' }}</a>.
         </p>
     </div>
 </section>

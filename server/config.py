@@ -67,7 +67,6 @@ TIER_LIMITS: dict[str, dict] = {
 # routes re-check these so a missing-key install is a clean failure, not a
 # crash at startup.
 STRIPE_SECRET_KEY: str = _read_secret_file("~/.config/stripe/secret_key")
-STRIPE_PUBLISHABLE_KEY: str = _read_secret_file("~/.config/stripe/publishable_key")
 STRIPE_WEBHOOK_SECRET: str = _read_secret_file("~/.config/stripe/webhook_secret")
 _STRIPE_PRICE_IDS: dict[str, str] = _read_kv_file("~/.config/stripe/price_ids")
 

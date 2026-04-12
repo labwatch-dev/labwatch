@@ -13,7 +13,7 @@ from typing import Any, Optional
 
 from fastapi import Depends, FastAPI, Form, Header, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
@@ -34,8 +34,9 @@ app = FastAPI(
     title="labwatch",
     description="Homelab Intelligence monitoring service",
     version="0.1.0",
-    docs_url="/api-docs",
-    redoc_url="/api-redoc",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -405,6 +406,45 @@ def compare_redirect():
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "labwatch", "version": "0.1.0"}
+
+
+@app.get("/favicon.ico")
+def favicon():
+    svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='#f0a030'/></svg>"
+    return Response(content=svg, media_type="image/svg+xml")
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+def robots_txt():
+    return (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /api/\n"
+        "Disallow: /my/\n"
+        "Disallow: /dashboard\n"
+        "Disallow: /billing/\n"
+        "Disallow: /login\n"
+        "Disallow: /signup\n"
+        "\n"
+        "Sitemap: https://labwatch.dev/sitemap.xml\n"
+    )
+
+
+@app.get("/sitemap.xml", response_class=PlainTextResponse)
+def sitemap_xml():
+    urls = [
+        "", "/demo", "/docs", "/about", "/support",
+        "/self-hosted", "/#pricing", "/#compare",
+    ]
+    entries = "\n".join(
+        f"  <url><loc>https://labwatch.dev{u}</loc></url>" for u in urls
+    )
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{entries}\n"
+        "</urlset>\n"
+    )
 
 
 @app.get("/install.sh", response_class=PlainTextResponse)
@@ -2777,6 +2817,7 @@ async def billing_webhook(request: Request):
     `checkout.session.completed` — the redirect success_url is informational
     only, never trusted as an upgrade trigger.
     """
+    logger = logging.getLogger("labwatch")
     stripe = _stripe_client()
     if stripe is None:
         raise HTTPException(status_code=503, detail="Billing is not configured")
@@ -2793,10 +2834,8 @@ async def billing_webhook(request: Request):
     except Exception as e:
         # Covers stripe.error.SignatureVerificationError without importing the
         # error class (version-safe across SDK revs).
-        logging.getLogger("labwatch").warning(f"Stripe webhook signature rejected: {e}")
+        logger.warning(f"Stripe webhook signature rejected: {e}")
         raise HTTPException(status_code=400, detail="Invalid signature")
-
-    logger = logging.getLogger("labwatch")
     event_type = event.get("type") if isinstance(event, dict) else event["type"]
 
     if event_type == "checkout.session.completed":
