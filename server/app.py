@@ -1099,6 +1099,124 @@ def demo_dashboard(request: Request):
     ))
 
 
+# Synthetic per-node detail data for the demo.
+_DEMO_LAB_DETAILS: dict[str, dict] = {
+    "demo-1": {
+        "id": "demo-1", "name": "pve-main", "hostname": "proxmox-01",
+        "display_name": "pve-main", "os": "Debian 12", "arch": "x86_64",
+        "agent_version": "0.4.2", "registered_at": "2026-03-15T10:00:00",
+        "api_token": "demo-token",
+        "_online": True, "_cpu": 23.4, "_mem": 61.2, "_disk": 44.8, "_load": 1.82,
+        "_containers": [
+            {"name": "caddy", "state": "running", "cpu_percent": 0.3, "memory_mb": 42},
+            {"name": "pihole", "state": "running", "cpu_percent": 0.1, "memory_mb": 88},
+            {"name": "grafana", "state": "running", "cpu_percent": 1.2, "memory_mb": 210},
+            {"name": "pbs", "state": "running", "cpu_percent": 0.8, "memory_mb": 156},
+        ],
+        "_alerts": [{"severity": "warning", "rule_name": "High memory", "message": "Memory at 61% — approaching threshold", "created_at": "2026-04-12T08:00:00"}],
+    },
+    "demo-2": {
+        "id": "demo-2", "name": "docker-host", "hostname": "docker-01",
+        "display_name": "docker-host", "os": "Ubuntu 24.04", "arch": "x86_64",
+        "agent_version": "0.4.2", "registered_at": "2026-03-15T10:05:00",
+        "api_token": "demo-token",
+        "_online": True, "_cpu": 8.1, "_mem": 38.7, "_disk": 29.3, "_load": 0.45,
+        "_containers": [
+            {"name": "portainer", "state": "running", "cpu_percent": 0.5, "memory_mb": 120},
+            {"name": "uptime-kuma", "state": "running", "cpu_percent": 0.2, "memory_mb": 95},
+            {"name": "dashy", "state": "running", "cpu_percent": 0.1, "memory_mb": 64},
+            {"name": "nginx-proxy", "state": "running", "cpu_percent": 0.4, "memory_mb": 38},
+            {"name": "homeassistant", "state": "running", "cpu_percent": 2.1, "memory_mb": 310},
+        ],
+        "_alerts": [],
+    },
+    "demo-3": {
+        "id": "demo-3", "name": "nas-storage", "hostname": "storage-01",
+        "display_name": "nas-storage", "os": "TrueNAS SCALE", "arch": "x86_64",
+        "agent_version": "0.4.1", "registered_at": "2026-03-16T14:30:00",
+        "api_token": "demo-token",
+        "_online": True, "_cpu": 4.2, "_mem": 72.8, "_disk": 78.1, "_load": 3.21,
+        "_containers": [],
+        "_alerts": [
+            {"severity": "critical", "rule_name": "Disk space critical", "message": "Disk at 78% — running low", "created_at": "2026-04-12T06:00:00"},
+            {"severity": "warning", "rule_name": "High load", "message": "Load average 3.21 — above threshold", "created_at": "2026-04-12T07:30:00"},
+        ],
+    },
+    "demo-4": {
+        "id": "demo-4", "name": "gpu-server", "hostname": "gpu-01",
+        "display_name": "gpu-server", "os": "Arch Linux", "arch": "x86_64",
+        "agent_version": "0.4.0", "registered_at": "2026-03-20T09:00:00",
+        "api_token": "demo-token",
+        "_online": False, "_cpu": 0, "_mem": 0, "_disk": 55.3, "_load": 0,
+        "_containers": [],
+        "_alerts": [{"severity": "critical", "rule_name": "Node offline", "message": "No heartbeat for 3 hours", "created_at": "2026-04-12T09:00:00"}],
+    },
+}
+
+
+@app.get("/demo/lab/{lab_id}", response_class=HTMLResponse)
+def demo_lab_detail(request: Request, lab_id: str):
+    """Demo node detail page with synthetic data."""
+    detail = _DEMO_LAB_DETAILS.get(lab_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Demo lab not found")
+
+    now = datetime.utcnow()
+    lab = {k: v for k, v in detail.items() if not k.startswith("_")}
+    lab["last_seen"] = now.isoformat() if detail["_online"] else (now - timedelta(hours=3)).isoformat()
+
+    system = {
+        "cpu_percent": detail["_cpu"], "memory_percent": detail["_mem"],
+        "disk_percent": detail["_disk"], "load_1m": detail["_load"],
+        "load_5m": detail["_load"] * 0.9, "load_15m": detail["_load"] * 0.8,
+        "memory_total_gb": 32.0, "memory_used_gb": 32.0 * detail["_mem"] / 100,
+        "disk_total_gb": 500.0, "disk_used_gb": 500.0 * detail["_disk"] / 100,
+        "uptime_seconds": 604800, "net_rx_rate": "12.4 MB/s", "net_tx_rate": "3.1 MB/s",
+    }
+    docker = {
+        "container_count": len(detail["_containers"]),
+        "containers": detail["_containers"],
+    }
+
+    return templates.TemplateResponse("lab_detail.html", _tpl_context(
+        request, lab=lab, online=detail["_online"],
+        gpu={}, system=system, docker=docker,
+        metrics=[], history_count=24, alerts=detail["_alerts"],
+        stats={"total_metrics": 1440, "oldest_metric": (now - timedelta(days=7)).isoformat()},
+        secret="demo", is_demo=True, digest=None,
+    ))
+
+
+@app.get("/demo/lab/{lab_id}/history")
+def demo_lab_history(request: Request, lab_id: str):
+    """Synthetic history data for demo node detail charts."""
+    import math, random
+
+    detail = _DEMO_LAB_DETAILS.get(lab_id)
+    if not detail:
+        return []
+
+    now = datetime.utcnow()
+    hours = int(request.query_params.get("hours", "24"))
+    hours = max(1, min(hours, 168))
+    points = min(hours * 6, 144)  # ~10min intervals, max 144 points
+
+    history = []
+    for i in range(points):
+        t = now - timedelta(minutes=(points - i) * (hours * 60 / points))
+        phase = i / points * math.pi * 4
+        cpu_base = detail["_cpu"] or 15
+        mem_base = detail["_mem"] or 40
+        history.append({
+            "timestamp": t.isoformat(),
+            "cpu_percent": round(max(0, cpu_base + 8 * math.sin(phase) + random.uniform(-2, 2)), 1),
+            "memory_percent": round(max(0, mem_base + 3 * math.sin(phase * 0.5) + random.uniform(-1, 1)), 1),
+            "disk_percent": detail["_disk"],
+            "load_1m": round(max(0, (detail["_load"] or 0.5) + 0.3 * math.sin(phase) + random.uniform(-0.1, 0.1)), 2),
+        })
+    return history
+
+
 # ---------------------------------------------------------------------------
 # Dashboard
 # ---------------------------------------------------------------------------
@@ -1410,6 +1528,8 @@ _DEMO_RESPONSES = [
             r"^(?:status|health)$",
             r"how(?:'s| is) (?:my |the |our )?(?:lab|fleet|cluster|everything|infra)",
             r"how(?:'s| is) everything",
+            r"how many (?:nodes?|servers?|machines?)",
+            r"(?:nodes?|servers?)\s+(?:online|up|running|active)",
         ],
         "response": {
             "answer": (
@@ -1679,59 +1799,186 @@ _DEMO_NODE_STATUS = {
 }
 
 
+_DEMO_NOISE_WORDS = {
+    # English
+    "status", "state", "health", "how", "is", "the", "my", "doing",
+    "check", "ok", "okay", "what", "whats", "hows", "about", "s",
+    # German
+    "wie", "geht", "es", "ist", "der", "die", "das", "mein", "meine", "meinem",
+    "zustand", "gesundheit",
+    # French
+    "comment", "va", "est", "le", "la", "les", "mon", "ma", "mes", "quel", "quelle",
+    "etat", "sante",
+    # Spanish
+    "como", "esta", "el", "mi", "mis", "que", "cual", "estado", "salud",
+    # Ukrainian
+    "як", "мій", "моя", "стан", "що",
+}
+
+# Multilingual patterns that map to the same demo response indices.
+# Each tuple: (pattern_regex, index_into_DEMO_RESPONSES)
+_DEMO_I18N_PATTERNS = [
+    # Fleet overview (index 0)
+    (r"(?:flotte|zusammenfassung|überblick|übersicht|wie geht.* (?:lab|cluster|fleet|infra)|wie viele (?:nodes?|knoten|server))", 0),  # DE
+    (r"(?:flotte|résumé|aperçu|comment va .* (?:lab|cluster|fleet|infra)|combien de (?:nœuds?|noeuds?|serveurs?))", 0),  # FR
+    (r"(?:flota|resumen|cómo (?:está|va) .* (?:lab|cluster|fleet|infra)|cuántos (?:nodos?|servidores?))", 0),  # ES
+    (r"(?:флот|огляд|як .* (?:lab|cluster|fleet|кластер|інфра)|скільки (?:вузлів|серверів|нод))", 0),  # UK
+    # Diagnostic (index 1)
+    (r"(?:warum|wieso|weshalb).+(?:langsam|hoch|problem|fehler)", 1),  # DE
+    (r"(?:pourquoi|diagnostiquer).+(?:lent|problème|erreur)", 1),  # FR
+    (r"(?:por\s*qué|diagnosticar).+(?:lento|problema|error)", 1),  # ES
+    (r"(?:чому|діагност).+(?:повільн|проблем)", 1),  # UK
+    # Alerts (index 2)
+    (r"(?:warnung|alarm|meldung|aktive)", 2),  # DE
+    (r"(?:alerte|avertissement|toutes les alertes)", 2),  # FR
+    (r"(?:alerta|advertencia|todas las alertas)", 2),  # ES
+    (r"(?:сповіщення|попередження|тривог)", 2),  # UK
+    # Containers (index 3)
+    (r"(?:container|docker|laufende)", 3),  # DE (container same)
+    (r"(?:conteneur|docker)", 3),  # FR
+    (r"(?:contenedor|docker)", 3),  # ES
+    (r"(?:контейнер|докер)", 3),  # UK
+    # Temperature (index 4)
+    (r"(?:temperatur|hitze|heiß|thermal|überhitz)", 4),  # DE
+    (r"(?:température|chaud|thermique|surchauffe)", 4),  # FR
+    (r"(?:temperatura|caliente|térmico|sobrecalent)", 4),  # ES
+    (r"(?:температур|гаряч|перегрів)", 4),  # UK
+    # Attention (index 5)
+    (r"(?:aufmerksamkeit|was (?:stimmt nicht|ist (?:kaputt|falsch))|probleme)", 5),  # DE
+    (r"(?:attention|qu.est.ce qui (?:ne va pas|cloche)|problème)", 5),  # FR
+    (r"(?:atención|qué (?:está mal|pasa)|problema)", 5),  # ES
+    (r"(?:увага|що не так|проблем)", 5),  # UK
+    # Comparative (index 6)
+    (r"(?:welch|höchst|meiste|niedrigst|vergleich).+(?:cpu|speicher|ram|disk|last)", 6),  # DE
+    (r"(?:quel|plus|moins|comparer).+(?:cpu|mémoire|ram|disque|charge)", 6),  # FR
+    (r"(?:cuál|más|menos|comparar).+(?:cpu|memoria|ram|disco|carga)", 6),  # ES
+    (r"(?:який|найбільш|найменш|порівн).+(?:cpu|пам|диск|навант)", 6),  # UK
+    # Recent events (index 7)
+    (r"(?:letzte|gestern|über nacht|was ist passiert|kürzlich)", 7),  # DE
+    (r"(?:dernier|hier|cette nuit|que s.est.il passé|récent)", 7),  # FR
+    (r"(?:último|ayer|anoche|qué pasó|reciente)", 7),  # ES
+    (r"(?:останн|вчора|що сталося|нещодавно)", 7),  # UK
+    # Network (index 8)
+    (r"(?:netzwerk|bandbreite|datenverkehr|durchsatz)", 8),  # DE
+    (r"(?:réseau|bande passante|trafic|débit)", 8),  # FR
+    (r"(?:red|ancho de banda|tráfico|rendimiento)", 8),  # ES
+    (r"(?:мережа|пропускна|трафік)", 8),  # UK
+    # Disk (index 9)
+    (r"(?:festplatte|speicherplatz|platte voll|speicher(?:nutzung|kapazität))", 9),  # DE
+    (r"(?:disque|espace|stockage|capacité)", 9),  # FR
+    (r"(?:disco|espacio|almacenamiento|capacidad)", 9),  # ES
+    (r"(?:диск|місце|сховищ|ємніст)", 9),  # UK
+]
+
+_DEMO_FALLBACK_I18N = {
+    "de": (
+        "Ich habe deine Frage verstanden, habe aber keine vorgefertigte Demo-Antwort dafür. "
+        "Im Produktivbetrieb analysiert labwatch deine echten Fleet-Metriken und beantwortet "
+        "natürlichsprachliche Fragen zu deiner Infrastruktur.\n\n"
+        "Probiere:\n"
+        '  - "fleet status"\n  - "was braucht Aufmerksamkeit?"\n'
+        '  - "zeig mir alle Alarme"\n  - "welcher Node nutzt am meisten CPU?"'
+    ),
+    "fr": (
+        "J'ai compris ta question mais je n'ai pas de réponse démo prédéfinie. "
+        "En production, labwatch analyse les vraies métriques de ta flotte et répond "
+        "aux questions en langage naturel sur ton infrastructure.\n\n"
+        "Essaie :\n"
+        '  - "fleet status"\n  - "qu\'est-ce qui nécessite attention ?"\n'
+        '  - "montre-moi toutes les alertes"\n  - "quel nœud utilise le plus de CPU ?"'
+    ),
+    "es": (
+        "Entendí tu pregunta pero no tengo una respuesta demo predefinida. "
+        "En producción, labwatch analiza las métricas reales de tu flota y responde "
+        "preguntas en lenguaje natural sobre tu infraestructura.\n\n"
+        "Prueba:\n"
+        '  - "fleet status"\n  - "¿qué necesita atención?"\n'
+        '  - "muéstrame todas las alertas"\n  - "¿qué nodo usa más CPU?"'
+    ),
+    "uk": (
+        "Я зрозумів твоє питання, але не маю заготовленої демо-відповіді. "
+        "У продакшені labwatch аналізує реальні метрики твого флоту та відповідає "
+        "на запитання природною мовою про твою інфраструктуру.\n\n"
+        "Спробуй:\n"
+        '  - "fleet status"\n  - "що потребує уваги?"\n'
+        '  - "покажи всі сповіщення"\n  - "який вузол найбільше CPU?"'
+    ),
+}
+
+
+def _detect_demo_lang(q: str) -> str:
+    """Best-effort language detection from a short demo query."""
+    # Check for Cyrillic → Ukrainian
+    if _re.search(r'[\u0400-\u04ff]', q):
+        return "uk"
+    # German markers
+    if _re.search(r'\b(?:wie|ist|mein|welch|zeig|warnung|alarm|knoten|festplatte|überblick)\b', q):
+        return "de"
+    # French markers
+    if _re.search(r"\b(?:comment|quel|montre|alerte|nœuds?|réseau|disque|température|combien|serveur)\b", q):
+        return "fr"
+    # Spanish markers
+    if _re.search(r"\b(?:cómo|cuál|cuántos?|muestra|alerta|nodo|disco|temperatura)\b", q):
+        return "es"
+    return "en"
+
+
 def _demo_nlq_response(question: str) -> dict:
     """Return a canned NLQ response for demo mode.
 
-    Uses simple regex pattern matching against the question to select
-    the most appropriate demo response. Falls back to a helpful message
-    if no pattern matches.
+    Supports English, German, French, Spanish, and Ukrainian input.
+    Responses are always in English (canned demo data) but pattern
+    matching works across all supported languages.
     """
     q = question.lower().strip().rstrip("?")
+    lang = _detect_demo_lang(q)
 
     # If the query is just a node name (possibly with "status", "health", etc.),
     # return the node-specific response directly.
     _demo_node_names = list(_DEMO_NODE_STATUS.keys())
-    q_words = _re.sub(r'[^a-z0-9\s-]', '', q).split()
-    _noise_words = {"status", "state", "health", "how", "is", "the", "my", "doing",
-                    "check", "ok", "okay", "what", "whats", "hows", "about", "s"}
-    q_meaningful = [w for w in q_words if w not in _noise_words]
+    q_words = _re.sub(r'[^a-z0-9\s\u0400-\u04ff-]', '', q).split()
+    q_meaningful = [w for w in q_words if w not in _DEMO_NOISE_WORDS]
 
     for node_name in _demo_node_names:
         if node_name.lower() in q:
-            # If the only meaningful content is the node name, return status
             remaining = [w for w in q_meaningful if w != node_name.lower()]
-            if not remaining or all(w in _noise_words for w in remaining):
+            if not remaining or all(w in _DEMO_NOISE_WORDS for w in remaining):
                 return _DEMO_NODE_STATUS[node_name]
 
-    # Check general pattern-based responses (diagnostic, alerts, etc.)
+    # Check English patterns first
     for entry in _DEMO_RESPONSES:
         for pattern in entry["patterns"]:
             if _re.search(pattern, q):
                 return entry["response"]
 
+    # Check multilingual patterns
+    for pattern, idx in _DEMO_I18N_PATTERNS:
+        if _re.search(pattern, q, _re.IGNORECASE):
+            return _DEMO_RESPONSES[idx]["response"]
+
     # Check for node-specific status queries as final catch
-    # (e.g., a node name embedded in a query that didn't match patterns above)
     for node_name, response in _DEMO_NODE_STATUS.items():
         if node_name.lower() in q:
             return response
 
-    # Fallback
+    # Fallback — use translated version if available
+    fallback_text = _DEMO_FALLBACK_I18N.get(lang, (
+        "I understood your question but don't have a canned demo response for it. "
+        "In production, labwatch analyzes your real fleet metrics to answer natural "
+        "language questions about your infrastructure.\n"
+        "\n"
+        "Try asking:\n"
+        '  - "fleet status"\n'
+        '  - "what needs attention?"\n'
+        '  - "show me all alerts"\n'
+        '  - "why is nas-storage slow?"\n'
+        '  - "what containers are running?"\n'
+        '  - "how hot is everything?"\n'
+        '  - "which node uses the most cpu?"\n'
+        '  - "how much disk space do I have?"'
+    ))
     return {
-        "answer": (
-            "I understood your question but don't have a canned demo response for it. "
-            "In production, labwatch analyzes your real fleet metrics to answer natural "
-            "language questions about your infrastructure.\n"
-            "\n"
-            "Try asking:\n"
-            "  - \"fleet status\"\n"
-            "  - \"what needs attention?\"\n"
-            "  - \"show me all alerts\"\n"
-            "  - \"why is nas-storage slow?\"\n"
-            "  - \"what containers are running?\"\n"
-            "  - \"how hot is everything?\"\n"
-            "  - \"which node uses the most cpu?\"\n"
-            "  - \"how much disk space do I have?\""
-        ),
+        "answer": fallback_text,
         "query_type": "fallback",
         "confidence": 0.0,
         "demo": True,
