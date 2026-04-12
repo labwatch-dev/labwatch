@@ -2043,8 +2043,8 @@ function dismissSuggestions() {
             + '</div>'
             + renderHeartbeat(lab.heartbeat)
             + '<div class="lab-card-footer">'
-            + '<div class="lab-stat"><span class="label">Containers:</span> <span>' + containers + '</span></div>'
-            + '<div class="lab-stat"><span class="label">Alerts:</span> <span class="alert-count ' + (alerts > 0 ? 'has-alerts' : 'no-alerts') + '">' + alerts + '</span></div>'
+            + '<div class="lab-stat"><span class="label">{{ t.dashboard_containers_label }}</span> <span>' + containers + '</span></div>'
+            + '<div class="lab-stat"><span class="label">{{ t.dashboard_alerts_label }}</span> <span class="alert-count ' + (alerts > 0 ? 'has-alerts' : 'no-alerts') + '">' + alerts + '</span></div>'
             + '</div>'
             + '</a>';
     }
@@ -2922,14 +2922,14 @@ function dismissSuggestions() {
 
     // Human-readable labels + one-line descriptions for the widget library picker.
     var WIDGET_META = {
-        fleet_summary:      {label: 'fleet summary',        desc: 'total nodes, alerts, uptime at a glance'},
-        uptime:             {label: 'uptime bars',          desc: '24-hour uptime history per lab'},
-        alerts:             {label: 'recent alerts',        desc: 'latest fired alerts across your fleet'},
-        alert_rollup:       {label: 'on fire',              desc: 'top labs by active alert count'},
-        disk_pressure:      {label: 'disk pressure',        desc: 'labs closest to running out of disk'},
-        container_restarts: {label: 'restarting containers', desc: 'containers with recent restart counts'},
-        query:              {label: 'ask anything',         desc: 'natural-language query bar'},
-        lab_grid:           {label: 'lab grid',             desc: 'your labs as clickable cards'}
+        fleet_summary:      {label: '{{ t.dashboard_widget_fleet_summary }}',        desc: '{{ t.dashboard_widget_desc_fleet_summary }}'},
+        uptime:             {label: '{{ t.dashboard_widget_uptime }}',               desc: '{{ t.dashboard_widget_desc_uptime }}'},
+        alerts:             {label: '{{ t.dashboard_widget_alerts }}',               desc: '{{ t.dashboard_widget_desc_alerts }}'},
+        alert_rollup:       {label: '{{ t.dashboard_widget_alert_rollup }}',         desc: '{{ t.dashboard_widget_desc_alert_rollup }}'},
+        disk_pressure:      {label: '{{ t.dashboard_widget_disk_pressure }}',        desc: '{{ t.dashboard_widget_desc_disk_pressure }}'},
+        container_restarts: {label: '{{ t.dashboard_widget_container_restarts }}',    desc: '{{ t.dashboard_widget_desc_container_restarts }}'},
+        query:              {label: '{{ t.dashboard_widget_query }}',                desc: '{{ t.dashboard_widget_desc_query }}'},
+        lab_grid:           {label: '{{ t.dashboard_widget_lab_grid }}',             desc: '{{ t.dashboard_widget_desc_lab_grid }}'}
     };
 
     function refreshPicker() {
