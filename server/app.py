@@ -1259,7 +1259,7 @@ def dashboard(request: Request, x_admin_secret: Optional[str] = Header(None)):
     # Also allow query param for browser access
     secret = x_admin_secret or request.query_params.get("secret")
     if secret != config.ADMIN_SECRET:
-        raise HTTPException(status_code=403, detail="Forbidden")
+        return RedirectResponse("/demo", status_code=302)
 
     labs = db.list_labs()
     lab_data = []
@@ -1289,7 +1289,7 @@ def dashboard(request: Request, x_admin_secret: Optional[str] = Header(None)):
 def dashboard_lab_detail(request: Request, lab_id: str, x_admin_secret: Optional[str] = Header(None)):
     secret = x_admin_secret or request.query_params.get("secret")
     if secret != config.ADMIN_SECRET:
-        raise HTTPException(status_code=403, detail="Forbidden")
+        return RedirectResponse("/demo", status_code=302)
 
     lab = db.get_lab(lab_id)
     if not lab:
