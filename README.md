@@ -2,6 +2,10 @@
 
 Smart monitoring for homelabs. A lightweight Go agent and intelligence server that understands your infrastructure.
 
+**[Live demo](https://labwatch.dev/demo)** | **[Website](https://labwatch.dev)** | **[Docs](https://labwatch.dev/docs)**
+
+![labwatch dashboard](screenshots/dashboard.png)
+
 ## What it does
 
 labwatch collects system metrics, Docker container status, and service health from every node in your homelab. It stores everything in SQLite, runs rule-based analysis, and generates plain-English intelligence digests about your infrastructure.
