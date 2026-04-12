@@ -384,6 +384,12 @@ def pricing_redirect():
     return RedirectResponse("/#pricing", status_code=302)
 
 
+@app.get("/compare")
+def compare_redirect():
+    # Compare lives as a section on the landing page.
+    return RedirectResponse("/#compare", status_code=301)
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "labwatch", "version": "0.1.0"}
@@ -2411,7 +2417,7 @@ def _detect_demo_lang(q: str) -> str:
     if _re.search(r"\b(?:comment|quel|montre|alerte|nœuds?|réseau|disque|température|combien|serveur)\b", q):
         return "fr"
     # Spanish markers
-    if _re.search(r"\b(?:cómo|cuál|cuántos?|muestra|alerta|nodo|disco|temperatura)\b", q):
+    if _re.search(r"\b(?:cómo|cuál|cuántos?|muestra|alerta|nodo|disco|temperatura|como\s+est[aá]|cual|cuantos?|estado\s+de|resumen|flota)\b", q):
         return "es"
     return "en"
 
@@ -2436,7 +2442,10 @@ def _demo_nlq_response(question: str) -> dict:
         if node_name.lower() in q:
             remaining = [w for w in q_meaningful if w != node_name.lower()]
             if not remaining or all(w in _DEMO_NOISE_WORDS for w in remaining):
-                return _DEMO_NODE_STATUS[node_name]
+                response = _DEMO_NODE_STATUS[node_name]
+                if lang != "en" and (node_name, lang) in _DEMO_RESPONSE_I18N:
+                    return {**response, "answer": _DEMO_RESPONSE_I18N[(node_name, lang)]}
+                return response
 
     # Check English patterns first
     for i, entry in enumerate(_DEMO_RESPONSES):

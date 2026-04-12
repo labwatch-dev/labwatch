@@ -1474,8 +1474,6 @@ body.edit-mode .widget-block.drop-after {
 {% if is_demo %}
 <div style="background: var(--accent-glow); border-bottom: 1px solid var(--accent); padding: 10px 24px; text-align: center; font-size: 14px; color: var(--accent);">
     {{ t.dashboard_demo_banner }} <a href="/#install" style="color: var(--text); text-decoration: underline;">{{ t.dashboard_demo_install }}</a>
-    <span style="margin-left: 14px; opacity: 0.8;">|</span>
-    <a href="/s/demo" target="_blank" style="color: var(--text); text-decoration: underline; margin-left: 14px;">{{ t.dashboard_demo_public_status }}</a>
 </div>
 {% endif %}
 <div class="container">
@@ -1700,7 +1698,7 @@ body.edit-mode .widget-block.drop-after {
                     <div class="lab-os">{% if lab.display_name %}{{ lab.hostname }} · {% endif %}{{ lab.os | default('Unknown OS') }} / {{ lab.arch | default('unknown') }}</div>
                 </div>
                 <button class="pin-star{% if pinned_ids is defined and lab.id in pinned_ids %} active{% endif %}" onclick="togglePin(event, '{{ lab.id }}')" title="Pin node">★</button>
-                <span class="lab-last-seen online" data-timestamp="{{ lab.last_seen }}">
+                <span class="lab-last-seen {{ 'online' if lab.online else 'offline' }}" data-timestamp="{{ lab.last_seen }}">
                     --
                 </span>
             </div>
