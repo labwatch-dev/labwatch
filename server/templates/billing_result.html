@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if outcome == "success" %}Upgrade successful{% else %}Checkout cancelled{% endif %} - labwatch{% endblock %}
+{% block title %}{% if outcome == "success" %}{{ t.billing_success_title if t and t.billing_success_title else 'Upgrade successful' }}{% else %}{{ t.billing_cancel_title if t and t.billing_cancel_title else 'Checkout cancelled' }}{% endif %} - labwatch{% endblock %}
 
 {% block extra_styles %}
 .billing-result {
@@ -59,27 +59,19 @@
 <div class="billing-result">
     {% if outcome == "success" %}
         <div class="badge success">+</div>
-        <h1>Thanks — your upgrade is being processed</h1>
-        <p>
-            Stripe has confirmed your payment. Your plan will be upgraded
-            within a few seconds once the webhook lands. If you don't see
-            the new limits on your dashboard, refresh in a moment.
-        </p>
+        <h1>{{ t.billing_success_heading if t and t.billing_success_heading else 'Thanks — your upgrade is being processed' }}</h1>
+        <p>{{ t.billing_success_desc if t and t.billing_success_desc else 'Stripe has confirmed your payment. Your plan will be upgraded within a few seconds once the webhook lands. If you don\'t see the new limits on your dashboard, refresh in a moment.' }}</p>
         <div class="actions">
-            <a href="/my/dashboard" class="btn btn-primary">Go to dashboard</a>
-            <a href="/support" class="btn btn-secondary">Need help?</a>
+            <a href="/my/dashboard" class="btn btn-primary">{{ t.billing_success_dashboard if t and t.billing_success_dashboard else 'Go to dashboard' }}</a>
+            <a href="/support" class="btn btn-secondary">{{ t.billing_success_help if t and t.billing_success_help else 'Need help?' }}</a>
         </div>
     {% else %}
         <div class="badge cancel">&times;</div>
-        <h1>Checkout cancelled</h1>
-        <p>
-            No charge was made. You can pick up where you left off any time
-            from your dashboard, or check the pricing page if you want to
-            compare plans.
-        </p>
+        <h1>{{ t.billing_cancel_heading if t and t.billing_cancel_heading else 'Checkout cancelled' }}</h1>
+        <p>{{ t.billing_cancel_desc if t and t.billing_cancel_desc else 'No charge was made. You can pick up where you left off any time from your dashboard, or check the pricing page if you want to compare plans.' }}</p>
         <div class="actions">
-            <a href="/my/dashboard" class="btn btn-primary">Back to dashboard</a>
-            <a href="/#pricing" class="btn btn-secondary">See pricing</a>
+            <a href="/my/dashboard" class="btn btn-primary">{{ t.billing_cancel_dashboard if t and t.billing_cancel_dashboard else 'Back to dashboard' }}</a>
+            <a href="/#pricing" class="btn btn-secondary">{{ t.billing_cancel_pricing if t and t.billing_cancel_pricing else 'See pricing' }}</a>
         </div>
     {% endif %}
 </div>

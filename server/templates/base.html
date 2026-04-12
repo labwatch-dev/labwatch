@@ -912,8 +912,8 @@
                         <div class="account-dropdown-divider"></div>
                         <a href="/my/dashboard" class="account-dropdown-item">{{ t.nav_dashboard if t else 'Dashboard' }}</a>
                         <a href="/my/add-node" class="account-dropdown-item">{{ t.nav_add_node if t else '+ Add Node' }}</a>
-                        <a href="/my/notifications" class="account-dropdown-item">Notifications</a>
-                        <a href="/my/alerts" class="account-dropdown-item">Alert Rules</a>
+                        <a href="/my/notifications" class="account-dropdown-item">{{ t.nav_notifications if t and t.nav_notifications else "Notifications" }}</a>
+                        <a href="/my/alerts" class="account-dropdown-item">{{ t.nav_alert_rules if t and t.nav_alert_rules else "Alert Rules" }}</a>
                         <a href="/set-password" class="account-dropdown-item">{{ t.nav_account_settings if t else 'Account Settings' }}</a>
                         <div class="account-dropdown-divider"></div>
                         <a href="/logout" class="account-dropdown-item account-dropdown-logout">{{ t.nav_logout if t else 'Log out' }}</a>
