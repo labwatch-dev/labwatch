@@ -407,5 +407,13 @@
   "notif_saved": "Gespeichert.",
   "notif_test_sending": "Test wird gesendet...",
   "notif_test_ok": "Test gesendet",
-  "notif_test_fail": "Test FEHLGESCHLAGEN"
+  "notif_test_fail": "Test FEHLGESCHLAGEN",
+  "signup_step1_title": "auf einer beliebigen Linux-Maschine einfügen — installiert + startet den Agent",
+  "signup_loading": "Laden…",
+  "signup_copy_hint": "↑ Klicke irgendwo auf den Befehl zum Kopieren",
+  "signup_link_expires": "Der Link läuft nach 15 Minuten ab — komm einfach zurück, wir generieren einen neuen.",
+  "add_node_onecommand": "Ein-Befehl-Installation",
+  "add_node_recommended": "(empfohlen, läuft in 15 Min. ab)",
+  "add_node_onecommand_desc": "Lädt den Agent herunter, schreibt config.yaml mit deinen Zugangsdaten und startet den Dienst. Kein Token einfügen nötig.",
+  "add_node_manual": "Oder manuell einrichten (3 Schritte)"
 }
