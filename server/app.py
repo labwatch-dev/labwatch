@@ -1839,7 +1839,7 @@ _DEMO_I18N_PATTERNS = [
     (r"(?:contenedor|docker)", 3),  # ES
     (r"(?:контейнер|докер)", 3),  # UK
     # Temperature (index 4)
-    (r"(?:temperatur|hitze|heiß|thermal|überhitz)", 4),  # DE
+    (r"(?:temperatur|hitze|hei[sß]{1,2}|thermal|überhitz)", 4),  # DE
     (r"(?:température|chaud|thermique|surchauffe)", 4),  # FR
     (r"(?:temperatura|caliente|térmico|sobrecalent)", 4),  # ES
     (r"(?:температур|гаряч|перегрів)", 4),  # UK
@@ -1847,7 +1847,7 @@ _DEMO_I18N_PATTERNS = [
     (r"(?:aufmerksamkeit|was (?:stimmt nicht|ist (?:kaputt|falsch))|probleme)", 5),  # DE
     (r"(?:attention|qu.est.ce qui (?:ne va pas|cloche)|problème)", 5),  # FR
     (r"(?:atención|qué (?:está mal|pasa)|problema)", 5),  # ES
-    (r"(?:увага|що не так|проблем)", 5),  # UK
+    (r"(?:уваг[аиі]|потребує|що не так|проблем)", 5),  # UK
     # Comparative (index 6)
     (r"(?:welch|höchst|meiste|niedrigst|vergleich).+(?:cpu|speicher|ram|disk|last)", 6),  # DE
     (r"(?:quel|plus|moins|comparer).+(?:cpu|mémoire|ram|disque|charge)", 6),  # FR
