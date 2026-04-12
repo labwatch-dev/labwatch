@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Alerts — labwatch{% endblock %}
+{% block title %}{{ t.alerts_title if t and t.alerts_title else "Alerts" }} — labwatch{% endblock %}
 
 {% block extra_styles %}
 .alerts-page {
@@ -158,33 +158,33 @@
 
 {% block content %}
 <div class="alerts-page">
-    <h1>Alert Rules</h1>
-    <p class="subtitle">Describe the alert you want in plain English. We'll parse it, show you the generated rule, and apply it when you confirm. <b>No YAML, no forms.</b></p>
+    <h1>{{ t.alerts_heading if t and t.alerts_heading else "Alert Rules" }}</h1>
+    <p class="subtitle">{{ t.alerts_subtitle if t and t.alerts_subtitle else "Describe the alert you want in plain English. We'll parse it, show you the generated rule, and apply it when you confirm." }} <b>{{ t.alerts_no_yaml if t and t.alerts_no_yaml else "No YAML, no forms." }}</b></p>
 
     <div class="nl-box">
-        <label for="nl-input">Describe your alert</label>
-        <textarea id="nl-input" placeholder="e.g. alert me when any lab's disk fills past 85%"></textarea>
+        <label for="nl-input">{{ t.alerts_describe if t and t.alerts_describe else "Describe your alert" }}</label>
+        <textarea id="nl-input" placeholder="{{ t.alerts_placeholder if t and t.alerts_placeholder else 'e.g. alert me when any lab\'s disk fills past 85%' }}"></textarea>
 
         <div class="nl-examples">
-            <div class="nl-example" onclick="useExample(this)">alert me when CPU goes above 90%</div>
-            <div class="nl-example" onclick="useExample(this)">critical alert when memory hits 95</div>
-            <div class="nl-example" onclick="useExample(this)">warn me when disk fills past 85%</div>
-            <div class="nl-example" onclick="useExample(this)">alert me if GPU temperature exceeds 80C</div>
-            <div class="nl-example" onclick="useExample(this)">notify me when load average is above 10</div>
+            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_cpu if t and t.alerts_chip_cpu else "alert me when CPU goes above 90%" }}</div>
+            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_mem if t and t.alerts_chip_mem else "critical alert when memory hits 95" }}</div>
+            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_disk if t and t.alerts_chip_disk else "warn me when disk fills past 85%" }}</div>
+            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_gpu if t and t.alerts_chip_gpu else "alert me if GPU temperature exceeds 80C" }}</div>
+            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_load if t and t.alerts_chip_load else "notify me when load average is above 10" }}</div>
         </div>
 
         <div class="nl-buttons">
-            <button type="button" onclick="generate()">Preview rule</button>
-            <button type="button" class="btn-primary" id="apply-btn" onclick="apply()" disabled>Apply rule</button>
+            <button type="button" onclick="generate()">{{ t.alerts_preview if t and t.alerts_preview else "Preview rule" }}</button>
+            <button type="button" class="btn-primary" id="apply-btn" onclick="apply()" disabled>{{ t.alerts_apply if t and t.alerts_apply else "Apply rule" }}</button>
         </div>
 
         <div class="preview" id="preview"></div>
     </div>
 
     <div class="current-panel">
-        <h2>Current thresholds</h2>
+        <h2>{{ t.alerts_current if t and t.alerts_current else "Current thresholds" }}</h2>
         <div id="current-list"></div>
-        <p class="hint" style="color:var(--text-muted);font-size:11px;margin-top:12px;font-family:var(--font-mono);">Green = customized by you. Applying a rule updates the matching threshold here.</p>
+        <p class="hint" style="color:var(--text-muted);font-size:11px;margin-top:12px;font-family:var(--font-mono);">{{ t.alerts_hint if t and t.alerts_hint else "Green = customized by you. Applying a rule updates the matching threshold here." }}</p>
     </div>
 </div>
 
