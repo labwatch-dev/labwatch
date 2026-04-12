@@ -889,7 +889,6 @@
                 {% endif %}
                 <li><a href="/docs" {% if active_page == 'docs' %}class="active"{% endif %}>{{ t.nav_docs if t else 'Docs' }}</a></li>
                 {% if not user_email %}
-                {# github link hidden until repo is public — preflight 2026-04-10 #}
                 <li><a href="/#compare">{{ t.nav_compare if t else 'Compare' }}</a></li>
                 <li><a href="/#pricing" {% if active_page == 'pricing' %}class="active"{% endif %}>{{ t.nav_pricing if t else 'Pricing' }}</a></li>
                 {% endif %}
