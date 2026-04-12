@@ -1684,7 +1684,7 @@ body.edit-mode .widget-block.drop-after {
     <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
     {% if labs | length > 1 %}
     <div class="lab-search-row">
-        <input type="search" id="lab-search" class="lab-search-input" placeholder="Filter labs by hostname or OS…  ( press / )" autocomplete="off" oninput="filterLabs(this.value)">
+        <input type="search" id="lab-search" class="lab-search-input" placeholder="{{ t.dashboard_search_placeholder if t and t.dashboard_search_placeholder else 'Filter labs by hostname or OS…  ( press / )' }}" autocomplete="off" oninput="filterLabs(this.value)">
         <span class="lab-search-count" id="lab-search-count"></span>
     </div>
     {% endif %}

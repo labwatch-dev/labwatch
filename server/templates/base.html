@@ -1067,15 +1067,15 @@
         }
 
         var _notifLabels = {
-            cpu_high: 'CPU high',
-            memory_high: 'Memory high',
-            memory_critical: 'Memory critical',
-            disk_high: 'Disk high',
-            disk_critical: 'Disk critical',
-            gpu_high: 'GPU high',
-            gpu_temp_high: 'GPU temp',
-            container_restarts: 'Container restarts',
-            service_down: 'Service down'
+            cpu_high: '{{ t.notif_label_cpu_high if t and t.notif_label_cpu_high else "CPU high" }}',
+            memory_high: '{{ t.notif_label_mem_high if t and t.notif_label_mem_high else "Memory high" }}',
+            memory_critical: '{{ t.notif_label_mem_crit if t and t.notif_label_mem_crit else "Memory critical" }}',
+            disk_high: '{{ t.notif_label_disk_high if t and t.notif_label_disk_high else "Disk high" }}',
+            disk_critical: '{{ t.notif_label_disk_crit if t and t.notif_label_disk_crit else "Disk critical" }}',
+            gpu_high: '{{ t.notif_label_gpu_high if t and t.notif_label_gpu_high else "GPU high" }}',
+            gpu_temp_high: '{{ t.notif_label_gpu_temp if t and t.notif_label_gpu_temp else "GPU temp" }}',
+            container_restarts: '{{ t.notif_label_container_restarts if t and t.notif_label_container_restarts else "Container restarts" }}',
+            service_down: '{{ t.notif_label_service_down if t and t.notif_label_service_down else "Service down" }}'
         };
 
         function loadNotifPrefs() {

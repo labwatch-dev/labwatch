@@ -415,5 +415,20 @@
   "add_node_onecommand": "Instalación con un comando",
   "add_node_recommended": "(recomendado, expira en 15 min)",
   "add_node_onecommand_desc": "Descarga el agente, escribe config.yaml con tus credenciales e inicia el servicio. Sin pegar tokens.",
-  "add_node_manual": "O instalar manualmente (3 pasos)"
+  "add_node_manual": "O instalar manualmente (3 pasos)",
+  "lab_gpu_util": "Utilización",
+  "lab_gpu_temp": "Temperatura",
+  "lab_smart_poweron": "Encendido",
+  "notif_apprise_desc": "más de 100 servicios",
+  "notif_generic_webhook": "Webhook genérico",
+  "notif_label_cpu_high": "CPU alto",
+  "notif_label_mem_high": "Memoria alta",
+  "notif_label_mem_crit": "Memoria crítica",
+  "notif_label_disk_high": "Disco alto",
+  "notif_label_disk_crit": "Disco crítico",
+  "notif_label_gpu_high": "GPU alto",
+  "notif_label_gpu_temp": "Temp GPU",
+  "notif_label_container_restarts": "Reinicios de contenedores",
+  "notif_label_service_down": "Servicio caído",
+  "dashboard_search_placeholder": "Filtrar labs por hostname u OS…  ( pulsa / )"
 }
