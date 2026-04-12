@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Notifications — labwatch{% endblock %}
+{% block title %}{{ t.notif_title if t and t.notif_title else "Notifications" }} — labwatch{% endblock %}
 
 {% block extra_styles %}
 .notif-page {
@@ -212,25 +212,25 @@
 
 {% block content %}
 <div class="notif-page">
-    <h1>Notifications</h1>
-    <p class="subtitle">Add a channel to get notified when something breaks in your lab. Every channel has a <b>Test</b> button so you know it actually works before you rely on it.</p>
+    <h1>{{ t.notif_heading if t and t.notif_heading else "Notifications" }}</h1>
+    <p class="subtitle">{{ t.notif_subtitle if t and t.notif_subtitle else "Add a channel to get notified when something breaks in your lab. Supports ntfy, Discord, Slack, Telegram, Gotify, Pushover, Apprise, and generic webhooks." }}</p>
 
     <div class="notif-list" id="notif-list">
-        <div class="empty" id="notif-empty">Loading channels&hellip;</div>
+        <div class="empty" id="notif-empty">{{ t.notif_loading if t and t.notif_loading else "Loading channels&hellip;" }}</div>
     </div>
 
     <div class="add-panel">
-        <h2>+ Add channel</h2>
-        <p class="hint">Pick a provider, fill in the details, click <b>Save &amp; test</b>.</p>
+        <h2>{{ t.notif_add_channel if t and t.notif_add_channel else "+ Add channel" }}</h2>
+        <p class="hint">{{ t.notif_add_hint if t and t.notif_add_hint else "Pick a provider, fill in the details, click Save & test." }}</p>
 
         <form class="add-form" id="add-form" onsubmit="return false;">
             <div class="field-row">
                 <div>
-                    <label for="nc-name">Name</label>
-                    <input type="text" id="nc-name" placeholder="e.g. my phone (ntfy)" required>
+                    <label for="nc-name">{{ t.notif_name if t and t.notif_name else "Name" }}</label>
+                    <input type="text" id="nc-name" placeholder="{{ t.notif_name_placeholder if t and t.notif_name_placeholder else 'e.g. my phone (ntfy)' }}" required>
                 </div>
                 <div>
-                    <label for="nc-type">Provider</label>
+                    <label for="nc-type">{{ t.notif_provider if t and t.notif_provider else "Provider" }}</label>
                     <select id="nc-type" onchange="renderConfigFields()">
                         <option value="ntfy">ntfy</option>
                         <option value="discord">Discord</option>
@@ -245,11 +245,11 @@
             </div>
 
             <div>
-                <label for="nc-severity">Minimum severity</label>
+                <label for="nc-severity">{{ t.notif_severity if t and t.notif_severity else "Minimum severity" }}</label>
                 <select id="nc-severity">
-                    <option value="info">info (all alerts)</option>
-                    <option value="warning" selected>warning (and above)</option>
-                    <option value="critical">critical only</option>
+                    <option value="info">{{ t.notif_severity_info if t and t.notif_severity_info else "info (all alerts)" }}</option>
+                    <option value="warning" selected>{{ t.notif_severity_warn if t and t.notif_severity_warn else "warning (and above)" }}</option>
+                    <option value="critical">{{ t.notif_severity_crit if t and t.notif_severity_crit else "critical only" }}</option>
                 </select>
             </div>
 
@@ -258,8 +258,8 @@
             </div>
 
             <div class="btn-row">
-                <button type="button" class="btn-primary" onclick="saveChannel()">Save channel</button>
-                <button type="button" onclick="testInline()">Test without saving</button>
+                <button type="button" class="btn-primary" onclick="saveChannel()">{{ t.notif_save if t and t.notif_save else "Save channel" }}</button>
+                <button type="button" onclick="testInline()">{{ t.notif_test if t and t.notif_test else "Test without saving" }}</button>
             </div>
 
             <div class="result-line" id="add-result"></div>
