@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if outcome == "success" %}{{ t.billing_success_title if t and t.billing_success_title else 'Upgrade successful' }}{% else %}{{ t.billing_cancel_title if t and t.billing_cancel_title else 'Checkout cancelled' }}{% endif %} - labwatch{% endblock %}
+{% block title %}{% if outcome == "success" %}{{ t.billing_success_title if t and t.billing_success_title else 'Upgrade successful' }}{% else %}{{ t.billing_cancel_title if t and t.billing_cancel_title else 'Checkout cancelled' }}{% endif %}{% endblock %}
 
 {% block extra_styles %}
 .billing-result {

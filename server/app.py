@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import Depends, FastAPI, Form, Header, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
@@ -38,6 +39,7 @@ app = FastAPI(
 )
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
 
 
 def _md_bold(text: str) -> str:
