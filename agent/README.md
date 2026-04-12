@@ -7,9 +7,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/labwatch/agent/releases"><img src="https://img.shields.io/github/v/release/labwatch/agent?style=flat-square" alt="Release"></a>
-  <a href="https://github.com/labwatch/agent/actions"><img src="https://img.shields.io/github/actions/workflow/status/labwatch/agent/build.yml?style=flat-square" alt="Build"></a>
-  <a href="https://goreportcard.com/report/github.com/labwatch/agent"><img src="https://goreportcard.com/badge/github.com/labwatch/agent?style=flat-square" alt="Go Report"></a>
+  <a href="https://github.com/labwatch-dev/labwatch/releases"><img src="https://img.shields.io/github/v/release/labwatch-dev/labwatch?style=flat-square" alt="Release"></a>
+  <a href="https://github.com/labwatch-dev/labwatch/actions"><img src="https://img.shields.io/github/actions/workflow/status/labwatch-dev/labwatch/build.yml?style=flat-square" alt="Build"></a>
+  <a href="https://goreportcard.com/report/github.com/labwatch-dev/labwatch"><img src="https://goreportcard.com/badge/github.com/labwatch-dev/labwatch?style=flat-square" alt="Go Report"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://labwatch.dev"><img src="https://img.shields.io/badge/docs-labwatch.dev-blue?style=flat-square" alt="Docs"></a>
 </p>
@@ -188,7 +188,7 @@ To disable Docker monitoring entirely, set `docker.enabled: false`.
 Requirements: Go 1.25 or later.
 
 ```bash
-git clone https://github.com/labwatch/agent.git
+git clone https://github.com/labwatch-dev/labwatch.git
 cd agent
 
 # Build
@@ -277,7 +277,7 @@ Contributions are welcome. If you have an idea for a new collector, a bug fix, o
 
 ```bash
 # Clone and build
-git clone https://github.com/labwatch/agent.git
+git clone https://github.com/labwatch-dev/labwatch.git
 cd agent
 go build ./cmd/labwatch
 
@@ -317,5 +317,5 @@ MIT License. See [LICENSE](LICENSE) for details.
 <p align="center">
   <a href="https://labwatch.dev">Website</a> &middot;
   <a href="https://labwatch.dev/docs">Docs</a> &middot;
-  <a href="https://github.com/labwatch/agent/issues">Issues</a>
+  <a href="https://github.com/labwatch-dev/labwatch/issues">Issues</a>
 </p>

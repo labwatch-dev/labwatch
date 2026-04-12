@@ -1,4 +1,4 @@
-module github.com/zazastation/labwatch
+module github.com/labwatch-dev/labwatch
 
 go 1.25.0
 

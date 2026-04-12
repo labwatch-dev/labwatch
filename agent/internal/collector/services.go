@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zazastation/labwatch/internal/config"
+	"github.com/labwatch-dev/labwatch/internal/config"
 )
 
 // ServiceMetrics contains service health check results.

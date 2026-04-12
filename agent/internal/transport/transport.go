@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/zazastation/labwatch/internal/config"
+	"github.com/labwatch-dev/labwatch/internal/config"
 )
 
 // Payload is the data sent to the API on each collection interval.

@@ -29,7 +29,7 @@ Two commands to go from zero to monitoring:
 ### 1. Start the server
 
 ```bash
-git clone https://github.com/zazastation/labwatch.git && cd labwatch
+git clone https://github.com/labwatch-dev/labwatch.git && cd labwatch
 ADMIN_SECRET=$(openssl rand -hex 24) docker compose up -d
 ```
 
