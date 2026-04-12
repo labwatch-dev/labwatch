@@ -1277,27 +1277,32 @@ def demo_lab_history(request: Request, lab_id: str):
 
     detail = _DEMO_LAB_DETAILS.get(lab_id)
     if not detail:
-        return []
+        return {"timestamps": [], "cpu": [], "memory": [], "disk": [], "load": []}
 
     now = datetime.utcnow()
     hours = int(request.query_params.get("hours", "24"))
     hours = max(1, min(hours, 168))
     points = min(hours * 6, 144)  # ~10min intervals, max 144 points
 
-    history = []
+    timestamps, cpu_data, memory_data, disk_data, load_data = [], [], [], [], []
+    net_rx_data, net_tx_data = [], []
     for i in range(points):
         t = now - timedelta(minutes=(points - i) * (hours * 60 / points))
         phase = i / points * math.pi * 4
         cpu_base = detail["_cpu"] or 15
         mem_base = detail["_mem"] or 40
-        history.append({
-            "timestamp": t.isoformat(),
-            "cpu_percent": round(max(0, cpu_base + 8 * math.sin(phase) + random.uniform(-2, 2)), 1),
-            "memory_percent": round(max(0, mem_base + 3 * math.sin(phase * 0.5) + random.uniform(-1, 1)), 1),
-            "disk_percent": detail["_disk"],
-            "load_1m": round(max(0, (detail["_load"] or 0.5) + 0.3 * math.sin(phase) + random.uniform(-0.1, 0.1)), 2),
-        })
-    return history
+        timestamps.append(t.isoformat())
+        cpu_data.append(round(max(0, cpu_base + 8 * math.sin(phase) + random.uniform(-2, 2)), 1))
+        memory_data.append(round(max(0, mem_base + 3 * math.sin(phase * 0.5) + random.uniform(-1, 1)), 1))
+        disk_data.append(detail["_disk"])
+        load_data.append(round(max(0, (detail["_load"] or 0.5) + 0.3 * math.sin(phase) + random.uniform(-0.1, 0.1)), 2))
+        net_rx_data.append(round(random.uniform(0.5, 15.0), 2))
+        net_tx_data.append(round(random.uniform(0.1, 5.0), 2))
+    return {
+        "timestamps": timestamps, "cpu": cpu_data, "memory": memory_data,
+        "disk": disk_data, "load": load_data,
+        "net_rx": net_rx_data, "net_tx": net_tx_data,
+    }
 
 
 # ---------------------------------------------------------------------------
