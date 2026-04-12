@@ -1248,6 +1248,8 @@ def demo_lab_detail(request: Request, lab_id: str):
         "memory_total_gb": 32.0, "memory_used_gb": 32.0 * detail["_mem"] / 100,
         "disk_total_gb": 500.0, "disk_used_gb": 500.0 * detail["_disk"] / 100,
         "uptime_seconds": 604800, "net_rx_rate": "12.4 MB/s", "net_tx_rate": "3.1 MB/s",
+        "net_rx_mbps": 99.2, "net_tx_mbps": 24.8,
+        "load_average": f"{detail['_load']:.2f} / {detail['_load'] * 0.9:.2f} / {detail['_load'] * 0.8:.2f}",
     }
     docker = {
         "container_count": len(detail["_containers"]),
