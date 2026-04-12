@@ -362,6 +362,11 @@ def api_docs(request: Request):
     return templates.TemplateResponse("docs.html", _tpl_context(request, active_page="docs"))
 
 
+@app.get("/about", response_class=HTMLResponse)
+def about_page(request: Request):
+    return templates.TemplateResponse("about.html", _tpl_context(request, active_page="about"))
+
+
 @app.get("/support", response_class=HTMLResponse)
 def support_page(request: Request):
     return templates.TemplateResponse("support.html", _tpl_context(request, active_page="support"))

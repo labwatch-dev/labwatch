@@ -894,6 +894,7 @@
                 <li><a href="/#pricing" {% if active_page == 'pricing' %}class="active"{% endif %}>{{ t.nav_pricing if t else 'Pricing' }}</a></li>
                 {% endif %}
                 <li><a href="/support" {% if active_page == 'support' %}class="active"{% endif %}>{{ t.nav_support if t else 'Support' }}</a></li>
+                <li><a href="/about" {% if active_page == 'about' %}class="active"{% endif %}>{{ t.about_title if t and t.about_title else 'About' }}</a></li>
                 {% if user_email %}
                 <li class="account-menu-wrap" style="position:relative;">
                     <button class="account-toggle" onclick="toggleAccountMenu(event)">
@@ -984,7 +985,7 @@
                 <a href="/docs">{{ t.nav_docs if t else 'Docs' }}</a>
                 <a href="/self-hosted">{{ t.footer_self_hosted if t else 'Self-Hosted' }}</a>
                 <a href="/support">{{ t.nav_support if t else 'Support' }}</a>
-                {# github link hidden until repo is public — preflight 2026-04-10 #}
+                <a href="/about">{{ t.about_title if t and t.about_title else 'About' }}</a>
             </nav>
             <div>{{ t.footer_copyright if t else '&copy; 2026 labwatch. All rights reserved.' }}</div>
         </div>

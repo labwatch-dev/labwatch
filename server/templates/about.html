@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.about_title if t and t.about_title else 'About' }} - labwatch{% endblock %}
+
+{% block extra_styles %}
+.about-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+}
+
+.about-page h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+
+.about-page .subtitle {
+    color: var(--text-dim);
+    font-size: 16px;
+    margin-bottom: 48px;
+}
+
+.about-section {
+    margin-bottom: 48px;
+}
+
+.about-section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text);
+}
+
+.about-section p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+
+.about-section a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.about-section a:hover {
+    text-decoration: underline;
+}
+
+.stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.stack-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.stack-item .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.stack-item .value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: var(--font-mono);
+}
+
+.about-cta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+
+.about-cta a {
+    display: inline-block;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: opacity 0.15s;
+}
+
+.about-cta a:hover {
+    opacity: 0.85;
+    text-decoration: none;
+}
+
+.about-cta .btn-primary {
+    background: var(--accent);
+    color: #0a0a0f;
+}
+
+.about-cta .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text);
+}
+{% endblock %}
+
+{% block content %}
+<div class="about-page">
+    <h1>{{ t.about_title if t and t.about_title else 'About labwatch' }}</h1>
+    <p class="subtitle">{{ t.about_subtitle if t and t.about_subtitle else 'Open-source monitoring built for homelabs' }}</p>
+
+    <div class="about-section">
+        <h2>{{ t.about_what_title if t and t.about_what_title else 'What is labwatch?' }}</h2>
+        <p>{{ t.about_what_p1 if t and t.about_what_p1 else 'labwatch is a lightweight monitoring tool designed specifically for homelab infrastructure. A single Go binary agent runs on each node and reports CPU, memory, disk, network, and container metrics to a central server. The dashboard gives you a real-time view of your entire lab from one place.' }}</p>
+        <p>{{ t.about_what_p2 if t and t.about_what_p2 else 'Unlike enterprise monitoring platforms that require extensive setup and configuration, labwatch is designed to work out of the box. Install the agent, point it at your server, and you have monitoring in under a minute.' }}</p>
+    </div>
+
+    <div class="about-section">
+        <h2>{{ t.about_who_title if t and t.about_who_title else 'Who is it for?' }}</h2>
+        <p>{{ t.about_who_p1 if t and t.about_who_p1 else 'Anyone running a homelab. Whether you have a single Raspberry Pi or a full Proxmox cluster with a dozen nodes, labwatch scales to your setup. It is particularly useful for:' }}</p>
+        <p>
+            &bull; {{ t.about_who_b1 if t and t.about_who_b1 else 'Proxmox and hypervisor operators who want per-node and per-container visibility' }}<br>
+            &bull; {{ t.about_who_b2 if t and t.about_who_b2 else 'Docker self-hosters who want to track container health alongside host metrics' }}<br>
+            &bull; {{ t.about_who_b3 if t and t.about_who_b3 else 'Anyone who wants a simpler alternative to Prometheus + Grafana for small deployments' }}
+        </p>
+    </div>
+
+    <div class="about-section">
+        <h2>{{ t.about_stack_title if t and t.about_stack_title else 'Tech stack' }}</h2>
+        <p>{{ t.about_stack_desc if t and t.about_stack_desc else 'labwatch is built with simplicity in mind. No external databases, no message queues, no container orchestration required.' }}</p>
+        <div class="stack-grid">
+            <div class="stack-item">
+                <div class="label">{{ t.about_stack_agent if t and t.about_stack_agent else 'Agent' }}</div>
+                <div class="value">Go</div>
+            </div>
+            <div class="stack-item">
+                <div class="label">{{ t.about_stack_server if t and t.about_stack_server else 'Server' }}</div>
+                <div class="value">Python / FastAPI</div>
+            </div>
+            <div class="stack-item">
+                <div class="label">{{ t.about_stack_database if t and t.about_stack_database else 'Database' }}</div>
+                <div class="value">SQLite</div>
+            </div>
+            <div class="stack-item">
+                <div class="label">{{ t.about_stack_frontend if t and t.about_stack_frontend else 'Frontend' }}</div>
+                <div class="value">Vanilla JS</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="about-section">
+        <h2>{{ t.about_oss_title if t and t.about_oss_title else 'Open source' }}</h2>
+        <p>{{ t.about_oss_p1 if t and t.about_oss_p1 else 'labwatch is open source. The server is licensed under AGPL-3.0 and the agent under MIT. You can self-host the entire stack or use the hosted version at labwatch.dev.' }}</p>
+        <div class="about-cta">
+            <a href="/docs" class="btn-primary">{{ t.nav_docs if t else 'Docs' }}</a>
+            <a href="/self-hosted" class="btn-outline">{{ t.footer_self_hosted if t else 'Self-Hosted' }}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
