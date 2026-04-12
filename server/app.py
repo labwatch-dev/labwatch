@@ -1799,6 +1799,474 @@ _DEMO_NODE_STATUS = {
 }
 
 
+
+
+# Translated demo responses keyed by (response_index_or_node_name, lang)
+_DEMO_RESPONSE_I18N: dict[tuple, str] = {
+    # ── Fleet overview (index 0) ──
+    (0, "de"): (
+        "Fleet-Übersicht — 4 Nodes, 3 online, 1 offline\n"
+        "\n"
+        "  pve-main: ▲ online — CPU 23.4%, Speicher 61.2%, Disk 44.8%\n"
+        "  docker-host: ▲ online — CPU 8.1%, Speicher 38.7%, Disk 29.3%\n"
+        "  nas-storage: ▲ online — CPU 4.2%, Speicher 72.8%, Disk 78.1% ⚠\n"
+        "  gpu-server: ▼ OFFLINE seit 3h\n"
+        "\n"
+        "Gesamt: 2 aktive Warnungen, 2 kritische Alarme. 34 Container laufen."
+    ),
+    (0, "fr"): (
+        "Aperçu de la flotte — 4 nœuds, 3 en ligne, 1 hors ligne\n"
+        "\n"
+        "  pve-main: ▲ en ligne — CPU 23.4%, Mémoire 61.2%, Disque 44.8%\n"
+        "  docker-host: ▲ en ligne — CPU 8.1%, Mémoire 38.7%, Disque 29.3%\n"
+        "  nas-storage: ▲ en ligne — CPU 4.2%, Mémoire 72.8%, Disque 78.1% ⚠\n"
+        "  gpu-server: ▼ HORS LIGNE depuis 3h\n"
+        "\n"
+        "Total: 2 avertissements actifs, 2 alertes critiques. 34 conteneurs en cours."
+    ),
+    (0, "es"): (
+        "Resumen de la flota — 4 nodos, 3 en línea, 1 fuera de línea\n"
+        "\n"
+        "  pve-main: ▲ en línea — CPU 23.4%, Memoria 61.2%, Disco 44.8%\n"
+        "  docker-host: ▲ en línea — CPU 8.1%, Memoria 38.7%, Disco 29.3%\n"
+        "  nas-storage: ▲ en línea — CPU 4.2%, Memoria 72.8%, Disco 78.1% ⚠\n"
+        "  gpu-server: ▼ FUERA DE LÍNEA hace 3h\n"
+        "\n"
+        "Total: 2 advertencias activas, 2 alertas críticas. 34 contenedores ejecutándose."
+    ),
+    (0, "uk"): (
+        "Огляд флоту — 4 вузли, 3 онлайн, 1 офлайн\n"
+        "\n"
+        "  pve-main: ▲ онлайн — CPU 23.4%, Пам'ять 61.2%, Диск 44.8%\n"
+        "  docker-host: ▲ онлайн — CPU 8.1%, Пам'ять 38.7%, Диск 29.3%\n"
+        "  nas-storage: ▲ онлайн — CPU 4.2%, Пам'ять 72.8%, Диск 78.1% ⚠\n"
+        "  gpu-server: ▼ ОФЛАЙН 3 год тому\n"
+        "\n"
+        "Всього: 2 активні попередження, 2 критичні сповіщення. 34 контейнери працюють."
+    ),
+    # ── Diagnostic (index 1) ──
+    (1, "de"): (
+        "Diagnostik für nas-storage — 2 aktive Probleme gefunden.\n"
+        "\n"
+        "1. Hoher Load Average: 3.21 (bei 4 Kernen = 80% gesättigt)\n"
+        "   Ursache: Wahrscheinlich I/O-gebundene Last — Disk bei 78.1%\n"
+        "\n"
+        "2. Disk-Warnung: /mnt/data bei 78.1%\n"
+        "   Empfehlung: Alte Backups bereinigen oder Speicher erweitern\n"
+        "\n"
+        "gpu-server ist OFFLINE seit 3h — getrennte Untersuchung nötig."
+    ),
+    (1, "fr"): (
+        "Diagnostic de nas-storage — 2 problèmes actifs trouvés.\n"
+        "\n"
+        "1. Charge élevée: 3.21 (4 cœurs = 80% saturé)\n"
+        "   Cause probable: charge liée aux E/S — disque à 78.1%\n"
+        "\n"
+        "2. Avertissement disque: /mnt/data à 78.1%\n"
+        "   Recommandation: nettoyer les anciennes sauvegardes ou étendre le stockage\n"
+        "\n"
+        "gpu-server est HORS LIGNE depuis 3h — investigation séparée nécessaire."
+    ),
+    (1, "es"): (
+        "Diagnóstico de nas-storage — 2 problemas activos encontrados.\n"
+        "\n"
+        "1. Carga alta: 3.21 (4 núcleos = 80% saturado)\n"
+        "   Causa: Probable carga de E/S — disco al 78.1%\n"
+        "\n"
+        "2. Advertencia de disco: /mnt/data al 78.1%\n"
+        "   Recomendación: limpiar backups antiguos o ampliar almacenamiento\n"
+        "\n"
+        "gpu-server FUERA DE LÍNEA hace 3h — requiere investigación separada."
+    ),
+    (1, "uk"): (
+        "Діагностика nas-storage — знайдено 2 активні проблеми.\n"
+        "\n"
+        "1. Високе навантаження: 3.21 (4 ядра = 80% насичення)\n"
+        "   Причина: Ймовірно навантаження вводу/виводу — диск на 78.1%\n"
+        "\n"
+        "2. Попередження диску: /mnt/data на 78.1%\n"
+        "   Рекомендація: очистити старі бекапи або розширити сховище\n"
+        "\n"
+        "gpu-server ОФЛАЙН 3 год — потребує окремого розслідування."
+    ),
+    # ── Alerts (index 2) ──
+    (2, "de"): (
+        "4 aktive Alarme auf 2 Nodes:\n"
+        "\n"
+        "  [KRITISCH] gpu-server offline — keine Metriken seit 3h\n"
+        "  [KRITISCH] nas-storage Load Average 3.21 überschreitet Schwellwert 3.0\n"
+        "  [WARNUNG] nas-storage Disk bei 78.1% — überschreitet 75%\n"
+        "  [WARNUNG] pve-main Speicher bei 61.2% — steigender Trend\n"
+        "\n"
+        "2 kritisch, 2 Warnungen. gpu-server braucht sofortige Aufmerksamkeit."
+    ),
+    (2, "fr"): (
+        "4 alertes actives sur 2 nœuds :\n"
+        "\n"
+        "  [CRITIQUE] gpu-server hors ligne — pas de métriques depuis 3h\n"
+        "  [CRITIQUE] nas-storage charge 3.21 dépasse le seuil de 3.0\n"
+        "  [AVERTISSEMENT] nas-storage disque à 78.1% — dépasse 75%\n"
+        "  [AVERTISSEMENT] pve-main mémoire à 61.2% — tendance à la hausse\n"
+        "\n"
+        "2 critiques, 2 avertissements. gpu-server nécessite une attention immédiate."
+    ),
+    (2, "es"): (
+        "4 alertas activas en 2 nodos:\n"
+        "\n"
+        "  [CRÍTICO] gpu-server fuera de línea — sin métricas hace 3h\n"
+        "  [CRÍTICO] nas-storage carga 3.21 supera umbral de 3.0\n"
+        "  [ADVERTENCIA] nas-storage disco al 78.1% — supera 75%\n"
+        "  [ADVERTENCIA] pve-main memoria al 61.2% — tendencia al alza\n"
+        "\n"
+        "2 críticas, 2 advertencias. gpu-server requiere atención inmediata."
+    ),
+    (2, "uk"): (
+        "4 активні сповіщення на 2 вузлах:\n"
+        "\n"
+        "  [КРИТИЧНО] gpu-server офлайн — немає метрик 3 год\n"
+        "  [КРИТИЧНО] nas-storage навантаження 3.21 перевищує поріг 3.0\n"
+        "  [ПОПЕРЕДЖЕННЯ] nas-storage диск на 78.1% — перевищує 75%\n"
+        "  [ПОПЕРЕДЖЕННЯ] pve-main пам'ять на 61.2% — зростаючий тренд\n"
+        "\n"
+        "2 критичні, 2 попередження. gpu-server потребує негайної уваги."
+    ),
+    # ── Containers (index 3) ──
+    (3, "de"): (
+        "34 Container auf 3 Nodes (1 offline):\n"
+        "\n"
+        "pve-main (11/12):\n"
+        "  caddy ✓  pihole ✓  grafana ✓  pbs ✓  ...+7 weitere\n"
+        "  prometheus ✗ (neu gestartet vor 23m)\n"
+        "\n"
+        "docker-host (21/22):\n"
+        "  portainer ✓  nginx ✓  postgres ✓  redis ✓  ...+17 weitere\n"
+        "  dev-api ✗ (gestoppt)\n"
+        "\n"
+        "nas-storage (2/2):\n"
+        "  minio ✓  syncthing ✓\n"
+        "\n"
+        "1 Container neu gestartet, 1 gestoppt. 32/34 laufen."
+    ),
+    (3, "fr"): (
+        "34 conteneurs sur 3 nœuds (1 hors ligne) :\n"
+        "\n"
+        "pve-main (11/12) :\n"
+        "  caddy ✓  pihole ✓  grafana ✓  pbs ✓  ...+7 autres\n"
+        "  prometheus ✗ (redémarré il y a 23m)\n"
+        "\n"
+        "docker-host (21/22) :\n"
+        "  portainer ✓  nginx ✓  postgres ✓  redis ✓  ...+17 autres\n"
+        "  dev-api ✗ (arrêté)\n"
+        "\n"
+        "nas-storage (2/2) :\n"
+        "  minio ✓  syncthing ✓\n"
+        "\n"
+        "1 conteneur redémarré, 1 arrêté. 32/34 en cours."
+    ),
+    (3, "es"): (
+        "34 contenedores en 3 nodos (1 fuera de línea):\n"
+        "\n"
+        "pve-main (11/12):\n"
+        "  caddy ✓  pihole ✓  grafana ✓  pbs ✓  ...+7 más\n"
+        "  prometheus ✗ (reiniciado hace 23m)\n"
+        "\n"
+        "docker-host (21/22):\n"
+        "  portainer ✓  nginx ✓  postgres ✓  redis ✓  ...+17 más\n"
+        "  dev-api ✗ (detenido)\n"
+        "\n"
+        "nas-storage (2/2):\n"
+        "  minio ✓  syncthing ✓\n"
+        "\n"
+        "1 contenedor reiniciado, 1 detenido. 32/34 ejecutándose."
+    ),
+    (3, "uk"): (
+        "34 контейнери на 3 вузлах (1 офлайн):\n"
+        "\n"
+        "pve-main (11/12):\n"
+        "  caddy ✓  pihole ✓  grafana ✓  pbs ✓  ...+7 інших\n"
+        "  prometheus ✗ (перезапущено 23хв тому)\n"
+        "\n"
+        "docker-host (21/22):\n"
+        "  portainer ✓  nginx ✓  postgres ✓  redis ✓  ...+17 інших\n"
+        "  dev-api ✗ (зупинено)\n"
+        "\n"
+        "nas-storage (2/2):\n"
+        "  minio ✓  syncthing ✓\n"
+        "\n"
+        "1 контейнер перезапущено, 1 зупинено. 32/34 працюють."
+    ),
+    # ── Temperature (index 4) ──
+    (4, "de"): (
+        "Temperatur-Übersicht:\n"
+        "  pve-main: CPU 52°C, PCH 41°C\n"
+        "  docker-host: CPU 38°C\n"
+        "  nas-storage: CPU 44°C, Laufwerke 35°C\n"
+        "  gpu-server: OFFLINE\n"
+        "\n"
+        "Alle Online-Nodes im normalen Temperaturbereich."
+    ),
+    (4, "fr"): (
+        "Aperçu des températures :\n"
+        "  pve-main: CPU 52°C, PCH 41°C\n"
+        "  docker-host: CPU 38°C\n"
+        "  nas-storage: CPU 44°C, Baie disques 35°C\n"
+        "  gpu-server: HORS LIGNE\n"
+        "\n"
+        "Tous les nœuds en ligne sont dans la plage thermique normale."
+    ),
+    (4, "es"): (
+        "Resumen de temperaturas:\n"
+        "  pve-main: CPU 52°C, PCH 41°C\n"
+        "  docker-host: CPU 38°C\n"
+        "  nas-storage: CPU 44°C, Bahía de discos 35°C\n"
+        "  gpu-server: FUERA DE LÍNEA\n"
+        "\n"
+        "Todos los nodos en línea dentro del rango térmico normal."
+    ),
+    (4, "uk"): (
+        "Огляд температур:\n"
+        "  pve-main: CPU 52°C, PCH 41°C\n"
+        "  docker-host: CPU 38°C\n"
+        "  nas-storage: CPU 44°C, Відсік дисків 35°C\n"
+        "  gpu-server: ОФЛАЙН\n"
+        "\n"
+        "Всі онлайн вузли в нормальному температурному діапазоні."
+    ),
+    # ── Attention (index 5) ──
+    (5, "de"): (
+        "4 Probleme gefunden auf 2 Nodes — 2 brauchen sofortige Aufmerksamkeit.\n"
+        "\n"
+        "gpu-server [KRITISCH]:\n"
+        "  - [KRITISCH] Node ist OFFLINE — keine Metriken seit 3 Stunden\n"
+        "\n"
+        "nas-storage [KRITISCH]:\n"
+        "  - [KRITISCH] Hoher Load Average: 3.21 (bei 4 Kernen)\n"
+        "  - [WARNUNG] Disk bei 78.1%\n"
+        "  - [WARNUNG] Alarm: Disk-Nutzung bei 78.1% überschreitet 75%"
+    ),
+    (5, "fr"): (
+        "4 problèmes trouvés sur 2 nœuds — 2 nécessitent une attention immédiate.\n"
+        "\n"
+        "gpu-server [CRITIQUE] :\n"
+        "  - [CRITIQUE] Nœud HORS LIGNE — pas de métriques depuis 3 heures\n"
+        "\n"
+        "nas-storage [CRITIQUE] :\n"
+        "  - [CRITIQUE] Charge élevée: 3.21 (4 cœurs)\n"
+        "  - [AVERTISSEMENT] Disque à 78.1%\n"
+        "  - [AVERTISSEMENT] Alerte: utilisation disque 78.1% dépasse 75%"
+    ),
+    (5, "es"): (
+        "4 problemas encontrados en 2 nodos — 2 necesitan atención inmediata.\n"
+        "\n"
+        "gpu-server [CRÍTICO]:\n"
+        "  - [CRÍTICO] Nodo FUERA DE LÍNEA — sin métricas hace 3 horas\n"
+        "\n"
+        "nas-storage [CRÍTICO]:\n"
+        "  - [CRÍTICO] Carga alta: 3.21 (4 núcleos)\n"
+        "  - [ADVERTENCIA] Disco al 78.1%\n"
+        "  - [ADVERTENCIA] Alerta: uso de disco 78.1% supera 75%"
+    ),
+    (5, "uk"): (
+        "4 проблеми знайдено на 2 вузлах — 2 потребують негайної уваги.\n"
+        "\n"
+        "gpu-server [КРИТИЧНО]:\n"
+        "  - [КРИТИЧНО] Вузол ОФЛАЙН — немає метрик 3 години\n"
+        "\n"
+        "nas-storage [КРИТИЧНО]:\n"
+        "  - [КРИТИЧНО] Високе навантаження: 3.21 (4 ядра)\n"
+        "  - [ПОПЕРЕДЖЕННЯ] Диск на 78.1%\n"
+        "  - [ПОПЕРЕДЖЕННЯ] Сповіщення: диск 78.1% перевищує 75%"
+    ),
+    # ── Comparative (index 6) ──
+    (6, "de"): (
+        "CPU-Nutzung (absteigend):\n"
+        "  1. pve-main: 23.4%\n"
+        "  2. docker-host: 8.1%\n"
+        "  3. nas-storage: 4.2%\n"
+        "  4. gpu-server: 0.0% [OFFLINE]\n"
+        "\n"
+        "pve-main ist der aktivste Node, aber im sicheren Bereich."
+    ),
+    (6, "fr"): (
+        "Utilisation CPU (décroissant) :\n"
+        "  1. pve-main: 23.4%\n"
+        "  2. docker-host: 8.1%\n"
+        "  3. nas-storage: 4.2%\n"
+        "  4. gpu-server: 0.0% [HORS LIGNE]\n"
+        "\n"
+        "pve-main est le nœud le plus actif mais dans la plage sûre."
+    ),
+    (6, "es"): (
+        "Uso de CPU (descendente):\n"
+        "  1. pve-main: 23.4%\n"
+        "  2. docker-host: 8.1%\n"
+        "  3. nas-storage: 4.2%\n"
+        "  4. gpu-server: 0.0% [FUERA DE LÍNEA]\n"
+        "\n"
+        "pve-main es el nodo más activo pero dentro del rango seguro."
+    ),
+    (6, "uk"): (
+        "Використання CPU (спадання):\n"
+        "  1. pve-main: 23.4%\n"
+        "  2. docker-host: 8.1%\n"
+        "  3. nas-storage: 4.2%\n"
+        "  4. gpu-server: 0.0% [ОФЛАЙН]\n"
+        "\n"
+        "pve-main — найактивніший вузол, але в безпечному діапазоні."
+    ),
+    # ── Recent events (index 7) ──
+    (7, "de"): (
+        "Letzte 12 Stunden:\n"
+        "  02:14 — gpu-server ging offline (seitdem keine Metriken)\n"
+        "  02:14 — KRITISCHER Alarm: gpu-server offline\n"
+        "  03:30 — nas-storage Last stieg auf 4.8 (gelöst um 04:15)\n"
+        "  06:00 — nas-storage Disk überschritt 78% (WARNUNG)\n"
+        "\n"
+        "Zusammenfassung: 1 Node offline, 1 Last-Spitze (gelöst), 1 neue Disk-Warnung.\n"
+        "gpu-server braucht Untersuchung — seit 5+ Stunden nicht erholt."
+    ),
+    (7, "fr"): (
+        "Dernières 12 heures :\n"
+        "  02:14 — gpu-server est passé hors ligne (aucune métrique depuis)\n"
+        "  02:14 — Alerte CRITIQUE: gpu-server hors ligne\n"
+        "  03:30 — nas-storage charge a grimpé à 4.8 (résolu à 04:15)\n"
+        "  06:00 — nas-storage disque a dépassé 78% (AVERTISSEMENT)\n"
+        "\n"
+        "Résumé: 1 nœud hors ligne, 1 pic de charge (résolu), 1 nouvel avertissement disque.\n"
+        "gpu-server nécessite une investigation — pas de récupération depuis 5h+."
+    ),
+    (7, "es"): (
+        "Últimas 12 horas:\n"
+        "  02:14 — gpu-server se desconectó (sin métricas desde entonces)\n"
+        "  02:14 — Alerta CRÍTICA: gpu-server fuera de línea\n"
+        "  03:30 — nas-storage carga subió a 4.8 (resuelto a las 04:15)\n"
+        "  06:00 — nas-storage disco superó 78% (ADVERTENCIA)\n"
+        "\n"
+        "Resumen: 1 nodo fuera de línea, 1 pico de carga (resuelto), 1 nueva advertencia de disco.\n"
+        "gpu-server necesita investigación — sin recuperación hace 5h+."
+    ),
+    (7, "uk"): (
+        "Останні 12 годин:\n"
+        "  02:14 — gpu-server перейшов офлайн (з тих пір немає метрик)\n"
+        "  02:14 — КРИТИЧНЕ сповіщення: gpu-server офлайн\n"
+        "  03:30 — nas-storage навантаження зросло до 4.8 (вирішено о 04:15)\n"
+        "  06:00 — nas-storage диск перевищив 78% (ПОПЕРЕДЖЕННЯ)\n"
+        "\n"
+        "Підсумок: 1 вузол офлайн, 1 стрибок навантаження (вирішено), 1 нове попередження диску.\n"
+        "gpu-server потребує розслідування — не відновився 5+ годин."
+    ),
+    # ── Network (index 8) ──
+    (8, "de"): (
+        "Netzwerk-Nutzung aller Nodes:\n"
+        "  proxmox-01: 12.4 Mbps rx / 8.2 Mbps tx\n"
+        "  docker-01: 45.8 Mbps rx / 32.1 Mbps tx\n"
+        "  storage-01: 2.1 Mbps rx / 1.8 Mbps tx\n"
+        "  gpu-01: OFFLINE\n"
+        "\n"
+        "docker-01 hat den höchsten Durchsatz — wahrscheinlich Container-Traffic."
+    ),
+    (8, "fr"): (
+        "Utilisation réseau de tous les nœuds :\n"
+        "  proxmox-01: 12.4 Mbps rx / 8.2 Mbps tx\n"
+        "  docker-01: 45.8 Mbps rx / 32.1 Mbps tx\n"
+        "  storage-01: 2.1 Mbps rx / 1.8 Mbps tx\n"
+        "  gpu-01: HORS LIGNE\n"
+        "\n"
+        "docker-01 a le débit le plus élevé — probablement du trafic conteneur."
+    ),
+    (8, "es"): (
+        "Uso de red de todos los nodos:\n"
+        "  proxmox-01: 12.4 Mbps rx / 8.2 Mbps tx\n"
+        "  docker-01: 45.8 Mbps rx / 32.1 Mbps tx\n"
+        "  storage-01: 2.1 Mbps rx / 1.8 Mbps tx\n"
+        "  gpu-01: FUERA DE LÍNEA\n"
+        "\n"
+        "docker-01 tiene el mayor rendimiento — probablemente tráfico de contenedores."
+    ),
+    (8, "uk"): (
+        "Використання мережі всіх вузлів:\n"
+        "  proxmox-01: 12.4 Mbps rx / 8.2 Mbps tx\n"
+        "  docker-01: 45.8 Mbps rx / 32.1 Mbps tx\n"
+        "  storage-01: 2.1 Mbps rx / 1.8 Mbps tx\n"
+        "  gpu-01: ОФЛАЙН\n"
+        "\n"
+        "docker-01 має найвищу пропускну здатність — ймовірно трафік контейнерів."
+    ),
+    # ── Disk (index 9) ──
+    (9, "de"): (
+        "Disk-Nutzung der gesamten Flotte:\n"
+        "  nas-storage: 78.1% (hoch)\n"
+        "    /mnt/data: 78.1% (412.3 GB frei von 1862.6 GB)\n"
+        "  gpu-server: 55.3% (mittel) [OFFLINE]\n"
+        "  pve-main: 44.8% (gesund)\n"
+        "    /: 44.8% (52.1 GB frei von 94.4 GB)\n"
+        "  docker-host: 29.3% (gesund)\n"
+        "    /: 29.3% (67.4 GB frei von 95.3 GB)\n"
+        "\n"
+        "Warnungen:\n"
+        "  nas-storage nähert sich dem Schwellwert bei 78.1%."
+    ),
+    (9, "fr"): (
+        "Utilisation disque de toute la flotte :\n"
+        "  nas-storage: 78.1% (élevé)\n"
+        "    /mnt/data: 78.1% (412.3 Go libres sur 1862.6 Go)\n"
+        "  gpu-server: 55.3% (modéré) [HORS LIGNE]\n"
+        "  pve-main: 44.8% (sain)\n"
+        "    /: 44.8% (52.1 Go libres sur 94.4 Go)\n"
+        "  docker-host: 29.3% (sain)\n"
+        "    /: 29.3% (67.4 Go libres sur 95.3 Go)\n"
+        "\n"
+        "Avertissements :\n"
+        "  nas-storage approche du seuil à 78.1%."
+    ),
+    (9, "es"): (
+        "Uso de disco de toda la flota:\n"
+        "  nas-storage: 78.1% (alto)\n"
+        "    /mnt/data: 78.1% (412.3 GB libres de 1862.6 GB)\n"
+        "  gpu-server: 55.3% (moderado) [FUERA DE LÍNEA]\n"
+        "  pve-main: 44.8% (saludable)\n"
+        "    /: 44.8% (52.1 GB libres de 94.4 GB)\n"
+        "  docker-host: 29.3% (saludable)\n"
+        "    /: 29.3% (67.4 GB libres de 95.3 GB)\n"
+        "\n"
+        "Advertencias:\n"
+        "  nas-storage acercándose al umbral en 78.1%."
+    ),
+    (9, "uk"): (
+        "Використання диску всього флоту:\n"
+        "  nas-storage: 78.1% (високе)\n"
+        "    /mnt/data: 78.1% (412.3 ГБ вільно з 1862.6 ГБ)\n"
+        "  gpu-server: 55.3% (помірне) [ОФЛАЙН]\n"
+        "  pve-main: 44.8% (здоровий)\n"
+        "    /: 44.8% (52.1 ГБ вільно з 94.4 ГБ)\n"
+        "  docker-host: 29.3% (здоровий)\n"
+        "    /: 29.3% (67.4 ГБ вільно з 95.3 ГБ)\n"
+        "\n"
+        "Попередження:\n"
+        "  nas-storage наближається до порогу на 78.1%."
+    ),
+    # ── Node-specific statuses ──
+    ("pve-main", "de"): "pve-main ist online. CPU 23.4%, Speicher 61.2%, Disk 44.8%. Load Average 1.82. Uptime: 14T 6h. 11/12 Container laufen. 1 aktiver Alarm (1 Warnung). Letzter: Speichernutzung bei 61.2% steigend",
+    ("pve-main", "fr"): "pve-main est en ligne. CPU 23.4%, Mémoire 61.2%, Disque 44.8%. Charge 1.82. Uptime: 14j 6h. 11/12 conteneurs. 1 alerte active (1 avertissement). Dernière: mémoire à 61.2% en hausse",
+    ("pve-main", "es"): "pve-main está en línea. CPU 23.4%, Memoria 61.2%, Disco 44.8%. Carga 1.82. Uptime: 14d 6h. 11/12 contenedores. 1 alerta activa (1 advertencia). Última: memoria al 61.2% en aumento",
+    ("pve-main", "uk"): "pve-main онлайн. CPU 23.4%, Пам'ять 61.2%, Диск 44.8%. Навантаження 1.82. Аптайм: 14д 6г. 11/12 контейнерів. 1 активне сповіщення (1 попередження). Останнє: пам'ять 61.2% зростає",
+
+    ("docker-host", "de"): "docker-host ist online. CPU 8.1%, Speicher 38.7%, Disk 29.3%. Load Average 0.45. Uptime: 14T 6h. 21/22 Container laufen. Keine aktiven Alarme.",
+    ("docker-host", "fr"): "docker-host est en ligne. CPU 8.1%, Mémoire 38.7%, Disque 29.3%. Charge 0.45. Uptime: 14j 6h. 21/22 conteneurs. Aucune alerte active.",
+    ("docker-host", "es"): "docker-host está en línea. CPU 8.1%, Memoria 38.7%, Disco 29.3%. Carga 0.45. Uptime: 14d 6h. 21/22 contenedores. Sin alertas activas.",
+    ("docker-host", "uk"): "docker-host онлайн. CPU 8.1%, Пам'ять 38.7%, Диск 29.3%. Навантаження 0.45. Аптайм: 14д 6г. 21/22 контейнерів. Немає активних сповіщень.",
+
+    ("nas-storage", "de"): "nas-storage ist online. CPU 4.2%, Speicher 72.8%, Disk 78.1%. Load Average 3.21. Uptime: 42T 11h. 2 aktive Alarme (1 kritisch, 1 Warnung). Letzter: Load Average 3.21 überschreitet 3.0 (4 Kerne)",
+    ("nas-storage", "fr"): "nas-storage est en ligne. CPU 4.2%, Mémoire 72.8%, Disque 78.1%. Charge 3.21. Uptime: 42j 11h. 2 alertes actives (1 critique, 1 avertissement). Dernière: charge 3.21 dépasse 3.0 (4 cœurs)",
+    ("nas-storage", "es"): "nas-storage está en línea. CPU 4.2%, Memoria 72.8%, Disco 78.1%. Carga 3.21. Uptime: 42d 11h. 2 alertas activas (1 crítica, 1 advertencia). Última: carga 3.21 supera 3.0 (4 núcleos)",
+    ("nas-storage", "uk"): "nas-storage онлайн. CPU 4.2%, Пам'ять 72.8%, Диск 78.1%. Навантаження 3.21. Аптайм: 42д 11г. 2 активні сповіщення (1 критичне, 1 попередження). Останнє: навантаження 3.21 перевищує 3.0 (4 ядра)",
+
+    ("gpu-server", "de"): "gpu-server ist OFFLINE. Zuletzt gesehen vor 3.0 Stunden. 1 aktiver Alarm (1 kritisch). Letzter: Node offline — keine Metriken seit 3 Stunden",
+    ("gpu-server", "fr"): "gpu-server est HORS LIGNE. Vu pour la dernière fois il y a 3.0 heures. 1 alerte active (1 critique). Dernière: nœud hors ligne — pas de métriques depuis 3 heures",
+    ("gpu-server", "es"): "gpu-server está FUERA DE LÍNEA. Visto por última vez hace 3.0 horas. 1 alerta activa (1 crítica). Última: nodo fuera de línea — sin métricas hace 3 horas",
+    ("gpu-server", "uk"): "gpu-server ОФЛАЙН. Останній раз бачено 3.0 години тому. 1 активне сповіщення (1 критичне). Останнє: вузол офлайн — немає метрик 3 години",
+}
+
 _DEMO_NOISE_WORDS = {
     # English
     "status", "state", "health", "how", "is", "the", "my", "doing",
@@ -1927,8 +2395,8 @@ def _demo_nlq_response(question: str) -> dict:
     """Return a canned NLQ response for demo mode.
 
     Supports English, German, French, Spanish, and Ukrainian input.
-    Responses are always in English (canned demo data) but pattern
-    matching works across all supported languages.
+    Responses are returned in the detected language when a translation
+    is available (de/fr/es/uk), otherwise English.
     """
     q = question.lower().strip().rstrip("?")
     lang = _detect_demo_lang(q)
@@ -1946,19 +2414,27 @@ def _demo_nlq_response(question: str) -> dict:
                 return _DEMO_NODE_STATUS[node_name]
 
     # Check English patterns first
-    for entry in _DEMO_RESPONSES:
+    for i, entry in enumerate(_DEMO_RESPONSES):
         for pattern in entry["patterns"]:
             if _re.search(pattern, q):
-                return entry["response"]
+                resp = entry["response"]
+                if lang != "en" and (i, lang) in _DEMO_RESPONSE_I18N:
+                    return {**resp, "answer": _DEMO_RESPONSE_I18N[(i, lang)]}
+                return resp
 
     # Check multilingual patterns
     for pattern, idx in _DEMO_I18N_PATTERNS:
         if _re.search(pattern, q, _re.IGNORECASE):
-            return _DEMO_RESPONSES[idx]["response"]
+            resp = _DEMO_RESPONSES[idx]["response"]
+            if lang != "en" and (idx, lang) in _DEMO_RESPONSE_I18N:
+                return {**resp, "answer": _DEMO_RESPONSE_I18N[(idx, lang)]}
+            return resp
 
     # Check for node-specific status queries as final catch
     for node_name, response in _DEMO_NODE_STATUS.items():
         if node_name.lower() in q:
+            if lang != "en" and (node_name, lang) in _DEMO_RESPONSE_I18N:
+                return {**response, "answer": _DEMO_RESPONSE_I18N[(node_name, lang)]}
             return response
 
     # Fallback — use translated version if available
