@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{% if outcome == "success" %}Upgrade successful{% else %}Checkout cancelled{% endif %} - labwatch{% endblock %}
+
+{% block extra_styles %}
+.billing-result {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 80px 24px;
+    text-align: center;
+}
+
+.billing-result .badge {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    line-height: 64px;
+    border-radius: 50%;
+    font-size: 32px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    margin-bottom: 24px;
+}
+
+.billing-result .badge.success {
+    background: var(--accent-glow);
+    color: var(--accent);
+}
+
+.billing-result .badge.cancel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+}
+
+.billing-result h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+}
+
+.billing-result p {
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.billing-result .actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+{% endblock %}
+
+{% block content %}
+<div class="billing-result">
+    {% if outcome == "success" %}
+        <div class="badge success">+</div>
+        <h1>Thanks — your upgrade is being processed</h1>
+        <p>
+            Stripe has confirmed your payment. Your plan will be upgraded
+            within a few seconds once the webhook lands. If you don't see
+            the new limits on your dashboard, refresh in a moment.
+        </p>
+        <div class="actions">
+            <a href="/my/dashboard" class="btn btn-primary">Go to dashboard</a>
+            <a href="/support" class="btn btn-secondary">Need help?</a>
+        </div>
+    {% else %}
+        <div class="badge cancel">&times;</div>
+        <h1>Checkout cancelled</h1>
+        <p>
+            No charge was made. You can pick up where you left off any time
+            from your dashboard, or check the pricing page if you want to
+            compare plans.
+        </p>
+        <div class="actions">
+            <a href="/my/dashboard" class="btn btn-primary">Back to dashboard</a>
+            <a href="/#pricing" class="btn btn-secondary">See pricing</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

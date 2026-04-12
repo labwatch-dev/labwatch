@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+{% block title %}Notifications — labwatch{% endblock %}
+
+{% block extra_styles %}
+.notif-page {
+    padding: 80px 24px;
+    max-width: 760px;
+    margin: 0 auto;
+}
+.notif-page h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+.notif-page .subtitle {
+    color: var(--text-dim);
+    margin-bottom: 32px;
+    font-size: 15px;
+}
+
+.notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+.notif-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.notif-card .notif-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.notif-card .notif-name {
+    font-weight: 600;
+    font-size: 15px;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.notif-card .notif-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+.notif-card .notif-type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    margin-right: 8px;
+}
+.notif-card .notif-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.notif-card button {
+    padding: 6px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+.notif-card button:hover { border-color: var(--accent); }
+.notif-card button.btn-test { color: var(--accent); }
+.notif-card button.btn-delete:hover { border-color: var(--red); color: var(--red); }
+
+.add-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+}
+.add-panel h2 {
+    font-size: 18px;
+    margin: 0 0 4px 0;
+    font-family: var(--font-mono);
+}
+.add-panel .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+.add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.add-form label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.add-form input,
+.add-form select,
+.add-form textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font-mono);
+    outline: none;
+}
+.add-form input:focus,
+.add-form select:focus { border-color: var(--accent); }
+.add-form .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.add-form .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+.add-form button {
+    padding: 12px 20px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.add-form button:hover { border-color: var(--accent); }
+.add-form button.btn-primary {
+    background: var(--accent);
+    color: #0a0a0f;
+    border-color: var(--accent);
+    font-weight: 700;
+}
+.add-form button.btn-primary:hover {
+    filter: brightness(1.1);
+}
+
+.config-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+}
+.config-fields .field-title {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+}
+.result-line {
+    margin-top: 8px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    display: none;
+}
+.result-line.ok {
+    background: color-mix(in srgb, var(--green) 12%, transparent);
+    color: var(--green);
+    border: 1px solid var(--green);
+    display: block;
+}
+.result-line.err {
+    background: color-mix(in srgb, var(--red) 12%, transparent);
+    color: var(--red);
+    border: 1px solid var(--red);
+    display: block;
+}
+
+.empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+}
+{% endblock %}
+
+{% block content %}
+<div class="notif-page">
+    <h1>Notifications</h1>
+    <p class="subtitle">Add a channel to get notified when something breaks in your lab. Every channel has a <b>Test</b> button so you know it actually works before you rely on it.</p>
+
+    <div class="notif-list" id="notif-list">
+        <div class="empty" id="notif-empty">Loading channels&hellip;</div>
+    </div>
+
+    <div class="add-panel">
+        <h2>+ Add channel</h2>
+        <p class="hint">Pick a provider, fill in the details, click <b>Save &amp; test</b>.</p>
+
+        <form class="add-form" id="add-form" onsubmit="return false;">
+            <div class="field-row">
+                <div>
+                    <label for="nc-name">Name</label>
+                    <input type="text" id="nc-name" placeholder="e.g. my phone (ntfy)" required>
+                </div>
+                <div>
+                    <label for="nc-type">Provider</label>
+                    <select id="nc-type" onchange="renderConfigFields()">
+                        <option value="ntfy">ntfy</option>
+                        <option value="discord">Discord</option>
+                        <option value="slack">Slack</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="gotify">Gotify</option>
+                        <option value="pushover">Pushover</option>
+                        <option value="apprise">Apprise (100+ services)</option>
+                        <option value="webhook">Generic webhook</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="nc-severity">Minimum severity</label>
+                <select id="nc-severity">
+                    <option value="info">info (all alerts)</option>
+                    <option value="warning" selected>warning (and above)</option>
+                    <option value="critical">critical only</option>
+                </select>
+            </div>
+
+            <div class="config-fields" id="config-fields">
+                <!-- populated by renderConfigFields() -->
+            </div>
+
+            <div class="btn-row">
+                <button type="button" class="btn-primary" onclick="saveChannel()">Save channel</button>
+                <button type="button" onclick="testInline()">Test without saving</button>
+            </div>
+
+            <div class="result-line" id="add-result"></div>
+        </form>
+    </div>
+</div>
+
+<script>
+const CONFIG_SCHEMAS = {
+    ntfy: [
+        { key: "server", label: "Server URL", placeholder: "https://ntfy.sh", default: "https://ntfy.sh" },
+        { key: "topic", label: "Topic", placeholder: "my-labwatch-alerts", required: true },
+        { key: "token", label: "Auth token (optional)", placeholder: "tk_..." },
+    ],
+    discord: [
+        { key: "webhook_url", label: "Webhook URL", placeholder: "https://discord.com/api/webhooks/.../...", required: true },
+        { key: "username", label: "Bot username (optional)", placeholder: "labwatch" },
+    ],
+    slack: [
+        { key: "webhook_url", label: "Incoming webhook URL", placeholder: "https://hooks.slack.com/services/...", required: true },
+        { key: "channel", label: "Channel (optional)", placeholder: "#homelab" },
+    ],
+    telegram: [
+        { key: "bot_token", label: "Bot token", placeholder: "123456:AAH...", required: true },
+        { key: "chat_id", label: "Chat ID", placeholder: "-100123456 or 987654321", required: true },
+    ],
+    gotify: [
+        { key: "server", label: "Server URL", placeholder: "https://gotify.example.com", required: true },
+        { key: "token", label: "App token", placeholder: "A...", required: true },
+    ],
+    pushover: [
+        { key: "user_key", label: "User key", placeholder: "u...", required: true },
+        { key: "api_token", label: "API token", placeholder: "a...", required: true },
+    ],
+    apprise: [
+        { key: "url", label: "Apprise URL", placeholder: "tgram://bottoken/chatid or discord://webhook_id/token", required: true, hint: "See github.com/caronc/apprise/wiki for 100+ service URL formats" },
+    ],
+    webhook: [
+        { key: "url", label: "Webhook URL", placeholder: "https://example.com/hook", required: true },
+        { key: "auth_header", label: "Auth header (optional)", placeholder: "Authorization: Bearer xyz" },
+    ],
+};
+
+function renderConfigFields() {
+    const type = document.getElementById("nc-type").value;
+    const schema = CONFIG_SCHEMAS[type] || [];
+    const box = document.getElementById("config-fields");
+    box.innerHTML = '<div class="field-title">' + type + ' config</div>'
+        + schema.map(f =>
+            '<div>'
+            + '<label for="cfg-' + f.key + '">' + f.label + '</label>'
+            + '<input type="text" id="cfg-' + f.key + '" placeholder="' + (f.placeholder || '') + '" value="' + (f.default || '') + '"'
+            + (f.required ? ' required' : '') + '>'
+            + (f.hint ? '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + f.hint + '</div>' : '')
+            + '</div>'
+        ).join("");
+}
+
+function collectConfig() {
+    const type = document.getElementById("nc-type").value;
+    const schema = CONFIG_SCHEMAS[type] || [];
+    const config = {};
+    for (const f of schema) {
+        const v = (document.getElementById("cfg-" + f.key) || {}).value || "";
+        if (v.trim()) config[f.key] = v.trim();
+    }
+    return { type, config };
+}
+
+function showResult(msg, ok) {
+    const el = document.getElementById("add-result");
+    el.textContent = msg;
+    el.className = "result-line " + (ok ? "ok" : "err");
+}
+
+async function saveChannel() {
+    const name = document.getElementById("nc-name").value.trim();
+    if (!name) { showResult("Name is required.", false); return; }
+    const severity = document.getElementById("nc-severity").value;
+    const { type, config } = collectConfig();
+
+    const resp = await fetch("/api/v1/my/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, type, config, min_severity: severity }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+        showResult("Error: " + (data.detail || "failed to save"), false);
+        return;
+    }
+    showResult("Saved. Sending test…", true);
+    // Auto-test the just-saved channel
+    const testResp = await fetch("/api/v1/my/notifications/" + data.channel.id + "/test", {
+        method: "POST",
+    });
+    const testData = await testResp.json();
+    if (testData.success) {
+        showResult("Saved and test sent ✓ Check your " + type + " channel.", true);
+    } else {
+        showResult("Saved, but test FAILED: " + (testData.error || "unknown error"), false);
+    }
+    loadChannels();
+}
+
+async function testInline() {
+    const { type, config } = collectConfig();
+    showResult("Sending test…", true);
+    const resp = await fetch("/api/v1/my/notifications/test-inline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, config }),
+    });
+    const data = await resp.json();
+    if (data.success) {
+        showResult("Test sent ✓ Check your " + type + " channel.", true);
+    } else {
+        showResult("Test FAILED: " + (data.error || "unknown error"), false);
+    }
+}
+
+async function testChannel(channelId, name) {
+    const resp = await fetch("/api/v1/my/notifications/" + channelId + "/test", { method: "POST" });
+    const data = await resp.json();
+    if (data.success) {
+        if (window.showToast) showToast("Test sent to " + name, "success");
+        else alert("Test sent to " + name);
+    } else {
+        if (window.showToast) showToast("Test failed: " + (data.error || "unknown"), "error");
+        else alert("Test FAILED for " + name + ": " + (data.error || "unknown error"));
+    }
+}
+
+async function deleteChannel(channelId, name) {
+    if (!confirm("Delete channel '" + name + "'?")) return;
+    const resp = await fetch("/api/v1/my/notifications/" + channelId, { method: "DELETE" });
+    if (resp.ok) {
+        if (window.showToast) showToast("Deleted " + name, "success");
+        loadChannels();
+    } else {
+        alert("Failed to delete.");
+    }
+}
+
+function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+async function loadChannels() {
+    const resp = await fetch("/api/v1/my/notifications");
+    const data = await resp.json();
+    const list = document.getElementById("notif-list");
+    const channels = data.channels || [];
+    if (channels.length === 0) {
+        list.innerHTML = '<div class="empty" id="notif-empty">No channels yet. Add one below.</div>';
+        return;
+    }
+    list.innerHTML = channels.map(c =>
+        '<div class="notif-card">'
+        + '<div class="notif-meta">'
+        +   '<div class="notif-name"><span class="notif-type">' + escHtml(c.type) + '</span>' + escHtml(c.name) + '</div>'
+        +   '<div class="notif-sub">min severity: ' + escHtml(c.min_severity || "warning") + ' · ' + (c.enabled === false ? 'disabled' : 'enabled') + '</div>'
+        + '</div>'
+        + '<div class="notif-actions">'
+        +   '<button class="btn-test" onclick="testChannel(\'' + c.id + '\', \'' + escHtml(c.name).replace(/\'/g,"\\'") + '\')">Send test</button>'
+        +   '<button class="btn-delete" onclick="deleteChannel(\'' + c.id + '\', \'' + escHtml(c.name).replace(/\'/g,"\\'") + '\')">Delete</button>'
+        + '</div>'
+        + '</div>'
+    ).join("");
+}
+
+renderConfigFields();
+loadChannels();
+</script>
+{% endblock %}

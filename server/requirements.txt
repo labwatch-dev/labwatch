@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+jinja2
+python-dotenv
+itsdangerous
+python-multipart

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+
+{% block extra_styles %}
+.login-page {
+    padding: 80px 24px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.login-page h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.login-page .subtitle {
+    color: var(--text-dim);
+    margin-bottom: 32px;
+    font-size: 15px;
+}
+
+.login-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+}
+
+.login-tab {
+    flex: 1;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    text-align: center;
+}
+
+.login-tab:hover {
+    color: var(--text);
+}
+
+.login-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.login-panel {
+    display: none;
+}
+
+.login-panel.active {
+    display: block;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-family: var(--font-mono);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 15px;
+    font-family: var(--font-mono);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    font-family: var(--font-sans);
+}
+
+.form-group input:focus {
+    border-color: var(--accent);
+}
+
+.form-group input::placeholder {
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+}
+
+.form-group .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.5;
+}
+
+.login-form .btn-primary {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    font-size: 15px;
+    margin-top: 8px;
+}
+
+.error-msg {
+    background: var(--red-dim);
+    border: 1px solid rgba(224, 64, 64, 0.3);
+    color: var(--red);
+    font-size: 13px;
+    font-family: var(--font-mono);
+    padding: 12px 16px;
+    border-radius: var(--radius);
+}
+
+.signup-link {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--text-dim);
+}
+
+.signup-link a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.signup-link a:hover {
+    text-decoration: underline;
+}
+{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <h1>{{ t.login_title }}</h1>
+    <p class="subtitle">{{ t.login_subtitle }}</p>
+
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    <br>
+    {% endif %}
+
+    <div class="login-tabs">
+        <button class="login-tab active" onclick="switchTab('email')" id="tab-email">{{ t.login_tab_email }}</button>
+        <button class="login-tab" onclick="switchTab('token')" id="tab-token">{{ t.login_tab_token }}</button>
+    </div>
+
+    <!-- Email + Password Login -->
+    <div class="login-panel active" id="panel-email">
+        <form class="login-form" method="POST" action="/login">
+            <input type="hidden" name="method" value="email">
+            <div class="form-group">
+                <label for="login-email">{{ t.login_email_label }}</label>
+                <input type="email" id="login-email" name="email" placeholder="{{ t.login_email_placeholder }}" autocomplete="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="login-password">{{ t.login_password_label }}</label>
+                <input type="password" id="login-password" name="password" placeholder="{{ t.login_password_placeholder }}" autocomplete="current-password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">{{ t.login_submit }}</button>
+        </form>
+    </div>
+
+    <!-- API Token Login -->
+    <div class="login-panel" id="panel-token">
+        <form class="login-form" method="POST" action="/login">
+            <input type="hidden" name="method" value="token">
+            <div class="form-group">
+                <label for="token">{{ t.login_token_label }}</label>
+                <input type="text" id="token" name="token" placeholder="{{ t.login_token_placeholder }}" autocomplete="off" required>
+                <div class="hint">{{ t.login_token_hint }}</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">{{ t.login_submit }}</button>
+        </form>
+    </div>
+
+    <div class="signup-link">
+        {{ t.login_no_account }} <a href="/signup">{{ t.login_signup_link }}</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function switchTab(tab) {
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+}
+// Restore tab from URL param (after error redirect)
+const params = new URLSearchParams(window.location.search);
+if (params.get('tab') === 'token') switchTab('token');
+</script>
+{% endblock %}

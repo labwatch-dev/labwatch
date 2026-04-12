@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+
+{% block title %}Self-Hosted{% endblock %}
+
+{% block extra_styles %}
+.sh-hero {
+    padding: 60px 0 20px;
+    text-align: center;
+}
+
+.sh-hero h1 {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.sh-hero p {
+    color: var(--text-dim);
+    font-size: 16px;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.sh-hero .pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--green-dim);
+    color: var(--green);
+    margin-bottom: 16px;
+}
+
+.sh-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 40px;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 20px 24px 80px;
+}
+
+.sh-sidebar {
+    position: sticky;
+    top: 80px;
+    align-self: start;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+.sh-sidebar h3 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    margin-top: 20px;
+}
+
+.sh-sidebar h3:first-child {
+    margin-top: 0;
+}
+
+.sh-sidebar a {
+    display: block;
+    padding: 4px 0;
+    font-size: 13px;
+    color: var(--text-dim);
+    transition: color 0.15s;
+}
+
+.sh-sidebar a:hover,
+.sh-sidebar a.active {
+    color: var(--accent);
+}
+
+.sh-content {
+    min-width: 0;
+}
+
+.sh-section {
+    margin-bottom: 48px;
+}
+
+.sh-section > h2 {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.sh-section > h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 28px;
+    margin-bottom: 12px;
+    color: var(--text);
+}
+
+.sh-section p {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.sh-section ul {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 12px;
+    padding-left: 22px;
+}
+
+.sh-section code {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    background: var(--border);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 3px;
+}
+
+.code-block {
+    background: #0d0d14;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    overflow-x: auto;
+    margin-bottom: 16px;
+    position: relative;
+    white-space: pre;
+}
+
+.code-block .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--border);
+    border: none;
+    color: var(--text-muted);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.code-block:hover .copy-btn {
+    opacity: 1;
+}
+
+.code-block .copy-btn:hover {
+    color: var(--text);
+    background: var(--border-light);
+}
+
+.env-table-wrap {
+    overflow-x: auto;
+    margin-bottom: 16px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.env-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 520px;
+}
+
+.env-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding: 6px 12px 6px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.env-table td {
+    padding: 10px 12px 10px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text-dim);
+}
+
+.env-table .env-name {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.env-table .env-default {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.alert-box {
+    background: var(--amber-dim);
+    border: 1px solid rgba(240, 160, 48, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.alert-box strong {
+    color: var(--amber);
+}
+
+.info-box {
+    background: var(--blue-dim);
+    border: 1px solid rgba(64, 128, 240, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.info-box strong {
+    color: var(--blue);
+}
+
+.step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--accent);
+    color: #000;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+    .sh-layout {
+        grid-template-columns: 1fr;
+    }
+    .sh-sidebar {
+        position: static;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 20px;
+    }
+    .sh-sidebar h3 {
+        width: 100%;
+        margin-top: 12px;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="sh-hero">
+    <span class="pill">BYO infrastructure</span>
+    <h1>Self-Hosted labwatch</h1>
+    <p>Run the entire labwatch stack on your own hardware. One container, SQLite, no telemetry, your data never leaves your network. Same code as the managed service &mdash; MIT licensed.</p>
+</div>
+
+<div class="sh-layout">
+    <aside class="sh-sidebar">
+        <h3>Getting Started</h3>
+        <a href="#why">Why self-host?</a>
+        <a href="#requirements">Requirements</a>
+        <a href="#quickstart">Quick start</a>
+
+        <h3>Configuration</h3>
+        <a href="#env">Environment variables</a>
+        <a href="#reverse-proxy">Reverse proxy &amp; HTTPS</a>
+        <a href="#backup">Backups</a>
+
+        <h3>Agents</h3>
+        <a href="#agents">Install agents</a>
+        <a href="#agent-config">Agent config</a>
+
+        <h3>Operations</h3>
+        <a href="#upgrade">Upgrading</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+    </aside>
+
+    <div class="sh-content">
+        <!-- Why -->
+        <section class="sh-section" id="why">
+            <h2>Why self-host?</h2>
+            <p>Self-hosting is the right fit if any of these apply to you:</p>
+            <ul>
+                <li>Your homelab monitors air-gapped or sensitive infrastructure and you don't want metrics leaving your network.</li>
+                <li>You want unlimited history and don't want to pay per-node.</li>
+                <li>You already run a docker host and want to add one more stateless service.</li>
+                <li>You want to extend or patch the code &mdash; everything is MIT licensed on GitHub.</li>
+            </ul>
+            <p>If you'd rather not run another service, the <a href="/#pricing">managed tiers</a> are cheaper than any VPS and include alerting, digests, and the natural-language query interface with zero setup.</p>
+        </section>
+
+        <!-- Requirements -->
+        <section class="sh-section" id="requirements">
+            <h2>Requirements</h2>
+            <ul>
+                <li><strong>Docker</strong> 20.10+ and <strong>docker compose</strong> v2 (or Podman with compose).</li>
+                <li>A host reachable from every machine you want to monitor (LAN, VPN, or public).</li>
+                <li><strong>~150 MB RAM</strong> idle, ~300 MB with 20+ nodes. Disk usage grows ~50 MB per node per year.</li>
+                <li>Outbound internet <em>not</em> required after the initial image pull.</li>
+            </ul>
+            <div class="info-box">
+                <strong>Zero external dependencies.</strong> The natural-language query bar and the fleet intelligence digest are rule-based &mdash; no API keys, no LLM provider, no data leaves your box. Everything runs from the single container.
+            </div>
+        </section>
+
+        <!-- Quickstart -->
+        <section class="sh-section" id="quickstart">
+            <h2>Quick start</h2>
+            <p>Four commands and you're running.</p>
+
+            <div class="info-box">
+                <strong>Early access.</strong> The self-hosted distribution is in private beta while we finalize the public release. Email <a href="mailto:support@labwatch.dev">support@labwatch.dev</a> and we'll send you the source tarball + a signed checksum within a few hours. The steps below describe what you do once you've unpacked it.
+            </div>
+
+            <h3><span class="step-num">1</span>Unpack the source</h3>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+tar xzf labwatch-&lt;version&gt;.tar.gz
+cd labwatch</div>
+
+            <h3><span class="step-num">2</span>Set your admin secret</h3>
+            <p>Create a <code>.env</code> file next to <code>docker-compose.yml</code>:</p>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+ADMIN_SECRET=$(openssl rand -hex 24)
+BASE_URL=http://labwatch.lan:8097</div>
+            <p>Save it &mdash; you'll need <code>ADMIN_SECRET</code> to log in and to register agents.</p>
+
+            <h3><span class="step-num">3</span>Start the stack</h3>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+docker compose up -d</div>
+            <p>This builds the image from source (takes ~60 seconds the first time) and starts labwatch on port <code>8097</code>. Logs: <code>docker compose logs -f labwatch</code>.</p>
+
+            <h3><span class="step-num">4</span>Log in</h3>
+            <p>Open <code>http://your-host:8097</code>, click <strong>Log in</strong>, and paste the admin secret from your <code>.env</code>. You're in.</p>
+
+            <div class="alert-box">
+                <strong>Before exposing to the internet:</strong> put labwatch behind a reverse proxy with HTTPS &mdash; see the <a href="#reverse-proxy">Reverse proxy</a> section. The built-in server does not terminate TLS.
+            </div>
+        </section>
+
+        <!-- Env vars -->
+        <section class="sh-section" id="env">
+            <h2>Environment variables</h2>
+            <p>All configuration is done through environment variables &mdash; set them in <code>.env</code> next to the compose file, or inline in <code>docker-compose.yml</code>.</p>
+
+            <div class="env-table-wrap">
+            <table class="env-table">
+                <thead>
+                    <tr><th>Variable</th><th>Default</th><th>Purpose</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="env-name">ADMIN_SECRET</td>
+                        <td class="env-default">change-me</td>
+                        <td>Admin login secret. <strong>Must be changed</strong> before first boot. Also used as the <code>X-Admin-Secret</code> header for the admin API.</td>
+                    </tr>
+                    <tr>
+                        <td class="env-name">BASE_URL</td>
+                        <td class="env-default">http://localhost:8097</td>
+                        <td>Public URL of your labwatch instance. Used in signup emails and the agent installer script.</td>
+                    </tr>
+                    <tr>
+                        <td class="env-name">DATABASE_PATH</td>
+                        <td class="env-default">/app/data/labwatch.db</td>
+                        <td>SQLite database location inside the container. The default is mapped to the <code>labwatch-data</code> named volume.</td>
+                    </tr>
+                    <tr>
+                        <td class="env-name">PORT</td>
+                        <td class="env-default">8097</td>
+                        <td>Port the FastAPI server listens on inside the container.</td>
+                    </tr>
+                    <tr>
+                        <td class="env-name">RETENTION_HOURS</td>
+                        <td class="env-default">168</td>
+                        <td>How long to keep metrics, alerts, and heartbeat data. Older rows are pruned on startup and every 24h. Bump this if you want longer history (at the cost of disk).</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        <!-- Reverse proxy -->
+        <section class="sh-section" id="reverse-proxy">
+            <h2>Reverse proxy &amp; HTTPS</h2>
+            <p>For anything beyond a single-machine LAN setup you'll want HTTPS. A minimal Caddy example:</p>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+labwatch.example.com {
+    reverse_proxy localhost:8097
+}</div>
+            <p>Caddy handles ACME automatically. For nginx or Traefik, proxy to <code>127.0.0.1:8097</code> and make sure <code>X-Forwarded-For</code> / <code>X-Forwarded-Proto</code> headers are preserved. Update <code>BASE_URL</code> in your <code>.env</code> to the public HTTPS URL and restart the container.</p>
+        </section>
+
+        <!-- Backup -->
+        <section class="sh-section" id="backup">
+            <h2>Backups</h2>
+            <p>All state lives in a single SQLite file at <code>/app/data/labwatch.db</code> (mapped to the <code>labwatch-data</code> volume). Back it up the same way you back up anything else:</p>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+docker compose exec labwatch \
+  sqlite3 /app/data/labwatch.db ".backup /app/data/backup.db"
+docker cp labwatch:/app/data/backup.db ./labwatch-$(date +%F).db</div>
+            <p>Or just snapshot the Docker volume directly with <code>restic</code>, <code>borg</code>, or whatever you already use.</p>
+        </section>
+
+        <!-- Agents -->
+        <section class="sh-section" id="agents">
+            <h2>Install agents</h2>
+            <p>Once the server is running, install the agent on each machine you want to monitor. The installer pulls the latest binary from your labwatch instance &mdash; no external dependency:</p>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+curl -fsSL http://your-labwatch-host:8097/install.sh | bash</div>
+            <p>The script installs the agent to <code>/usr/local/bin/labwatch</code>, creates a systemd unit, and drops an empty config at <code>/etc/labwatch/config.yaml</code>. Prefer to review scripts before running? Download it first:</p>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+curl -fsSL http://your-labwatch-host:8097/install.sh -o install.sh
+less install.sh
+sudo bash install.sh</div>
+        </section>
+
+        <!-- Agent config -->
+        <section class="sh-section" id="agent-config">
+            <h2>Agent config</h2>
+            <p>Edit <code>/etc/labwatch/config.yaml</code> on the agent host. The minimum required fields are <code>api_endpoint</code>, <code>admin_secret</code> (one-time, for registration), and a collection interval:</p>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+# /etc/labwatch/config.yaml
+api_endpoint: "http://your-labwatch-host:8097/api/v1"
+admin_secret: "your-admin-secret"   # remove after first register
+interval: 60s
+
+docker:
+  enabled: true
+  socket: "/var/run/docker.sock"
+
+services:
+  - name: "Web"
+    type: "http"
+    endpoint: "http://localhost:80"
+    timeout: "5s"
+  - name: "SSH"
+    type: "tcp"
+    endpoint: "localhost:22"
+    timeout: "3s"</div>
+            <p>Register with the server, then start the service:</p>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+sudo labwatch --register
+sudo systemctl enable --now labwatch</div>
+            <p>After a successful register you can remove <code>admin_secret</code> from the config &mdash; the agent will have its own bearer token written to the config file.</p>
+            <div class="info-box">
+                <strong>Multiple nodes?</strong> Repeat the install + register on each node. Every agent gets its own <code>lab_id</code> and token automatically.
+            </div>
+        </section>
+
+        <!-- Upgrade -->
+        <section class="sh-section" id="upgrade">
+            <h2>Upgrading</h2>
+            <p>Pull the latest source and rebuild:</p>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+cd labwatch
+git pull
+docker compose up -d --build</div>
+            <p>Your database volume is preserved across rebuilds. Schema migrations run automatically on startup.</p>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section class="sh-section" id="troubleshooting">
+            <h2>Troubleshooting</h2>
+
+            <h3>Container won't start</h3>
+            <p>Check logs with <code>docker compose logs labwatch</code>. The most common causes are a port conflict on 8097 (change the left side of the port mapping) or a volume permission issue (remove the volume with <code>docker volume rm labwatch_labwatch-data</code> and restart &mdash; <strong>this wipes data</strong>).</p>
+
+            <h3>Agents register but no metrics appear</h3>
+            <p>Check the agent logs: <code>journalctl -u labwatch -f</code>. If you see <code>401 Unauthorized</code>, the token in <code>/etc/labwatch/config.yaml</code> is wrong &mdash; re-run <code>labwatch --register</code>. If you see connection refused, verify <code>api_endpoint</code> is reachable from the agent: <code>curl http://your-labwatch-host:8097/health</code>.</p>
+
+            <h3>NLQ returns &ldquo;I didn&rsquo;t quite get that&rdquo;</h3>
+            <p>The query bar uses regex pattern matching &mdash; it recognizes ~20 query shapes (fleet overview, alerts, cpu/memory/disk pressure, containers, temperature, network, nodes needing attention). Rephrase toward one of those shapes, or try clicking a suggested chip. No API key is needed &mdash; if you got an error, check <code>docker compose logs labwatch</code> for a stack trace.</p>
+
+            <p>Still stuck? Email <a href="mailto:support@labwatch.dev">support@labwatch.dev</a> with your <code>docker compose logs labwatch</code> output and we'll dig in with you.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // no-op; the button shows a subtle visual via :hover
+    });
+}
+
+// Active section highlighting in sidebar
+(function() {
+    var sections = document.querySelectorAll('.sh-section');
+    var links = document.querySelectorAll('.sh-sidebar a');
+    function onScroll() {
+        var y = window.scrollY + 120;
+        var current = null;
+        sections.forEach(function(s) {
+            if (s.offsetTop <= y) current = s.id;
+        });
+        links.forEach(function(l) {
+            l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+        });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+})();
+</script>
+{% endblock %}

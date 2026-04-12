@@ -1,0 +1,3190 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_styles %}
+/* Dashboard header */
+.dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 0 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.dash-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dash-title h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.dash-count {
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+.dash-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.dash-status .live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse-dot 3s ease-in-out infinite;
+}
+
+/* === Edit layout button + edit mode === */
+.edit-layout-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.edit-layout-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.edit-layout-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+}
+.add-node-btn {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: var(--bg);
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s, transform 0.1s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.add-node-btn:hover { filter: brightness(1.1); }
+.add-node-btn:active { transform: scale(0.97); }
+/* Upgrade-to-Pro button — subdued outline variant, lives next to edit-layout in the dashboard header */
+.upgrade-pro-btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, transform 0.1s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.upgrade-pro-btn:hover { background: var(--accent); color: var(--bg); }
+.upgrade-pro-btn:active { transform: scale(0.97); }
+.upgrade-pro-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+.empty-state .empty-cta {
+    display: inline-block;
+    margin-top: 18px;
+    background: var(--accent);
+    color: var(--bg);
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: filter 0.15s;
+}
+.empty-state .empty-cta:hover { filter: brightness(1.1); }
+.empty-state .empty-cta-sep {
+    display: block;
+    margin: 14px 0 10px 0;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+/* Sections become selectable in edit mode */
+body.edit-mode [data-widget] {
+    position: relative;
+    transition: opacity 0.2s, outline 0.2s;
+    outline: 1px dashed var(--border);
+    outline-offset: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+body.edit-mode [data-widget]:hover {
+    outline-color: var(--accent);
+}
+body.edit-mode [data-widget].hidden-widget {
+    opacity: 0.25;
+    outline-color: var(--red);
+}
+/* Click-blocking overlay to prevent widget interactions while in edit mode */
+body.edit-mode [data-widget]::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    z-index: 4;
+    border-radius: 12px;
+}
+/* Legacy pill label removed — replaced by explicit × buttons + add-widget picker */
+
+/* Edit save bar */
+.edit-save-bar {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 12px 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    gap: 12px;
+    align-items: center;
+    font-size: 13px;
+    font-family: var(--font-mono);
+}
+body.edit-mode .edit-save-bar { display: flex; }
+.edit-save-bar .save-hint { color: var(--text-muted); }
+.edit-save-bar button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+}
+.edit-save-bar button.primary {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+}
+.edit-save-bar button:hover { opacity: 0.85; }
+
+/* Labs grid */
+.labs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+    padding-bottom: 40px;
+}
+
+/* Lab search/filter */
+.lab-search-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.lab-search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 9px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+.lab-search-input::placeholder { color: var(--text-muted); }
+.lab-search-input:focus { border-color: var(--accent); }
+.lab-search-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.lab-card.search-hidden { display: none !important; }
+
+/* Lab card */
+.lab-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.lab-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+    transform: translateY(-1px);
+    color: inherit;
+}
+
+.lab-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 8px;
+}
+
+.pin-star {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 4px;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    flex-shrink: 0;
+}
+.lab-card:hover .pin-star,
+.pin-star.active {
+    opacity: 1;
+}
+{% if is_demo or not user_email %}
+.pin-star { opacity: 0.3; }
+{% endif %}
+.pin-star.active {
+    color: var(--accent);
+}
+.pin-star:hover {
+    color: var(--accent);
+    opacity: 1;
+}
+.lab-card.pinned {
+    border-color: var(--accent);
+}
+
+/* Drag and drop */
+.lab-card.dragging {
+    opacity: 0.4;
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+.lab-card.drag-over {
+    border-color: var(--accent);
+    transform: scale(1.02);
+}
+.lab-card {
+    cursor: grab;
+}
+.lab-card:active {
+    cursor: grabbing;
+}
+
+.lab-hostname {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    letter-spacing: -0.3px;
+}
+
+.maint-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: rgba(240, 160, 48, 0.12);
+    color: var(--amber);
+    border: 1px solid rgba(240, 160, 48, 0.4);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    vertical-align: middle;
+}
+
+.lab-os {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.lab-last-seen {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+}
+
+.lab-last-seen.online {
+    color: var(--green);
+    background: var(--green-dim);
+}
+
+.lab-last-seen.stale {
+    color: var(--amber);
+    background: var(--amber-dim);
+}
+
+.lab-last-seen.offline {
+    color: var(--red);
+    background: var(--red-dim);
+}
+
+/* Metric rows */
+.lab-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.metric-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.metric-row-stale .metric-value,
+.metric-row-stale .metric-label {
+    color: var(--text-muted);
+    opacity: 0.55;
+}
+
+.metric-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    width: 36px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-bar-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.metric-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.metric-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+}
+
+.metric-value {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    min-width: 36px;
+    text-align: right;
+}
+.metric-spark {
+    width: 48px;
+    height: 16px;
+    flex-shrink: 0;
+}
+.metric-spark polyline {
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.metric-spark .spark-anomaly {
+    filter: drop-shadow(0 0 1px currentColor);
+    opacity: 0.95;
+    animation: spark-anomaly-pulse 2.2s ease-in-out infinite;
+}
+@keyframes spark-anomaly-pulse {
+    0%, 100% { r: 1.4; opacity: 0.95; }
+    50% { r: 2.0; opacity: 0.6; }
+}
+
+/* Heartbeat bar (Uptime Kuma style) — 60 ticks = 24h (24 min each) */
+.heartbeat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 14px 0 4px 0;
+}
+.heartbeat-bar {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    height: 22px;
+    align-items: stretch;
+}
+.heartbeat-tick {
+    flex: 1 1 auto;
+    min-width: 2px;
+    border-radius: 1px;
+    background: var(--border);
+    transition: background 0.2s, transform 0.15s;
+    position: relative;
+}
+.heartbeat-tick.up { background: var(--green); }
+.heartbeat-tick.down { background: var(--red); }
+.heartbeat-tick.none { background: var(--border); opacity: 0.35; }
+.heartbeat-tick:hover {
+    transform: scaleY(1.15);
+    z-index: 1;
+}
+.heartbeat-tick:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text);
+    white-space: nowrap;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 10;
+}
+.heartbeat-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.heartbeat-meta .uptime-pct {
+    color: var(--green);
+    font-weight: 700;
+}
+.heartbeat-meta .uptime-pct.degraded { color: var(--amber); }
+.heartbeat-meta .uptime-pct.poor { color: var(--red); }
+
+/* Lab card footer */
+.lab-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.lab-stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+}
+
+.lab-stat .label {
+    color: var(--text-muted);
+}
+
+.alert-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+}
+
+.alert-count.has-alerts {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
+.alert-count.no-alerts {
+    background: var(--green-dim);
+    color: var(--green);
+}
+
+/* Query section */
+.query-section {
+    margin-bottom: 24px;
+}
+
+.query-form {
+    display: flex;
+    gap: 8px;
+    max-width: 700px;
+}
+
+.query-input {
+    flex: 1;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: var(--font-sans);
+    transition: border-color 0.2s;
+    outline: none;
+}
+
+.query-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.query-input::placeholder {
+    color: var(--text-muted);
+}
+
+.query-btn {
+    padding: 10px 20px;
+    background: var(--accent);
+    color: #0a0a0f;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    font-family: var(--font-sans);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.query-btn:hover {
+    background: #fbb040;
+    box-shadow: 0 0 16px var(--accent-glow-strong);
+}
+
+.query-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.query-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    max-width: 700px;
+}
+
+.query-chip {
+    padding: 4px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--font-sans);
+    transition: all 0.2s;
+}
+
+.query-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+}
+
+.query-chip-dismiss {
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: var(--font-sans);
+    line-height: 1;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+
+.query-chip-dismiss:hover {
+    border-color: var(--danger, #e06666);
+    color: var(--danger, #e06666);
+}
+
+.query-response {
+    display: none;
+    margin-top: 12px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    white-space: pre-wrap;
+    line-height: 1.6;
+    color: var(--text);
+    font-size: 14px;
+    max-width: 700px;
+    position: relative;
+}
+
+.query-response .query-meta {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.query-thinking {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 80px 24px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.empty-icon {
+    font-size: 48px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+    opacity: 0.5;
+}
+
+.empty-state h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-dim);
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+
+.empty-state .install-cmd {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    display: inline-block;
+}
+
+/* Fleet summary strip */
+.fleet-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.fleet-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+}
+
+.fleet-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.fleet-stat-value.green { color: var(--green); }
+.fleet-stat-value.amber { color: var(--amber); }
+.fleet-stat-value.red { color: var(--red); }
+.fleet-stat-value.accent { color: var(--accent); }
+.fleet-stat-value.dim { color: var(--text-dim); }
+
+.fleet-stat-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fleet-stat-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    margin-top: 2px;
+}
+
+/* Ember mascot */
+.ember-mascot {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    cursor: pointer;
+    user-select: none;
+    filter: drop-shadow(0 0 10px rgba(245, 166, 35, 0.35));
+    transition: filter 0.3s, transform 0.2s;
+    animation: ember-entrance 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+.ember-mascot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    margin-top: -30px;
+    margin-left: -30px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245, 166, 35, 0.35) 0%, rgba(245, 166, 35, 0) 65%);
+    animation: ember-halo 2.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+.ember-mascot:hover { filter: drop-shadow(0 0 16px rgba(245, 166, 35, 0.6)); transform: scale(1.08); }
+.ember-mascot:active { transform: scale(0.94); }
+@keyframes ember-entrance {
+    0% { opacity: 0; transform: translateY(20px) scale(0.6); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes ember-halo {
+    0%, 100% { opacity: 0.4; transform: scale(0.85); }
+    50% { opacity: 0.85; transform: scale(1.15); }
+}
+.ember-body {
+    width: 38px;
+    height: 46px;
+    background: linear-gradient(180deg, #ff6b35 0%, #f5a623 35%, #ffd700 100%);
+    border-radius: 48% 48% 42% 42% / 58% 58% 38% 38%;
+    position: relative;
+    animation: ember-idle 3s ease-in-out infinite;
+}
+.ember-body::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: inherit;
+    background: radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.25) 0%, transparent 65%);
+    animation: ember-heartbeat 2.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes ember-heartbeat {
+    0%, 100% { opacity: 0.3; transform: scale(0.95); }
+    40% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.97); }
+    60% { opacity: 0.65; transform: scale(1); }
+}
+.ember-tip {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 14px;
+    background: linear-gradient(180deg, #ff4444, #ff6b35);
+    border-radius: 45% 45% 25% 25% / 75% 75% 25% 25%;
+    animation: ember-flicker 1.5s ease-in-out infinite alternate;
+}
+.ember-inner-glow {
+    position: absolute;
+    top: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 16px;
+    background: radial-gradient(ellipse, rgba(255,255,200,0.18) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.ember-face {
+    position: absolute;
+    top: 38%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 16px;
+}
+/* Eyebrows */
+.ember-brow {
+    position: absolute;
+    top: 0;
+    width: 6px;
+    height: 2px;
+    background: rgba(26, 26, 46, 0.5);
+    border-radius: 1px;
+    transition: transform 0.3s, top 0.3s;
+}
+.ember-brow.l { left: 1px; transform: rotate(-5deg); }
+.ember-brow.r { right: 1px; transform: rotate(5deg); }
+/* Eyes */
+.ember-eye {
+    position: absolute;
+    top: 5px;
+    width: 4px;
+    height: 5px;
+    background: #1a1a2e;
+    border-radius: 50%;
+    animation: ember-blink 4s ease-in-out infinite;
+    transition: all 0.3s;
+}
+.ember-eye.l { left: 2px; }
+.ember-eye.r { right: 2px; animation-delay: 0.1s; }
+/* Eye shine */
+.ember-eye::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    right: 0px;
+    width: 1.5px;
+    height: 1.5px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+}
+/* Mouth */
+.ember-mouth {
+    position: absolute;
+    bottom: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 3px;
+    border-bottom: 2px solid rgba(26, 26, 46, 0.55);
+    border-radius: 0 0 50% 50%;
+    transition: all 0.3s;
+}
+/* Cheek blush (visible in peaceful) */
+.ember-cheek {
+    position: absolute;
+    bottom: 2px;
+    width: 5px;
+    height: 3px;
+    background: rgba(255, 100, 100, 0);
+    border-radius: 50%;
+    transition: background 0.5s;
+}
+.ember-cheek.l { left: 0; }
+.ember-cheek.r { right: 0; }
+@keyframes ember-idle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+@keyframes ember-flicker {
+    0% { transform: translateX(-50%) scaleX(1) scaleY(1); }
+    100% { transform: translateX(-50%) scaleX(0.8) scaleY(1.2); }
+}
+@keyframes ember-blink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+}
+/* Alert state — worried, shaking */
+.ember-mascot.alert .ember-body {
+    animation: ember-shake 0.5s ease-in-out infinite;
+    background: linear-gradient(180deg, #ff4444 0%, #ff6b35 50%, #f5a623 100%);
+}
+.ember-mascot.alert .ember-tip {
+    background: linear-gradient(180deg, #ff0000, #ff4444);
+    animation: ember-flicker 0.8s ease-in-out infinite alternate;
+}
+.ember-mascot.alert { filter: drop-shadow(0 0 12px rgba(255, 68, 68, 0.5)); }
+.ember-mascot.alert .ember-brow.l { transform: rotate(15deg); top: -1px; }
+.ember-mascot.alert .ember-brow.r { transform: rotate(-15deg); top: -1px; }
+.ember-mascot.alert .ember-eye { height: 6px; width: 5px; }
+.ember-mascot.alert .ember-mouth {
+    border-bottom: none;
+    width: 5px;
+    height: 4px;
+    background: rgba(26, 26, 46, 0.4);
+    border-radius: 50%;
+}
+@keyframes ember-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px) rotate(-4deg); }
+    75% { transform: translateX(2px) rotate(4deg); }
+}
+/* Peaceful state — happy, relaxed */
+.ember-mascot.peaceful .ember-body { animation: ember-idle 4s ease-in-out infinite; }
+.ember-mascot.peaceful .ember-eye { height: 2px; width: 5px; border-radius: 5px 5px 0 0; animation: none; }
+.ember-mascot.peaceful .ember-eye::after { display: none; }
+.ember-mascot.peaceful .ember-brow { opacity: 0; }
+.ember-mascot.peaceful .ember-mouth {
+    border-bottom: none;
+    border-top: 2px solid rgba(26, 26, 46, 0.55);
+    border-radius: 50% 50% 0 0;
+    width: 8px;
+    height: 3px;
+}
+.ember-mascot.peaceful .ember-cheek { background: rgba(255, 100, 100, 0.2); }
+.ember-mascot.peaceful { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4)); }
+/* Curious state — one brow up */
+.ember-mascot.curious .ember-brow.l { transform: rotate(-15deg); top: -2px; }
+.ember-mascot.curious .ember-brow.r { transform: rotate(2deg); }
+.ember-mascot.curious .ember-eye.l { width: 5px; height: 6px; }
+/* Speech bubble */
+.ember-bubble {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: normal;
+    max-width: 240px;
+    opacity: 0;
+    pointer-events: none;
+    margin-bottom: 10px;
+    font-family: var(--font-mono);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    transition: opacity 0.3s;
+}
+.ember-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    right: 16px;
+    width: 8px;
+    height: 8px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transform: rotate(45deg);
+}
+.ember-bubble.show { opacity: 1; pointer-events: auto; }
+
+/* Widgets section */
+/* Flat vertical stack of reorderable widget blocks. */
+.dashboard-widgets {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+/* .dashboard-widgets handles vertical spacing via gap — strip legacy margins. */
+.dashboard-widgets > .widget-block { margin-bottom: 0; }
+.widgets-section {
+    display: contents; /* legacy — disabled, widgets are flattened now */
+}
+.widget {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+}
+/* Every block in the reorderable column. */
+.widget-block {
+    position: relative;
+}
+.widget-drag-handle {
+    display: none;
+}
+body.edit-mode .widget-drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    font-size: 14px;
+    font-family: var(--font-mono);
+    cursor: grab;
+    z-index: 5;
+    user-select: none;
+}
+body.edit-mode .widget-drag-handle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Delete widget button — red X in top-right of each widget in edit mode */
+.widget-delete-btn { display: none; }
+body.edit-mode .widget-delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 6px;
+    right: 34px;
+    width: 22px;
+    height: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    font-size: 14px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    z-index: 6;
+    user-select: none;
+    line-height: 1;
+    padding: 0;
+}
+body.edit-mode .widget-delete-btn:hover {
+    border-color: var(--red, #ef4444);
+    color: var(--red, #ef4444);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+/* Widget library — inline card shown at bottom of widget list in edit mode */
+.add-widget-picker { display: none; }
+body.edit-mode .add-widget-picker {
+    display: block;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-top: 10px;
+}
+.add-widget-picker-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+.add-widget-picker-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+}
+.add-widget-picker-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+.add-widget-chip {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    cursor: pointer;
+    user-select: none;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: border-color 0.12s, transform 0.12s;
+}
+.add-widget-chip:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+.add-widget-chip-label {
+    font-size: 12px;
+    color: var(--text);
+}
+.add-widget-chip:hover .add-widget-chip-label {
+    color: var(--accent);
+}
+.add-widget-chip-desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.3;
+}
+.add-widget-picker-empty {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+body.edit-mode .widget-block[data-widget] {
+    transition: transform 0.15s, border-color 0.15s;
+}
+body.edit-mode .widget-block.dragging {
+    opacity: 0.4;
+}
+body.edit-mode .widget-block.drop-before {
+    box-shadow: 0 -3px 0 0 var(--accent);
+}
+body.edit-mode .widget-block.drop-after {
+    box-shadow: 0 3px 0 0 var(--accent);
+}
+.widget-title {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+/* Uptime window toggle */
+.uptime-window-toggle {
+    display: inline-flex;
+    margin-left: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.uptime-window-toggle .win-btn {
+    background: transparent;
+    border: 0;
+    color: var(--text-dim);
+    padding: 3px 9px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+}
+.uptime-window-toggle .win-btn:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+}
+.uptime-window-toggle .win-btn.active {
+    color: var(--accent);
+    background: rgba(240, 160, 48, 0.10);
+}
+.uptime-window-toggle .win-btn + .win-btn {
+    border-left: 1px solid var(--border);
+}
+
+/* Uptime timeline */
+.uptime-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+.uptime-label {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    width: 100px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.uptime-bar {
+    flex: 1;
+    height: 14px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+    position: relative;
+}
+.uptime-seg {
+    height: 100%;
+    min-width: 1px;
+}
+.uptime-seg.online { background: var(--green); }
+.uptime-seg.offline { background: var(--red); opacity: 0.7; }
+.uptime-seg.stale { background: var(--amber); opacity: 0.7; }
+.uptime-seg.no-data { background: var(--border); opacity: 0.5; }
+.uptime-pct {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+}
+/* Alert feed */
+.alert-feed {
+    max-height: 240px;
+    overflow-y: auto;
+}
+.alert-feed-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+}
+.alert-feed-item:last-child { border-bottom: none; }
+.alert-feed-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+.alert-feed-dot.critical { background: var(--red); }
+.alert-feed-dot.warning { background: var(--amber); }
+.alert-feed-dot.info { background: var(--accent); }
+.alert-feed-dot.resolved { background: var(--green); }
+.alert-feed-body {
+    flex: 1;
+    min-width: 0;
+}
+.alert-feed-msg {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    line-height: 1.4;
+}
+.alert-feed-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    margin-top: 2px;
+}
+.alert-feed-empty {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Container restarts widget */
+.container-restarts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.container-restart-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    transition: border-color 0.12s, background 0.12s;
+}
+.container-restart-row:hover {
+    border-color: var(--accent);
+    background: var(--bg-elev);
+}
+.container-restart-name {
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.container-restart-host {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+.container-restart-count {
+    flex-shrink: 0;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--amber);
+    background: color-mix(in srgb, var(--amber) 12%, transparent);
+}
+.container-restart-count.crit {
+    color: var(--red);
+    background: color-mix(in srgb, var(--red) 12%, transparent);
+}
+
+/* Disk pressure widget */
+.disk-pressure-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.disk-pressure-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    transition: border-color 0.12s, background 0.12s;
+}
+.disk-pressure-row:hover {
+    border-color: var(--accent);
+    background: var(--bg-elev);
+}
+.disk-pressure-host {
+    flex-shrink: 0;
+    width: 140px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.disk-pressure-bar-outer {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+.disk-pressure-bar-inner {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.25s ease;
+}
+.disk-pressure-bar-inner.ok { background: var(--green); }
+.disk-pressure-bar-inner.warn { background: var(--amber); }
+.disk-pressure-bar-inner.crit { background: var(--red); }
+.disk-pressure-pct {
+    flex-shrink: 0;
+    width: 44px;
+    text-align: right;
+    color: var(--text-dim);
+    font-weight: 600;
+}
+.disk-pressure-pct.warn { color: var(--amber); }
+.disk-pressure-pct.crit { color: var(--red); }
+@media (max-width: 640px) {
+    .disk-pressure-host { width: 90px; font-size: 11px; }
+    .disk-pressure-pct { width: 38px; font-size: 11px; }
+}
+
+/* Top alerts rollup — "which nodes are on fire" */
+.alert-rollup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.alert-rollup-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    transition: border-color 0.12s, background 0.12s;
+}
+.alert-rollup-row:hover {
+    border-color: var(--accent);
+    background: var(--bg-elev);
+}
+.alert-rollup-host {
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.alert-rollup-count {
+    flex-shrink: 0;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+.alert-rollup-count.critical {
+    color: var(--red);
+    background: color-mix(in srgb, var(--red) 12%, transparent);
+}
+.alert-rollup-count.warning {
+    color: var(--amber);
+    background: color-mix(in srgb, var(--amber) 12%, transparent);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .labs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-header {
+        padding: 24px 0 20px;
+    }
+
+    .fleet-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .widgets-section {
+        grid-template-columns: 1fr;
+    }
+}
+{% endblock %}
+
+{% block content %}
+{% if is_demo %}
+<div style="background: var(--accent-glow); border-bottom: 1px solid var(--accent); padding: 10px 24px; text-align: center; font-size: 14px; color: var(--accent);">
+    {{ t.dashboard_demo_banner }} <a href="/#install" style="color: var(--text); text-decoration: underline;">{{ t.dashboard_demo_install }}</a>
+    <span style="margin-left: 14px; opacity: 0.8;">|</span>
+    <a href="/s/demo" target="_blank" style="color: var(--text); text-decoration: underline; margin-left: 14px;">{{ t.dashboard_demo_public_status }}</a>
+</div>
+{% endif %}
+<div class="container">
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1>{{ t.dashboard_labs }}</h1>
+            <span class="dash-count" id="lab-count">{{ labs | length if labs else 0 }}</span>
+        </div>
+        <div class="dash-status">
+            {% if is_demo %}
+            <a href="/signup" class="add-node-btn" id="add-node-btn" title="Sign up to add your own nodes">+ {{ t.nav_add_node.replace('+ ', '') if t and t.nav_add_node else 'add node' }}</a>
+            <button class="edit-layout-btn" id="edit-layout-btn" onclick="toggleEditMode()" title="Drag widgets to reorder — your layout won't persist in demo mode">{{ t.dashboard_edit_layout if t and t.dashboard_edit_layout else 'edit layout' }}</button>
+            {% elif user_email %}
+            <a href="/my/add-node" class="add-node-btn" id="add-node-btn">+ {{ t.nav_add_node.replace('+ ', '') if t and t.nav_add_node else 'add node' }}</a>
+            {% if billing_enabled and user_plan == "free" %}
+            <button type="button" class="upgrade-pro-btn" id="upgrade-pro-btn" onclick="startUpgradeCheckout()">{{ t.dashboard_upgrade_pro if t and t.dashboard_upgrade_pro else 'upgrade to pro' }}</button>
+            {% endif %}
+            <button class="edit-layout-btn" id="edit-layout-btn" onclick="toggleEditMode()">{{ t.dashboard_edit_layout if t and t.dashboard_edit_layout else 'edit layout' }}</button>
+            {% endif %}
+            <span class="live-dot"></span>
+            <span>{{ t.dashboard_autorefresh }} <span id="refresh-countdown">30</span>s</span>
+        </div>
+    </div>
+
+    <!-- Reorderable widget column (everything between dash-header and any full-width stuff) -->
+    <div class="dashboard-widgets" id="dashboard-widgets">
+    <!-- Fleet Summary -->
+    {% if labs %}
+    {% set ns = namespace(online=0, total_containers=0, total_alerts=0, total_critical=0, cpu_sum=0, mem_sum=0, online_count=0, net_rx_sum=0, net_tx_sum=0, disk_sum=0) %}
+    {% for lab in labs %}
+        {% if lab.online %}{% set ns.online = ns.online + 1 %}{% set ns.online_count = ns.online_count + 1 %}{% endif %}
+        {% set ns.total_containers = ns.total_containers + (lab.container_count | default(0)) %}
+        {% set ns.total_alerts = ns.total_alerts + (lab.alert_count | default(0)) %}
+        {% set ns.total_critical = ns.total_critical + (lab.critical_count | default(0)) %}
+        {% if lab.online %}
+            {% set ns.cpu_sum = ns.cpu_sum + (lab.cpu_percent | default(0)) %}
+            {% set ns.mem_sum = ns.mem_sum + (lab.memory_percent | default(lab.mem_percent | default(0))) %}
+            {% set ns.net_rx_sum = ns.net_rx_sum + (lab.net_rx_mbps | default(0)) %}
+            {% set ns.net_tx_sum = ns.net_tx_sum + (lab.net_tx_mbps | default(0)) %}
+            {% set ns.disk_sum = ns.disk_sum + (lab.disk_percent | default(0)) %}
+        {% endif %}
+    {% endfor %}
+    <div class="fleet-summary widget-block" id="fleet-summary" data-widget="fleet_summary" data-widget-label="fleet"><div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="fleet-stat">
+            <div class="fleet-stat-value {{ 'green' if ns.online == (labs | length) else 'amber' }}" id="fs-nodes">{{ ns.online }}/{{ labs | length }}</div>
+            <div class="fleet-stat-label">{{ t.dashboard_nodes_online }}</div>
+        </div>
+        <div class="fleet-stat">
+            <div class="fleet-stat-value accent" id="fs-containers">{{ ns.total_containers }}</div>
+            <div class="fleet-stat-label">{{ t.dashboard_containers }}</div>
+        </div>
+        <div class="fleet-stat">
+            <div class="fleet-stat-value {{ 'red' if ns.total_critical > 0 else ('amber' if ns.total_alerts > 0 else 'green') }}" id="fs-alerts">{{ ns.total_alerts }}</div>
+            <div class="fleet-stat-label">{{ t.dashboard_active_alerts }}</div>
+            {% if ns.total_critical > 0 %}
+            <div class="fleet-stat-sub" id="fs-critical">{{ ns.total_critical }} critical</div>
+            {% endif %}
+        </div>
+        <div class="fleet-stat">
+            <div class="fleet-stat-value dim" id="fs-cpu">{% if ns.online_count > 0 %}{{ "%.0f" | format(ns.cpu_sum / ns.online_count) }}%{% else %}—{% endif %}</div>
+            <div class="fleet-stat-label">{{ t.dashboard_avg_cpu }}</div>
+        </div>
+        <div class="fleet-stat">
+            <div class="fleet-stat-value dim" id="fs-mem">{% if ns.online_count > 0 %}{{ "%.0f" | format(ns.mem_sum / ns.online_count) }}%{% else %}—{% endif %}</div>
+            <div class="fleet-stat-label">{{ t.dashboard_avg_mem }}</div>
+        </div>
+        <div class="fleet-stat">
+            <div class="fleet-stat-value dim" id="fs-disk">{% if ns.online_count > 0 %}{{ "%.0f" | format(ns.disk_sum / ns.online_count) }}%{% else %}—{% endif %}</div>
+            <div class="fleet-stat-label">{{ t.dashboard_avg_disk if t and t.dashboard_avg_disk else 'avg disk' }}</div>
+        </div>
+        <div class="fleet-stat">
+            <div class="fleet-stat-value dim" id="fs-net-rx">{% if ns.online_count > 0 %}{{ "%.1f" | format(ns.net_rx_sum) }}<span style="font-size:11px;color:var(--text-muted);font-weight:400"> Mbps</span>{% else %}—{% endif %}</div>
+            <div class="fleet-stat-label">↓ {{ t.dashboard_fleet_net_rx if t and t.dashboard_fleet_net_rx else 'total rx' }}</div>
+        </div>
+        <div class="fleet-stat">
+            <div class="fleet-stat-value dim" id="fs-net-tx">{% if ns.online_count > 0 %}{{ "%.1f" | format(ns.net_tx_sum) }}<span style="font-size:11px;color:var(--text-muted);font-weight:400"> Mbps</span>{% else %}—{% endif %}</div>
+            <div class="fleet-stat-label">↑ {{ t.dashboard_fleet_net_tx if t and t.dashboard_fleet_net_tx else 'total tx' }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Widgets: uptime + alerts, each a standalone reorderable block -->
+    {% if labs %}
+    <div class="widget widget-block" id="widget-uptime" data-widget="uptime" data-widget-label="uptime">
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-title" style="display: flex; align-items: center; gap: 12px;">
+            <span id="uptime-title-label">{{ t.dashboard_widget_uptime }}</span>
+            <div class="uptime-window-toggle" role="tablist" aria-label="Time window">
+                <button type="button" class="win-btn" data-hours="24" onclick="setUptimeWindow(24)">24h</button>
+                <button type="button" class="win-btn" data-hours="168" onclick="setUptimeWindow(168)">7d</button>
+                <button type="button" class="win-btn" data-hours="720" onclick="setUptimeWindow(720)">30d</button>
+            </div>
+        </div>
+        <div id="uptime-content"><span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span></div>
+    </div>
+    <div class="widget widget-block" id="widget-alerts" data-widget="alerts" data-widget-label="alerts">
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-title">{{ t.dashboard_widget_alerts }}</div>
+        <div class="alert-feed" id="alert-feed-content"><span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span></div>
+    </div>
+    {# Top alerts rollup: shows the top 5 labs with the most active alerts #}
+    {% set noisy_labs = [] %}
+    {% for lab in labs %}
+        {% if (lab.alert_count | default(0)) > 0 %}
+            {% set _ = noisy_labs.append(lab) %}
+        {% endif %}
+    {% endfor %}
+    <div class="widget widget-block" id="widget-alert-rollup" data-widget="alert_rollup" data-widget-label="alert rollup">
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-title">{{ t.dashboard_widget_alert_rollup }}</div>
+        <div class="alert-rollup-list">
+            {% if noisy_labs %}
+                {% for lab in (noisy_labs | sort(attribute='critical_count', reverse=true))[:5] %}
+                <a href="{% if is_demo %}/demo/lab/{{ lab.id }}{% elif user_email %}/my/lab/{{ lab.id }}{% else %}/dashboard/lab/{{ lab.id }}?secret={{ secret }}{% endif %}" class="alert-rollup-row">
+                    <span class="alert-rollup-host">{{ lab.hostname or lab.name or lab.id }}</span>
+                    {% if (lab.critical_count | default(0)) > 0 %}
+                    <span class="alert-rollup-count critical">{{ lab.critical_count }} {{ t.dashboard_rollup_critical }}</span>
+                    {% endif %}
+                    {% set warn_count = (lab.alert_count | default(0)) - (lab.critical_count | default(0)) %}
+                    {% if warn_count > 0 %}
+                    <span class="alert-rollup-count warning">{{ warn_count }} {{ t.dashboard_rollup_warning }}</span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            {% else %}
+                <span class="alert-feed-empty">{{ t.dashboard_rollup_all_clear }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {# Disk pressure: top 5 online labs by disk% #}
+    {% set disky_labs = [] %}
+    {% for lab in labs %}
+        {% if lab.online and (lab.disk_percent | default(0)) > 0 %}
+            {% set _ = disky_labs.append(lab) %}
+        {% endif %}
+    {% endfor %}
+    <div class="widget widget-block" id="widget-disk-pressure" data-widget="disk_pressure" data-widget-label="disk pressure">
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-title">{{ t.dashboard_widget_disk_pressure }}</div>
+        <div class="disk-pressure-list">
+            {% if disky_labs %}
+                {% for lab in (disky_labs | sort(attribute='disk_percent', reverse=true))[:5] %}
+                {% set dp_raw = lab.disk_percent | default(0) %}
+                {% set dp = [dp_raw, 100] | min %}
+                {% set cls = 'crit' if dp >= 90 else ('warn' if dp >= 80 else 'ok') %}
+                <a href="{% if is_demo %}/demo/lab/{{ lab.id }}{% elif user_email %}/my/lab/{{ lab.id }}{% else %}/dashboard/lab/{{ lab.id }}?secret={{ secret }}{% endif %}" class="disk-pressure-row">
+                    <span class="disk-pressure-host">{{ lab.hostname or lab.name or lab.id }}</span>
+                    <div class="disk-pressure-bar-outer" aria-hidden="true">
+                        <div class="disk-pressure-bar-inner {{ cls }}" style="width:{{ '%.0f' | format(dp) }}%"></div>
+                    </div>
+                    <span class="disk-pressure-pct {{ cls if cls != 'ok' else '' }}">{{ '%.0f' | format(dp_raw) }}%</span>
+                </a>
+                {% endfor %}
+            {% else %}
+                <span class="alert-feed-empty">{{ t.dashboard_disk_pressure_empty }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {# Container restart leaders — top restarting containers across the fleet #}
+    <div class="widget widget-block" id="widget-container-restarts" data-widget="container_restarts" data-widget-label="container restarts">
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-title">{{ t.dashboard_widget_container_restarts }}</div>
+        <div class="container-restarts-list">
+            {% if restart_leaders %}
+                {% for r in restart_leaders %}
+                <a href="{% if is_demo %}/demo/lab/{{ r.lab_id }}{% elif user_email %}/my/lab/{{ r.lab_id }}{% else %}/dashboard/lab/{{ r.lab_id }}?secret={{ secret }}{% endif %}" class="container-restart-row">
+                    <span class="container-restart-name">{{ r.container }}</span>
+                    <span class="container-restart-host">{{ r.hostname }}</span>
+                    <span class="container-restart-count{% if r.restart_count >= 5 %} crit{% endif %}">{{ r.restart_count }}×</span>
+                </a>
+                {% endfor %}
+            {% else %}
+                <span class="alert-feed-empty">{{ t.dashboard_container_restarts_empty }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Query Bar -->
+    <div class="query-section widget-block" id="query-section" data-widget="query" data-widget-label="query">
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="query-form">
+            <input type="text" id="query-input" class="query-input"
+                   placeholder="{% if is_demo %}{{ t.dashboard_ask_demo_placeholder }}{% else %}{{ t.dashboard_ask_placeholder }}{% endif %}">
+            <button id="query-btn" class="query-btn" onclick="askQuery()">{{ t.dashboard_ask_button }}</button>
+        </div>
+        <div class="query-suggestions" id="query-suggestions">
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_attention }}</button>
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_alerts }}</button>
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_fleet }}</button>
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_cpu }}</button>
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_containers }}</button>
+            {% if is_demo %}
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_disk }}</button>
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_night }}</button>
+            {% endif %}
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_temp }}</button>
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_network }}</button>
+            <button class="query-chip-dismiss" id="query-chip-dismiss" onclick="dismissSuggestions()" title="hide suggestions">×</button>
+        </div>
+        <div id="query-response" class="query-response"></div>
+    </div>
+
+    {% if labs %}
+    <div class="labs-grid-wrap widget-block" data-widget="lab_grid" data-widget-label="labs">
+    <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+    {% if labs | length > 1 %}
+    <div class="lab-search-row">
+        <input type="search" id="lab-search" class="lab-search-input" placeholder="Filter labs by hostname or OS…  ( press / )" autocomplete="off" oninput="filterLabs(this.value)">
+        <span class="lab-search-count" id="lab-search-count"></span>
+    </div>
+    {% endif %}
+    <div class="labs-grid" id="labs-grid">
+        {% for lab in labs %}
+        <a href="{% if is_demo %}/demo/lab/{{ lab.id }}{% elif user_email %}/my/lab/{{ lab.id }}{% else %}/dashboard/lab/{{ lab.id }}?secret={{ secret }}{% endif %}" class="lab-card{% if pinned_ids is defined and lab.id in pinned_ids %} pinned{% endif %}" data-lab-id="{{ lab.id }}" draggable="true">
+            <div class="lab-card-header">
+                <div>
+                    <div class="lab-hostname">
+                        {{ lab.display_name or lab.hostname }}
+                        {% if lab.maintenance %}<span class="maint-badge" title="Maintenance mode — alerts silenced">maint</span>{% endif %}
+                    </div>
+                    <div class="lab-os">{% if lab.display_name %}{{ lab.hostname }} · {% endif %}{{ lab.os | default('Unknown OS') }} / {{ lab.arch | default('unknown') }}</div>
+                </div>
+                <button class="pin-star{% if pinned_ids is defined and lab.id in pinned_ids %} active{% endif %}" onclick="togglePin(event, '{{ lab.id }}')" title="Pin node">★</button>
+                <span class="lab-last-seen online" data-timestamp="{{ lab.last_seen }}">
+                    --
+                </span>
+            </div>
+
+            <div class="lab-metrics">
+                {% set cpu = lab.cpu_percent | default(0) %}
+                {% set mem = lab.memory_percent | default(lab.mem_percent | default(0)) %}
+                {% set disk = lab.disk_percent | default(0) %}
+                {# Treat lab as having no real data when offline. Avoids 0% in green for down nodes. #}
+                {% set has_data = lab.online %}
+                <div class="metric-row {% if not has_data %}metric-row-stale{% endif %}" data-spark="cpu">
+                    <span class="metric-label">CPU</span>
+                    <div class="metric-bar-wrap">
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: {% if has_data %}{{ cpu }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif cpu >= 85 %}--red{% elif cpu >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                        </div>
+                        <svg class="metric-spark" viewBox="0 0 48 16"></svg>
+                        <span class="metric-value">{% if has_data %}{{ "%.1f" | format(cpu) }}%{% else %}—{% endif %}</span>
+                    </div>
+                </div>
+                <div class="metric-row {% if not has_data %}metric-row-stale{% endif %}" data-spark="memory">
+                    <span class="metric-label">MEM</span>
+                    <div class="metric-bar-wrap">
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: {% if has_data %}{{ mem }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif mem >= 85 %}--red{% elif mem >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                        </div>
+                        <svg class="metric-spark" viewBox="0 0 48 16"></svg>
+                        <span class="metric-value">{% if has_data %}{{ "%.1f" | format(mem) }}%{% else %}—{% endif %}</span>
+                    </div>
+                </div>
+                <div class="metric-row {% if not has_data %}metric-row-stale{% endif %}" data-spark="disk">
+                    <span class="metric-label">DISK</span>
+                    <div class="metric-bar-wrap">
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: {% if has_data %}{{ disk }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif disk >= 85 %}--red{% elif disk >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                        </div>
+                        <svg class="metric-spark" viewBox="0 0 48 16"></svg>
+                        <span class="metric-value">{% if has_data %}{{ "%.1f" | format(disk) }}%{% else %}—{% endif %}</span>
+                    </div>
+                </div>
+                {% if lab.net_rx_mbps is defined and lab.net_rx_mbps is not none %}
+                <div class="metric-row">
+                    <span class="metric-label">NET</span>
+                    <div class="metric-bar-wrap">
+                        <span class="metric-value" style="font-size:11px">{{ "%.1f" | format(lab.net_rx_mbps) }}↓ {{ "%.1f" | format(lab.net_tx_mbps | default(0)) }}↑ Mbps</span>
+                    </div>
+                </div>
+                {% endif %}
+                {% if lab.gpu_count | default(0) > 0 and lab.gpus | default([]) | length > 0 %}
+                {% set gpu = lab.gpus[0] %}
+                {% set gpu_util = gpu.utilization_percent | default(0) %}
+                <div class="metric-row">
+                    <span class="metric-label" title="{{ gpu.name | default('GPU') }}">GPU</span>
+                    <div class="metric-bar-wrap">
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: {{ gpu_util }}%; background: var({% if gpu_util >= 90 %}--red{% elif gpu_util >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                        </div>
+                        <span class="metric-value">{{ "%.0f" | format(gpu_util) }}% {{ "%.0f" | format(gpu.temperature_celsius | default(0)) }}°C</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% set hb = lab.heartbeat | default([]) %}
+            {% if hb %}
+            {% set hb_up = hb | select('equalto', 'up') | list | length %}
+            {% set hb_total = hb | reject('equalto', 'none') | list | length %}
+            {% set hb_pct = (hb_up / hb_total * 100) if hb_total > 0 else 0 %}
+            <div class="heartbeat-row" data-heartbeat-row>
+                <div class="heartbeat-bar" data-heartbeat>
+                    {% for tick in hb %}
+                    <div class="heartbeat-tick {{ tick }}" data-tip="{{ loop.revindex0 * 24 }}m ago — {{ tick }}"></div>
+                    {% endfor %}
+                </div>
+                <div class="heartbeat-meta">
+                    24h <span class="uptime-pct{% if hb_pct < 80 %} poor{% elif hb_pct < 99 %} degraded{% endif %}" data-uptime-pct>{{ "%.1f"|format(hb_pct) }}%</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="lab-card-footer">
+                <div class="lab-stat">
+                    <span class="label">{{ t.dashboard_containers_label }}</span>
+                    <span>{{ lab.container_count | default(0) }}</span>
+                </div>
+                <div class="lab-stat">
+                    <span class="label">{{ t.dashboard_alerts_label }}</span>
+                    {% set alert_n = lab.alert_count | default(0) %}
+                    <span class="alert-count {{ 'has-alerts' if alert_n > 0 else 'no-alerts' }}">{{ alert_n }}</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    </div>
+    {% else %}
+    <div class="empty-state" id="empty-state">
+        <div class="empty-icon">&gt;_</div>
+        <h2>{{ t.dashboard_no_labs_title }}</h2>
+        <p>{{ t.dashboard_no_labs_desc }}</p>
+        {% if user_email and not is_demo %}
+        <a href="/my/add-node" class="empty-cta">+ add your first node</a>
+        <span class="empty-cta-sep">— or paste this on any linux box —</span>
+        {% endif %}
+        <div class="install-cmd">curl -fsSL https://labwatch.dev/install.sh | bash</div>
+    </div>
+    {% endif %}
+    <div class="add-widget-picker" id="add-widget-picker">
+        <div class="add-widget-picker-title">{{ t.dashboard_widget_library_title if t and t.dashboard_widget_library_title else 'widget library' }}</div>
+        <div class="add-widget-picker-subtitle">{{ t.dashboard_widget_library_subtitle if t and t.dashboard_widget_library_subtitle else 'add more widgets to your dashboard' }}</div>
+        <div class="add-widget-picker-items" id="add-widget-picker-items"></div>
+    </div>
+    </div><!-- /.dashboard-widgets -->
+</div>
+
+<!-- Edit layout save bar -->
+<div class="edit-save-bar" id="edit-save-bar">
+    <span class="save-hint">{{ t.dashboard_edit_hint if t and t.dashboard_edit_hint else 'drag to reorder · × to remove · + add widget at bottom' }}</span>
+    <button onclick="resetLayout()">{{ t.dashboard_reset if t and t.dashboard_reset else 'reset' }}</button>
+    <button onclick="cancelEditMode()">{{ t.dashboard_cancel if t and t.dashboard_cancel else 'cancel' }}</button>
+    <button class="primary" onclick="saveLayout()">{{ t.dashboard_save if t and t.dashboard_save else 'save' }}</button>
+</div>
+
+<!--
+    Ember mascot was here. We hid them as an easter egg — first finder gets a free year.
+    Hint: read the install script. https://labwatch.dev/install.sh
+                  ___
+                 (   )
+                (' v ')
+                 \___/
+-->
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function togglePin(e, labId) {
+    e.preventDefault();
+    e.stopPropagation();
+    var btn = e.target;
+    var isPinned = btn.classList.contains('active');
+    {% if user_email %}
+    var method = isPinned ? 'DELETE' : 'POST';
+    fetch('/api/v1/my/pin/' + labId, { method: method })
+        .then(function(r) { return r.json(); })
+        .then(function() {
+            btn.classList.toggle('active');
+            var card = btn.closest('.lab-card');
+            if (card) card.classList.toggle('pinned');
+        });
+    {% else %}
+    var pinned = JSON.parse(localStorage.getItem('labwatch_pinned') || '[]');
+    if (isPinned) {
+        pinned = pinned.filter(function(id) { return id !== labId; });
+    } else {
+        if (pinned.indexOf(labId) === -1) pinned.push(labId);
+    }
+    localStorage.setItem('labwatch_pinned', JSON.stringify(pinned));
+    btn.classList.toggle('active');
+    var card = btn.closest('.lab-card');
+    if (card) card.classList.toggle('pinned');
+    {% endif %}
+}
+
+// --- Query bar ---
+function askQuery() {
+    var input = document.getElementById('query-input');
+    var responseDiv = document.getElementById('query-response');
+    var btn = document.getElementById('query-btn');
+    var question = input.value.trim();
+    if (!question) return;
+
+    responseDiv.style.display = 'block';
+    responseDiv.innerHTML = '<span class="query-thinking">{{ t.dashboard_thinking }}</span>';
+    btn.disabled = true;
+
+    fetch('/api/v1/query', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({question: question, secret: '{{ secret }}'})
+    })
+    .then(function(resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+    })
+    .then(function(data) {
+        var answer = data.answer || 'No answer available.';
+        var meta = '';
+        if (data.query_type && data.confidence !== undefined) {
+            meta = '<div class="query-meta">' + data.query_type + ' query'
+                 + ' &middot; confidence: ' + (data.confidence * 100).toFixed(0) + '%'
+                 + '</div>';
+        }
+        responseDiv.innerHTML = escapeHtml(answer).replace(/\n/g, '<br>') + meta;
+    })
+    .catch(function(e) {
+        responseDiv.innerHTML = '<span style="color:var(--red)">Error: ' + escapeHtml(e.message) + '</span>';
+    })
+    .finally(function() {
+        btn.disabled = false;
+    });
+}
+
+// Suggestion chip click
+function suggestQuery(chip) {
+    var input = document.getElementById('query-input');
+    input.value = chip.textContent;
+    input.focus();
+    askQuery();
+    // Hide suggestions after first use
+    var suggestions = document.getElementById('query-suggestions');
+    if (suggestions) suggestions.style.display = 'none';
+}
+
+// Dismiss suggestion chips (persists via localStorage)
+var SUGGESTIONS_DISMISSED_KEY = 'labwatch_suggestions_dismissed';
+function dismissSuggestions() {
+    var suggestions = document.getElementById('query-suggestions');
+    if (suggestions) suggestions.style.display = 'none';
+    try { localStorage.setItem(SUGGESTIONS_DISMISSED_KEY, '1'); } catch (e) {}
+}
+
+// On load: if previously dismissed, keep them hidden
+(function() {
+    try {
+        if (localStorage.getItem(SUGGESTIONS_DISMISSED_KEY) === '1') {
+            var suggestions = document.getElementById('query-suggestions');
+            if (suggestions) suggestions.style.display = 'none';
+        }
+    } catch (e) {}
+})();
+
+// Enter key support for query bar
+(function() {
+    var queryInput = document.getElementById('query-input');
+    if (queryInput) {
+        queryInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') askQuery();
+        });
+    }
+})();
+</script>
+
+<script>
+(function() {
+    var isDemo = {{ 'true' if is_demo else 'false' }};
+    var countdown = 30;
+    var countdownEl = document.getElementById('refresh-countdown');
+    var gridEl = document.getElementById('labs-grid');
+    var countEl = document.getElementById('lab-count');
+
+    if (isDemo) {
+        // No auto-refresh for demo — static data
+        if (countdownEl) countdownEl.parentElement.innerHTML = '{{ t.dashboard_demo_mode }}';
+        updateTimestamps();
+        // Set demo fleet summary values
+        updateFleetSummary([
+            {last_seen: new Date().toISOString(), cpu_percent: 23.4, memory_percent: 61.2, container_count: 12, alert_count: 1, critical_count: 0},
+            {last_seen: new Date().toISOString(), cpu_percent: 8.1, memory_percent: 38.7, container_count: 22, alert_count: 0, critical_count: 0},
+            {last_seen: new Date().toISOString(), cpu_percent: 4.2, memory_percent: 72.8, container_count: 0, alert_count: 2, critical_count: 1},
+            {last_seen: new Date(Date.now() - 3*3600000).toISOString(), cpu_percent: 0, memory_percent: 0, container_count: 0, alert_count: 1, critical_count: 1}
+        ]);
+    }
+
+    if (!isDemo) {
+    // Countdown timer
+    setInterval(function() {
+        countdown--;
+        if (countdownEl) countdownEl.textContent = countdown;
+        if (countdown <= 0) {
+            countdown = 30;
+            refreshLabs();
+        }
+    }, 1000);
+    } // end if (!isDemo)
+
+    function getStatusClass(lastSeen) {
+        if (!lastSeen) return 'offline';
+        var ts = lastSeen.endsWith('Z') ? lastSeen : lastSeen + 'Z';
+        var diff = (new Date() - new Date(ts)) / 1000;
+        if (diff < 120) return 'online';
+        if (diff < 600) return 'stale';
+        return 'offline';
+    }
+
+    function barColor(value) {
+        if (value >= 85) return 'var(--red)';
+        if (value >= 60) return 'var(--amber)';
+        return 'var(--green)';
+    }
+
+    function renderLabCard(lab) {
+        var statusClass = getStatusClass(lab.last_seen);
+        var cpu = lab.cpu_percent || 0;
+        var mem = lab.memory_percent || lab.mem_percent || 0;
+        var disk = lab.disk_percent || 0;
+        var containers = lab.container_count || 0;
+        var alerts = lab.alert_count || 0;
+        var gpus = lab.gpus || [];
+        // Treat offline labs as no-data — avoids 0% in green for down nodes.
+        var hasData = !!lab.online;
+
+        var gpuHtml = '';
+        if (gpus.length > 0) {
+            var gpu = gpus[0];
+            var gpuUtil = gpu.utilization_percent || 0;
+            var gpuTemp = gpu.temperature_celsius || 0;
+            gpuHtml = '<div class="metric-row">'
+                + '<span class="metric-label" title="' + escapeHtml(gpu.name || 'GPU') + '">GPU</span>'
+                + '<div class="metric-bar-wrap">'
+                + '<div class="metric-bar"><div class="metric-fill" style="width:' + gpuUtil.toFixed(0) + '%;background:' + barColor(gpuUtil) + '"></div></div>'
+                + '<span class="metric-value">' + gpuUtil.toFixed(0) + '% ' + gpuTemp.toFixed(0) + '°C</span>'
+                + '</div></div>';
+        }
+
+        var labUrl = {% if user_email %}'/my/lab/' + lab.id{% else %}(isDemo ? '/demo/lab/' + lab.id : '/dashboard/lab/' + lab.id + '?secret={{ secret }}'){% endif %};
+        var lsPinned = JSON.parse(localStorage.getItem('labwatch_pinned') || '[]');
+        var isPinned = lab.pinned || lsPinned.indexOf(lab.id) !== -1;
+        var pinClass = isPinned ? 'pin-star active' : 'pin-star';
+        var pinBtn = '<button class="' + pinClass + '" onclick="togglePin(event, \'' + lab.id + '\')" title="Pin node">★</button>';
+        return '<a href="' + labUrl + '" class="lab-card' + (isPinned ? ' pinned' : '') + '" data-lab-id="' + lab.id + '" draggable="true">'
+            + '<div class="lab-card-header">'
+            + '<div>'
+            + '<div class="lab-hostname">' + escapeHtml(lab.display_name || lab.hostname) + (lab.maintenance ? ' <span class="maint-badge" title="Maintenance mode — alerts silenced">maint</span>' : '') + '</div>'
+            + '<div class="lab-os">' + (lab.display_name ? escapeHtml(lab.hostname) + ' · ' : '') + escapeHtml(lab.os || 'Unknown OS') + ' / ' + escapeHtml(lab.arch || 'unknown') + '</div>'
+            + '</div>'
+            + pinBtn
+            + '<span class="lab-last-seen ' + statusClass + '" data-timestamp="' + (lab.last_seen || '') + '">' + timeAgo(lab.last_seen) + '</span>'
+            + '</div>'
+            + '<div class="lab-metrics">'
+            + renderMetric('CPU', cpu, 'cpu', hasData)
+            + renderMetric('MEM', mem, 'memory', hasData)
+            + renderMetric('DISK', disk, 'disk', hasData)
+            + (lab.net_rx_mbps != null ? '<div class="metric-row"><span class="metric-label">NET</span><div class="metric-bar-wrap"><span class="metric-value" style="font-size:11px">' + (lab.net_rx_mbps || 0).toFixed(1) + '↓ ' + (lab.net_tx_mbps || 0).toFixed(1) + '↑ Mbps</span></div></div>' : '')
+            + gpuHtml
+            + '</div>'
+            + renderHeartbeat(lab.heartbeat)
+            + '<div class="lab-card-footer">'
+            + '<div class="lab-stat"><span class="label">Containers:</span> <span>' + containers + '</span></div>'
+            + '<div class="lab-stat"><span class="label">Alerts:</span> <span class="alert-count ' + (alerts > 0 ? 'has-alerts' : 'no-alerts') + '">' + alerts + '</span></div>'
+            + '</div>'
+            + '</a>';
+    }
+
+    function renderMetric(label, value, metricKey, hasData) {
+        var sparkId = metricKey ? ' data-spark="' + metricKey + '"' : '';
+        var staleCls = hasData === false ? ' metric-row-stale' : '';
+        var width = hasData === false ? 0 : value;
+        var color = hasData === false ? 'var(--border)' : barColor(value);
+        var display = hasData === false ? '—' : (value.toFixed(1) + '%');
+        return '<div class="metric-row' + staleCls + '"' + sparkId + '>'
+            + '<span class="metric-label">' + label + '</span>'
+            + '<div class="metric-bar-wrap">'
+            + '<div class="metric-bar"><div class="metric-fill" style="width:' + width.toFixed(1) + '%;background:' + color + '"></div></div>'
+            + '<svg class="metric-spark" viewBox="0 0 48 16"></svg>'
+            + '<span class="metric-value">' + display + '</span>'
+            + '</div></div>';
+    }
+
+    function renderHeartbeat(hb) {
+        if (!hb || !hb.length) return '';
+        var up = 0, total = 0;
+        var ticks = '';
+        for (var i = 0; i < hb.length; i++) {
+            var state = hb[i];
+            if (state !== 'none') total++;
+            if (state === 'up') up++;
+            var agoMin = (hb.length - 1 - i) * 24;
+            ticks += '<div class="heartbeat-tick ' + state + '" data-tip="' + agoMin + 'm ago — ' + state + '"></div>';
+        }
+        var pct = total > 0 ? (up / total * 100) : 0;
+        var pctCls = 'uptime-pct' + (pct < 80 ? ' poor' : (pct < 99 ? ' degraded' : ''));
+        return '<div class="heartbeat-row" data-heartbeat-row>'
+            + '<div class="heartbeat-bar" data-heartbeat>' + ticks + '</div>'
+            + '<div class="heartbeat-meta">24h <span class="' + pctCls + '" data-uptime-pct>' + pct.toFixed(1) + '%</span></div>'
+            + '</div>';
+    }
+
+    function updateFleetSummary(labs) {
+        var online = 0, containers = 0, alerts = 0, critical = 0, cpuSum = 0, memSum = 0;
+        labs.forEach(function(lab) {
+            var isOnline = getStatusClass(lab.last_seen) === 'online';
+            if (isOnline) {
+                online++;
+                cpuSum += (lab.cpu_percent || 0);
+                memSum += (lab.memory_percent || lab.mem_percent || 0);
+            }
+            containers += (lab.container_count || 0);
+            alerts += (lab.alert_count || 0);
+            critical += (lab.critical_count || 0);
+        });
+        var el;
+        el = document.getElementById('fs-nodes');
+        if (el) {
+            el.textContent = online + '/' + labs.length;
+            el.className = 'fleet-stat-value ' + (online === labs.length ? 'green' : 'amber');
+        }
+        el = document.getElementById('fs-containers');
+        if (el) el.textContent = containers;
+        el = document.getElementById('fs-alerts');
+        if (el) {
+            el.textContent = alerts;
+            el.className = 'fleet-stat-value ' + (critical > 0 ? 'red' : (alerts > 0 ? 'amber' : 'green'));
+        }
+        el = document.getElementById('fs-critical');
+        if (el) {
+            el.textContent = critical > 0 ? critical + ' critical' : '';
+            el.style.display = critical > 0 ? '' : 'none';
+        }
+        el = document.getElementById('fs-cpu');
+        if (el) el.textContent = online > 0 ? Math.round(cpuSum / online) + '%' : '—';
+        el = document.getElementById('fs-mem');
+        if (el) el.textContent = online > 0 ? Math.round(memSum / online) + '%' : '—';
+    }
+
+    function refreshLabs() {
+        fetch({% if user_email %}'/api/v1/my/dashboard'{% else %}'/api/v1/admin/dashboard'{% endif %}, {
+            headers: {% if user_email %}{}{% else %}{'x-admin-secret': '{{ secret }}'}{% endif %}
+        })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                var labs = data.labs || data || [];
+                if (countEl) countEl.textContent = labs.length;
+
+                if (labs.length === 0) {
+                    if (gridEl) gridEl.style.display = 'none';
+                    var empty = document.getElementById('empty-state');
+                    if (empty) empty.style.display = 'block';
+                    return;
+                }
+
+                var empty = document.getElementById('empty-state');
+                if (empty) empty.style.display = 'none';
+
+                if (!gridEl) {
+                    gridEl = document.createElement('div');
+                    gridEl.className = 'labs-grid';
+                    gridEl.id = 'labs-grid';
+                    document.querySelector('.container').appendChild(gridEl);
+                }
+
+                gridEl.style.display = '';
+                // Sort by saved order if available
+                var savedOrder = JSON.parse(localStorage.getItem('labwatch_order') || '[]');
+                if (savedOrder.length > 0) {
+                    labs.sort(function(a, b) {
+                        var ia = savedOrder.indexOf(a.id);
+                        var ib = savedOrder.indexOf(b.id);
+                        if (ia === -1) ia = 9999;
+                        if (ib === -1) ib = 9999;
+                        return ia - ib;
+                    });
+                }
+                gridEl.innerHTML = labs.map(renderLabCard).join('');
+                updateTimestamps();
+                updateFleetSummary(labs);
+                initDragAndDrop();
+                loadSparklines();
+            })
+            .catch(function(err) {
+                console.error('Failed to refresh labs:', err);
+            });
+    }
+    // --- Drag-and-drop reorder ---
+    var dragSrc = null;
+
+    function initDragAndDrop() {
+        var cards = document.querySelectorAll('.lab-card[draggable="true"]');
+        cards.forEach(function(card) {
+            // Desktop drag events
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('drop', handleDrop);
+            card.addEventListener('dragend', handleDragEnd);
+            card.addEventListener('dragleave', handleDragLeave);
+            // Touch events for mobile
+            card.addEventListener('touchstart', handleTouchStart, {passive: false});
+            card.addEventListener('touchmove', handleTouchMove, {passive: false});
+            card.addEventListener('touchend', handleTouchEnd);
+        });
+    }
+
+    function handleDragStart(e) {
+        dragSrc = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.dataset.labId);
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (this !== dragSrc) this.classList.add('drag-over');
+    }
+
+    function handleDragLeave() {
+        this.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        if (dragSrc && dragSrc !== this) {
+            swapCards(dragSrc, this);
+        }
+    }
+
+    function handleDragEnd() {
+        this.classList.remove('dragging');
+        document.querySelectorAll('.lab-card.drag-over').forEach(function(c) {
+            c.classList.remove('drag-over');
+        });
+        dragSrc = null;
+    }
+
+    // --- Touch support for mobile ---
+    var touchStartY = 0;
+    var touchStartX = 0;
+    var touchHoldTimer = null;
+    var touchDragging = false;
+    var lastTouchOver = null;
+
+    function handleTouchStart(e) {
+        var touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchDragging = false;
+        var card = this;
+        // Long press to start drag (300ms)
+        touchHoldTimer = setTimeout(function() {
+            touchDragging = true;
+            dragSrc = card;
+            card.classList.add('dragging');
+        }, 300);
+    }
+
+    function handleTouchMove(e) {
+        if (!touchDragging) {
+            // Cancel hold if finger moves too much before drag starts
+            var touch = e.touches[0];
+            if (Math.abs(touch.clientX - touchStartX) > 10 || Math.abs(touch.clientY - touchStartY) > 10) {
+                clearTimeout(touchHoldTimer);
+            }
+            return;
+        }
+        e.preventDefault();
+        var touch = e.touches[0];
+        var el = document.elementFromPoint(touch.clientX, touch.clientY);
+        var target = el ? el.closest('.lab-card') : null;
+
+        if (lastTouchOver && lastTouchOver !== target) {
+            lastTouchOver.classList.remove('drag-over');
+        }
+        if (target && target !== dragSrc) {
+            target.classList.add('drag-over');
+            lastTouchOver = target;
+        }
+    }
+
+    function handleTouchEnd() {
+        clearTimeout(touchHoldTimer);
+        if (touchDragging && dragSrc && lastTouchOver && lastTouchOver !== dragSrc) {
+            swapCards(dragSrc, lastTouchOver);
+            lastTouchOver.classList.remove('drag-over');
+        }
+        if (dragSrc) dragSrc.classList.remove('dragging');
+        dragSrc = null;
+        touchDragging = false;
+        lastTouchOver = null;
+    }
+
+    function swapCards(from, to) {
+        var grid = to.parentNode;
+        var cards = Array.from(grid.querySelectorAll('.lab-card'));
+        var fromIdx = cards.indexOf(from);
+        var toIdx = cards.indexOf(to);
+        if (fromIdx < toIdx) {
+            grid.insertBefore(from, to.nextSibling);
+        } else {
+            grid.insertBefore(from, to);
+        }
+        saveCardOrder();
+    }
+
+    function saveCardOrder() {
+        var cards = document.querySelectorAll('.lab-card[data-lab-id]');
+        var order = Array.from(cards).map(function(c) { return c.dataset.labId; });
+        localStorage.setItem('labwatch_order', JSON.stringify(order));
+    }
+
+    // --- Restore pins from localStorage (for demo/unauth) ---
+    function restorePinsFromStorage() {
+        var pinned = JSON.parse(localStorage.getItem('labwatch_pinned') || '[]');
+        if (pinned.length === 0) return;
+        document.querySelectorAll('.lab-card[data-lab-id]').forEach(function(card) {
+            var labId = card.dataset.labId;
+            if (pinned.indexOf(labId) !== -1) {
+                card.classList.add('pinned');
+                var star = card.querySelector('.pin-star');
+                if (star) star.classList.add('active');
+            }
+        });
+    }
+
+    // --- Restore card order from localStorage ---
+    function restoreOrderFromStorage() {
+        var savedOrder = JSON.parse(localStorage.getItem('labwatch_order') || '[]');
+        if (savedOrder.length === 0) return;
+        var grid = document.getElementById('labs-grid');
+        if (!grid) return;
+        var cards = Array.from(grid.querySelectorAll('.lab-card[data-lab-id]'));
+        cards.sort(function(a, b) {
+            var ia = savedOrder.indexOf(a.dataset.labId);
+            var ib = savedOrder.indexOf(b.dataset.labId);
+            if (ia === -1) ia = 9999;
+            if (ib === -1) ib = 9999;
+            return ia - ib;
+        });
+        cards.forEach(function(card) { grid.appendChild(card); });
+    }
+
+    // --- Sparklines ---
+    function loadSparklines() {
+        var cards = document.querySelectorAll('.lab-card[data-lab-id]');
+        cards.forEach(function(card) {
+            var labId = card.dataset.labId;
+            if (!labId || labId.startsWith('demo-')) return; // skip demo cards
+            ['cpu', 'memory', 'disk'].forEach(function(metric) {
+                fetch('/api/v1/widgets/sparkline/' + labId + '/' + metric)
+                    .then(function(r) { return r.json(); })
+                    .then(function(points) {
+                        if (!points || points.length < 2) return;
+                        var row = card.querySelector('[data-spark="' + metric + '"]');
+                        if (!row) return;
+                        var svg = row.querySelector('.metric-spark');
+                        if (!svg) return;
+                        renderSparkSVG(svg, points, metric);
+                    })
+                    .catch(function() {});
+            });
+        });
+    }
+
+    function detectAnomalies(vals) {
+        // Returns array of indices flagged as anomalies.
+        // Three signals (any one triggers):
+        //   1. absolute spike: value >= 90% (critical regardless of history)
+        //   2. statistical outlier: >2 stdev AND >=10 points absolute from mean
+        //      (the absolute floor suppresses false positives on flat series)
+        //   3. sharp delta: value dropped/rose by >= 25 points vs previous sample
+        //      (catches server-going-offline transitions that otherwise blend into range)
+        if (vals.length < 4) return [];
+        var n = vals.length;
+        var sum = 0;
+        for (var i = 0; i < n; i++) sum += vals[i];
+        var mean = sum / n;
+        var sqdiff = 0;
+        for (var j = 0; j < n; j++) sqdiff += (vals[j] - mean) * (vals[j] - mean);
+        var stdev = Math.sqrt(sqdiff / n);
+        var flagged = {};
+        for (var k = 0; k < n; k++) {
+            var v = vals[k];
+            if (v >= 90) { flagged[k] = true; continue; }
+            var devAbs = Math.abs(v - mean);
+            if (stdev > 0 && devAbs > 2 * stdev && devAbs >= 10) {
+                flagged[k] = true;
+                continue;
+            }
+            if (k > 0 && Math.abs(v - vals[k-1]) >= 25) {
+                flagged[k] = true;
+            }
+        }
+        var out = [];
+        for (var key in flagged) out.push(parseInt(key, 10));
+        out.sort(function(a, b) { return a - b; });
+        return out;
+    }
+
+    function renderSparkSVG(svg, points, metric) {
+        var w = 48, h = 16;
+        var vals = points.map(function(p) { return p.value; });
+        var min = Math.min.apply(null, vals);
+        var max = Math.max.apply(null, vals);
+        var range = max - min || 1;
+        var xy = vals.map(function(v, i) {
+            var x = (i / (vals.length - 1)) * w;
+            var y = h - ((v - min) / range) * (h - 2) - 1;
+            return [x, y];
+        });
+        var coords = xy.map(function(p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); });
+        var color = 'var(--green)';
+        var last = vals[vals.length - 1];
+        if (last >= 85) color = 'var(--red)';
+        else if (last >= 60) color = 'var(--amber)';
+        var markup = '<polyline points="' + coords.join(' ') + '" stroke="' + color + '" fill="none"/>';
+        // Anomaly dots
+        var anomalies = detectAnomalies(vals);
+        for (var a = 0; a < anomalies.length; a++) {
+            var idx = anomalies[a];
+            var v = vals[idx];
+            var dotColor = v >= 85 ? 'var(--red)' : (v >= 60 ? 'var(--amber)' : 'var(--blue)');
+            var px = xy[idx][0].toFixed(1);
+            var py = xy[idx][1].toFixed(1);
+            markup += '<circle cx="' + px + '" cy="' + py + '" r="1.4" fill="' + dotColor + '" class="spark-anomaly"><title>anomaly: ' + v.toFixed(1) + '</title></circle>';
+        }
+        svg.innerHTML = markup;
+    }
+
+    // Also load sparklines for server-rendered cards with demo data
+    function loadDemoSparklines() {
+        var cards = document.querySelectorAll('.lab-card[data-lab-id]');
+        cards.forEach(function(card) {
+            var labId = card.dataset.labId;
+            if (!labId || !labId.startsWith('demo-')) return;
+            var demoData = {
+                'demo-1': {cpu: [18,22,25,23,20,19,24,28,94,21,23], memory: [58,59,60,61,62,61,60,61,62,61,61], disk: [44,44,44,44,44,45,45,45,45,45,45]},
+                'demo-2': {cpu: [5,6,8,12,9,7,6,8,10,8,8], memory: [36,37,38,39,38,37,38,39,38,38,39], disk: [29,29,29,29,29,29,29,29,29,29,29]},
+                'demo-3': {cpu: [3,4,5,4,3,4,5,6,5,4,4], memory: [68,70,71,73,72,71,72,73,91,72,73], disk: [77,77,78,78,78,78,78,78,78,78,78]},
+                'demo-4': {cpu: [45,42,38,30,20,10,0,0,0,0,0], memory: [65,62,58,50,40,30,0,0,0,0,0], disk: [55,55,55,55,55,55,55,55,55,55,55]}
+            };
+            var d = demoData[labId];
+            if (!d) return;
+            ['cpu', 'memory', 'disk'].forEach(function(metric) {
+                var row = card.querySelector('[data-spark="' + metric + '"]');
+                if (!row) return;
+                var svg = row.querySelector('.metric-spark');
+                if (!svg) return;
+                var pts = d[metric].map(function(v) { return {value: v}; });
+                renderSparkSVG(svg, pts, metric);
+            });
+        });
+    }
+
+    // Initialize on page load
+    restorePinsFromStorage();
+    restoreOrderFromStorage();
+    initDragAndDrop();
+    if (isDemo) { loadDemoSparklines(); } else { loadSparklines(); }
+})();
+</script>
+
+<script>
+// --- Widgets ---
+(function() {
+    var isDemo = {{ 'true' if is_demo else 'false' }};
+    var uptimeEl = document.getElementById('uptime-content');
+    var alertEl = document.getElementById('alert-feed-content');
+    if (!uptimeEl && !alertEl) return;
+
+    // ---- Uptime window state (24h / 7d / 30d) ----
+    // Declared at top so both demo and real paths can use it.
+    var _uptimeHours = parseInt(localStorage.getItem('labwatch_uptime_hours') || '24', 10);
+    if ([24, 168, 720].indexOf(_uptimeHours) === -1) _uptimeHours = 24;
+
+    function _highlightUptimeWindowBtn() {
+        var btns = document.querySelectorAll('.uptime-window-toggle .win-btn');
+        btns.forEach(function(b) {
+            if (parseInt(b.getAttribute('data-hours'), 10) === _uptimeHours) b.classList.add('active');
+            else b.classList.remove('active');
+        });
+        var titleEl = document.getElementById('uptime-title-label');
+        if (titleEl) {
+            var label = (_uptimeHours === 168) ? '7d' : (_uptimeHours === 720 ? '30d' : '24h');
+            titleEl.textContent = 'Uptime — last ' + label;
+        }
+    }
+
+    // Synthetic demo data, parameterized by window so the switcher works on /demo too.
+    function _demoUptimeData(hours) {
+        var ms = hours * 3600 * 1000;
+        var now = Date.now();
+        function seg(fromMsAgo, toMsAgo, status) {
+            return {
+                start: new Date(now - fromMsAgo).toISOString(),
+                end: new Date(now - toMsAgo).toISOString(),
+                status: status,
+            };
+        }
+        return {
+            'demo-1': {hostname: 'proxmox-01', segments: [
+                seg(ms,            ms * 0.30, 'online'),
+                seg(ms * 0.30,     ms * 0.22, 'offline'),
+                seg(ms * 0.22,     0,         'online'),
+            ]},
+            'demo-2': {hostname: 'docker-01', segments: [
+                seg(ms, 0, 'online'),
+            ]},
+            'demo-3': {hostname: 'Home NAS', segments: [
+                seg(ms,            ms * 0.55, 'online'),
+                seg(ms * 0.55,     ms * 0.50, 'offline'),
+                seg(ms * 0.50,     0,         'online'),
+            ]},
+            'demo-4': {hostname: 'gpu-01', segments: [
+                seg(ms,            ms * 0.18, 'online'),
+                seg(ms * 0.18,     0,         'offline'),
+            ]},
+        };
+    }
+
+    window.setUptimeWindow = function(hours) {
+        _uptimeHours = hours;
+        localStorage.setItem('labwatch_uptime_hours', String(hours));
+        _highlightUptimeWindowBtn();
+        if (isDemo) {
+            renderUptime(_demoUptimeData(hours));
+        } else {
+            loadUptime();
+        }
+    };
+
+    if (isDemo) {
+        _highlightUptimeWindowBtn();
+        renderUptime(_demoUptimeData(_uptimeHours));
+        renderAlerts([
+            {hostname: 'storage-01', severity: 'critical', message: 'Memory usage at 92.1% (threshold: 90%)', created_at: new Date(Date.now() - 1800000).toISOString(), resolved_at: null},
+            {hostname: 'gpu-01', severity: 'critical', message: 'Node offline — no heartbeat for 3h', created_at: new Date(Date.now() - 10800000).toISOString(), resolved_at: null},
+            {hostname: 'storage-01', severity: 'warning', message: 'Disk usage at 78.1% (threshold: 80%)', created_at: new Date(Date.now() - 3600000).toISOString(), resolved_at: null},
+            {hostname: 'proxmox-01', severity: 'warning', message: 'Container "nginx" has restarted 5 times', created_at: new Date(Date.now() - 7200000).toISOString(), resolved_at: new Date(Date.now() - 3600000).toISOString()},
+            {hostname: 'docker-01', severity: 'warning', message: 'CPU usage at 91.3% (threshold: 90%)', created_at: new Date(Date.now() - 14400000).toISOString(), resolved_at: new Date(Date.now() - 12600000).toISOString()},
+        ]);
+        return;
+    }
+
+    function loadUptime() {
+        if (uptimeEl) uptimeEl.innerHTML = '<span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span>';
+        fetch('/api/v1/widgets/uptime?hours=' + _uptimeHours, {
+            headers: {% if user_email %}{}{% else %}{'x-admin-secret': '{{ secret }}'}{% endif %}
+        })
+        .then(function(r) { return r.json(); })
+        .then(renderUptime)
+        .catch(function() { if (uptimeEl) uptimeEl.innerHTML = '<span class="alert-feed-empty">failed to load</span>'; });
+    }
+
+    // Fetch real widget data
+    function loadWidgets() {
+        loadUptime();
+
+        fetch('/api/v1/widgets/alerts?limit=15', {
+            headers: {% if user_email %}{}{% else %}{'x-admin-secret': '{{ secret }}'}{% endif %}
+        })
+        .then(function(r) { return r.json(); })
+        .then(renderAlerts)
+        .catch(function() { if (alertEl) alertEl.innerHTML = '<span class="alert-feed-empty">failed to load</span>'; });
+    }
+
+    function renderUptime(data) {
+        if (!uptimeEl) return;
+        var html = '';
+        var windowMs = (_uptimeHours || 24) * 3600 * 1000;
+        for (var labId in data) {
+            var lab = data[labId];
+            var hostname = lab.hostname || labId;
+            var segments = lab.segments || [];
+            var totalOnline = 0;
+            var measuredMs = 0;
+            var barHtml = '';
+            for (var i = 0; i < segments.length; i++) {
+                var seg = segments[i];
+                var start = new Date(seg.start).getTime();
+                var end = new Date(seg.end).getTime();
+                var duration = end - start;
+                var pct = Math.max(0.3, (duration / windowMs) * 100);
+                var title = seg.status;
+                if (seg.status === 'no-data') title = 'no data — lab not yet registered';
+                barHtml += '<div class="uptime-seg ' + seg.status + '" style="width:' + pct.toFixed(2) + '%" title="' + title + '"></div>';
+                if (seg.status === 'online') { totalOnline += duration; measuredMs += duration; }
+                else if (seg.status === 'offline' || seg.status === 'stale') { measuredMs += duration; }
+            }
+            var pctLabel;
+            if (measuredMs <= 0) {
+                pctLabel = '—';
+            } else {
+                pctLabel = ((totalOnline / measuredMs) * 100).toFixed(1) + '%';
+            }
+            html += '<div class="uptime-row">'
+                + '<span class="uptime-label">' + escapeHtml(hostname) + '</span>'
+                + '<div class="uptime-bar">' + barHtml + '</div>'
+                + '<span class="uptime-pct">' + pctLabel + '</span>'
+                + '</div>';
+        }
+        uptimeEl.innerHTML = html || '<span class="alert-feed-empty">no nodes yet</span>';
+    }
+
+    function renderAlerts(alerts) {
+        if (!alertEl) return;
+        if (!alerts || alerts.length === 0) {
+            alertEl.innerHTML = '<span class="alert-feed-empty">no recent alerts — all clear</span>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < alerts.length; i++) {
+            var a = alerts[i];
+            var dotClass = a.resolved_at ? 'resolved' : a.severity;
+            var ts = a.created_at ? timeAgo(a.created_at) : '';
+            var resolved = a.resolved_at ? ' · resolved ' + timeAgo(a.resolved_at) : '';
+            html += '<div class="alert-feed-item">'
+                + '<div class="alert-feed-dot ' + dotClass + '"></div>'
+                + '<div class="alert-feed-body">'
+                + '<div class="alert-feed-msg">' + escapeHtml(a.message || '') + '</div>'
+                + '<div class="alert-feed-meta">' + escapeHtml(a.hostname || '') + ' · ' + ts + resolved + '</div>'
+                + '</div></div>';
+        }
+        alertEl.innerHTML = html;
+    }
+
+    _highlightUptimeWindowBtn();
+    loadWidgets();
+    // Refresh widgets every 60s
+    if (!isDemo) setInterval(loadWidgets, 60000);
+})();
+
+// --- Ember mascot ---
+(function() {
+    var mascot = document.getElementById('ember-mascot');
+    var bubble = document.getElementById('ember-bubble');
+    if (!mascot) return;
+
+    var msgs = {
+        idle: [
+            'all systems nominal',
+            'watching your nodes...',
+            '...',
+            '*floats gently*',
+            'metrics look fine',
+            'i see you looking at the dashboard',
+            'everything within thresholds',
+            'just vibing with the metrics',
+            'containers are behaving',
+            'no news is good news, mostly'
+        ],
+        alert: [
+            'something needs attention!',
+            'check your alerts — seriously',
+            'a node is struggling right now',
+            'i dont like these numbers',
+            'this is making me nervous',
+            'disk? memory? cpu? yes.',
+            'we should probably look at this',
+            'i can feel the heat from here',
+            '*anxious flickering*',
+            'alert! alert! ...please check'
+        ],
+        peaceful: [
+            'all green. nice.',
+            'quiet shift. i like it.',
+            'nothing to report',
+            '*content ember warmth*',
+            'this is what a healthy cluster feels like',
+            'no alerts. just good infrastructure.',
+            'i could get used to this',
+            'every node reporting in. all good.',
+            'zero alerts. zero worries.',
+            'the kind of boring i appreciate'
+        ],
+        curious: [
+            'hm, what are you looking for?',
+            'need help finding something?',
+            'ask me about your cluster',
+            'try the query bar — i can answer questions',
+            'you seem to be investigating',
+            'click a node card for details'
+        ],
+        spam: [
+            'okay okay, im here!',
+            'you found me, congrats',
+            'stop poking me!',
+            'im not a button... well, technically',
+            'that tickles',
+            'fine, have another message',
+            'persistent, arent you',
+            'help! im being clicked repeatedly!',
+            '/cluster help: try the query bar above',
+            'easter egg: i persist between sessions too',
+            'fun fact: im made entirely of CSS',
+            'yes hello this is ember'
+        ]
+    };
+
+    var state = 'idle';
+    var prevState = '';
+    var bubbleTimer;
+    var clickCount = 0;
+    var clickResetTimer;
+
+    function getNodeInfo() {
+        var nodesEl = document.getElementById('fs-nodes');
+        var cpuEl = document.getElementById('fs-cpu');
+        var memEl = document.getElementById('fs-mem');
+        return {
+            nodes: nodesEl ? nodesEl.textContent.trim() : '?',
+            cpu: cpuEl ? cpuEl.textContent.trim() : '?',
+            mem: memEl ? memEl.textContent.trim() : '?'
+        };
+    }
+
+    function updateState() {
+        var alertEl = document.getElementById('fs-alerts');
+        var criticalEl = document.getElementById('fs-critical');
+        var alertCount = alertEl ? parseInt(alertEl.textContent || '0') : 0;
+        var hasCritical = criticalEl && criticalEl.style.display !== 'none' && criticalEl.textContent.trim() !== '';
+
+        mascot.classList.remove('alert', 'peaceful', 'curious');
+        if (hasCritical || alertCount > 2) {
+            state = 'alert';
+            mascot.classList.add('alert');
+        } else if (alertCount === 0) {
+            state = 'peaceful';
+            mascot.classList.add('peaceful');
+        } else {
+            state = 'idle';
+        }
+
+        // React to state changes
+        if (state !== prevState && prevState !== '') {
+            if (state === 'alert' && prevState !== 'alert') {
+                showBubble('wait — something just changed');
+            } else if (state === 'peaceful' && prevState === 'alert') {
+                showBubble('oh, we are back to normal. nice');
+            }
+        }
+        prevState = state;
+    }
+
+    function showBubble(text) {
+        var msg = text;
+        if (!msg) {
+            var pool = msgs[state];
+            msg = pool[Math.floor(Math.random() * pool.length)];
+        }
+        bubble.textContent = msg;
+        bubble.classList.add('show');
+        clearTimeout(bubbleTimer);
+        bubbleTimer = setTimeout(function() { bubble.classList.remove('show'); }, 4000);
+    }
+
+    mascot.addEventListener('click', function() {
+        clickCount++;
+        clearTimeout(clickResetTimer);
+        clickResetTimer = setTimeout(function() { clickCount = 0; }, 5000);
+
+        if (clickCount >= 5) {
+            // Spam clicking — fun responses
+            showBubble(msgs.spam[Math.floor(Math.random() * msgs.spam.length)]);
+            mascot.classList.add('curious');
+            setTimeout(function() { mascot.classList.remove('curious'); }, 2000);
+        } else if (clickCount === 3) {
+            // Third click — show actual stats
+            var info = getNodeInfo();
+            showBubble(info.nodes + ' nodes | cpu ' + info.cpu + ' | mem ' + info.mem);
+        } else if (clickCount === 2) {
+            showBubble(msgs.curious[Math.floor(Math.random() * msgs.curious.length)]);
+            mascot.classList.add('curious');
+            setTimeout(function() { mascot.classList.remove('curious'); }, 2000);
+        } else {
+            showBubble();
+        }
+    });
+
+    // Random bubble every 45-90s
+    setInterval(function() {
+        if (Math.random() > 0.6) showBubble();
+    }, 45000);
+
+    updateState();
+    setInterval(updateState, 10000);
+
+    // Greeting after 2s
+    setTimeout(function() { showBubble('hey :)'); }, 2000);
+})();
+
+/* === Dashboard layout editor ===
+ * Logged-in users (not demo): persist via backend API
+ * Demo + anonymous users: persist via localStorage (so demo visitors can test it)
+ *
+ * Features:
+ *   - Click widget to toggle visibility
+ *   - Drag widget (via handle or bare drag in edit mode) to reorder
+ *   - Save persists order + visibility
+ */
+(function() {
+    var ALL_WIDGETS = ['fleet_summary', 'uptime', 'alerts', 'alert_rollup', 'disk_pressure', 'container_restarts', 'query', 'lab_grid'];
+    // Minimal base: shown to new users. Everything else is opt-in via the add-widget picker.
+    // Rationale: demo/first-time users need signal, not noise. Fleet overview + what's on fire + ask anything + the labs.
+    var DEFAULT_VISIBLE = ['fleet_summary', 'alert_rollup', 'query', 'lab_grid'];
+    var DEFAULT_LAYOUT = {widgets: DEFAULT_VISIBLE.map(function(t){return {type:t,id:t,size:'wide'};})};
+    var IS_AUTHED = {% if user_email and not is_demo %}true{% else %}false{% endif %};
+    var LS_KEY = 'labwatch_dashboard_layout';
+    var editing = false;
+    var savedLayout = null;  // snapshot for cancel
+    var container = null;    // .dashboard-widgets
+
+    function getContainer() {
+        if (!container) container = document.getElementById('dashboard-widgets');
+        return container;
+    }
+
+    function getWidgetEl(type) {
+        return document.querySelector('[data-widget="' + type + '"]');
+    }
+
+    function currentDomOrder() {
+        var c = getContainer();
+        if (!c) return DEFAULT_VISIBLE.slice();
+        var order = [];
+        c.querySelectorAll('[data-widget]').forEach(function(el) {
+            order.push(el.getAttribute('data-widget'));
+        });
+        return order;
+    }
+
+    // Reorder DOM to match a list of widget types (in order).
+    function applyOrder(order) {
+        var c = getContainer();
+        if (!c) return;
+        order.forEach(function(type) {
+            var el = getWidgetEl(type);
+            if (el && el.parentElement === c) {
+                c.appendChild(el); // move to end; loop ends in the target order
+            }
+        });
+        // Keep the widget library picker as the last element so it always renders
+        // at the bottom of the widget column in edit mode.
+        var picker = document.getElementById('add-widget-picker');
+        if (picker && picker.parentElement === c) {
+            c.appendChild(picker);
+        }
+    }
+
+    function applyLayout(layout) {
+        // 1) Order
+        var order = (layout.widgets || []).map(function(w) { return w.type; });
+        // Append any known widgets not in layout at the end
+        ALL_WIDGETS.forEach(function(t) { if (order.indexOf(t) === -1) order.push(t); });
+        applyOrder(order);
+        // 2) Visibility
+        var visible = {};
+        (layout.widgets || []).forEach(function(w) { visible[w.type] = true; });
+        ALL_WIDGETS.forEach(function(type) {
+            var el = getWidgetEl(type);
+            if (!el) return;
+            if (visible[type]) {
+                el.style.display = '';
+                el.classList.remove('hidden-widget');
+            } else if (editing) {
+                el.style.display = '';
+                el.classList.add('hidden-widget');
+            } else {
+                el.style.display = 'none';
+                el.classList.remove('hidden-widget');
+            }
+        });
+    }
+
+    function loadLayout() {
+        if (IS_AUTHED) {
+            return fetch('/api/v1/my/dashboard-layout')
+                .then(function(r) { return r.ok ? r.json() : null; })
+                .then(function(data) {
+                    if (data && data.layout) {
+                        savedLayout = data.layout;
+                        applyLayout(data.layout);
+                    } else {
+                        savedLayout = DEFAULT_LAYOUT;
+                        applyLayout(DEFAULT_LAYOUT);
+                    }
+                })
+                .catch(function() {
+                    savedLayout = DEFAULT_LAYOUT;
+                    applyLayout(DEFAULT_LAYOUT);
+                });
+        } else {
+            try {
+                var stored = localStorage.getItem(LS_KEY);
+                if (stored) {
+                    savedLayout = JSON.parse(stored);
+                    applyLayout(savedLayout);
+                } else {
+                    savedLayout = DEFAULT_LAYOUT;
+                    applyLayout(DEFAULT_LAYOUT);
+                }
+            } catch (e) {
+                savedLayout = DEFAULT_LAYOUT;
+                applyLayout(DEFAULT_LAYOUT);
+            }
+            return Promise.resolve();
+        }
+    }
+
+    function persistLayout(layout) {
+        if (IS_AUTHED) {
+            return fetch('/api/v1/my/dashboard-layout', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(layout)
+            }).then(function(r) {
+                if (r.ok) return r.json();
+                throw new Error('save failed');
+            }).then(function(data) { return data.layout; });
+        } else {
+            try { localStorage.setItem(LS_KEY, JSON.stringify(layout)); } catch (e) {}
+            return Promise.resolve(layout);
+        }
+    }
+
+    function clearPersisted() {
+        if (IS_AUTHED) {
+            return fetch('/api/v1/my/dashboard-layout', {method: 'DELETE'})
+                .then(function(r) { return r.json(); })
+                .then(function(data) { return data.layout; });
+        } else {
+            try { localStorage.removeItem(LS_KEY); } catch (e) {}
+            return Promise.resolve(DEFAULT_LAYOUT);
+        }
+    }
+
+    // Human-readable labels + one-line descriptions for the widget library picker.
+    var WIDGET_META = {
+        fleet_summary:      {label: 'fleet summary',        desc: 'total nodes, alerts, uptime at a glance'},
+        uptime:             {label: 'uptime bars',          desc: '24-hour uptime history per lab'},
+        alerts:             {label: 'recent alerts',        desc: 'latest fired alerts across your fleet'},
+        alert_rollup:       {label: 'on fire',              desc: 'top labs by active alert count'},
+        disk_pressure:      {label: 'disk pressure',        desc: 'labs closest to running out of disk'},
+        container_restarts: {label: 'restarting containers', desc: 'containers with recent restart counts'},
+        query:              {label: 'ask anything',         desc: 'natural-language query bar'},
+        lab_grid:           {label: 'lab grid',             desc: 'your labs as clickable cards'}
+    };
+
+    function refreshPicker() {
+        var picker = document.getElementById('add-widget-picker-items');
+        if (!picker) return;
+        picker.innerHTML = '';
+        // Find widgets that exist in the DOM but are hidden (removed / not in current layout)
+        var hidden = ALL_WIDGETS.filter(function(type) {
+            var el = getWidgetEl(type);
+            return el && el.classList.contains('hidden-widget');
+        });
+        if (hidden.length === 0) {
+            var empty = document.createElement('span');
+            empty.className = 'add-widget-picker-empty';
+            empty.textContent = 'all widgets are on the dashboard';
+            picker.appendChild(empty);
+            return;
+        }
+        hidden.forEach(function(type) {
+            var meta = WIDGET_META[type] || {label: type, desc: ''};
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'add-widget-chip';
+            chip.setAttribute('data-type', type);
+            var label = document.createElement('span');
+            label.className = 'add-widget-chip-label';
+            label.textContent = '+ ' + meta.label;
+            chip.appendChild(label);
+            if (meta.desc) {
+                var desc = document.createElement('span');
+                desc.className = 'add-widget-chip-desc';
+                desc.textContent = meta.desc;
+                chip.appendChild(desc);
+            }
+            chip.onclick = function() { addWidget(type); };
+            picker.appendChild(chip);
+        });
+    }
+
+    window.removeWidget = function(ev, btn) {
+        if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+        var el = btn.closest('[data-widget]');
+        if (!el) return;
+        el.classList.add('hidden-widget');
+        refreshPicker();
+    };
+
+    window.addWidget = function(type) {
+        var el = getWidgetEl(type);
+        if (!el) return;
+        el.classList.remove('hidden-widget');
+        // Move the re-added widget just before the picker so it lands at the bottom
+        var c = getContainer();
+        var picker = document.getElementById('add-widget-picker');
+        if (c && picker) c.insertBefore(el, picker);
+        refreshPicker();
+    };
+
+    // Keyboard shortcuts: / focuses search, Esc clears it
+    document.addEventListener('keydown', function(e) {
+        var input = document.getElementById('lab-search');
+        if (!input) return;
+        var tag = (e.target && e.target.tagName) || '';
+        var inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+        if (e.key === '/' && !inField && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            input.focus();
+            input.select();
+        } else if (e.key === 'Escape' && document.activeElement === input) {
+            input.value = '';
+            window.filterLabs('');
+            input.blur();
+        }
+    });
+
+    // Lab search/filter — case-insensitive match on hostname, OS, arch
+    window.filterLabs = function(query) {
+        var q = (query || '').trim().toLowerCase();
+        var grid = document.getElementById('labs-grid');
+        if (!grid) return;
+        var cards = grid.querySelectorAll('.lab-card');
+        var visible = 0;
+        cards.forEach(function(card) {
+            if (!q) {
+                card.classList.remove('search-hidden');
+                visible++;
+                return;
+            }
+            var host = (card.querySelector('.lab-hostname') || {}).textContent || '';
+            var os = (card.querySelector('.lab-os') || {}).textContent || '';
+            var hay = (host + ' ' + os).toLowerCase();
+            if (hay.indexOf(q) !== -1) {
+                card.classList.remove('search-hidden');
+                visible++;
+            } else {
+                card.classList.add('search-hidden');
+            }
+        });
+        var counter = document.getElementById('lab-search-count');
+        if (counter) {
+            counter.textContent = q ? visible + ' / ' + cards.length : '';
+        }
+    };
+
+    window.toggleEditMode = function() {
+        editing = !editing;
+        document.body.classList.toggle('edit-mode', editing);
+        document.getElementById('edit-layout-btn').classList.toggle('active', editing);
+        applyLayout(savedLayout || DEFAULT_LAYOUT);
+        setDraggable(editing);
+        if (editing) refreshPicker();
+    };
+
+    // Kick off Stripe Checkout for Pro upgrade. The server creates the
+    // session with the current user's email baked in, so this request
+    // body only needs to carry the target plan.
+    window.startUpgradeCheckout = async function() {
+        var btn = document.getElementById('upgrade-pro-btn');
+        if (!btn) return;
+        var originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '...';
+        try {
+            var res = await fetch('/api/v1/billing/checkout', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'same-origin',
+                body: JSON.stringify({plan: 'pro'}),
+            });
+            if (!res.ok) {
+                throw new Error('checkout http ' + res.status);
+            }
+            var data = await res.json();
+            if (data && data.url) {
+                window.location.href = data.url;
+                return;
+            }
+            throw new Error('no checkout url in response');
+        } catch (err) {
+            console.error('upgrade checkout failed', err);
+            var failMsg = {{ (t.dashboard_upgrade_checkout_failed if t and t.dashboard_upgrade_checkout_failed else 'Could not start checkout. Please try again in a moment.') | tojson }};
+            alert(failMsg);
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    };
+
+    window.cancelEditMode = function() {
+        editing = false;
+        document.body.classList.remove('edit-mode');
+        document.getElementById('edit-layout-btn').classList.remove('active');
+        applyLayout(savedLayout || DEFAULT_LAYOUT);
+        setDraggable(false);
+    };
+
+    window.saveLayout = function() {
+        // Read DOM order and visibility
+        var widgets = [];
+        currentDomOrder().forEach(function(type) {
+            var el = getWidgetEl(type);
+            if (el && !el.classList.contains('hidden-widget')) {
+                widgets.push({type: type, id: type, size: 'wide'});
+            }
+        });
+        persistLayout({widgets: widgets})
+            .then(function(layout) {
+                savedLayout = layout;
+                cancelEditMode();
+            })
+            .catch(function(e) {
+                alert('Failed to save layout: ' + e.message);
+            });
+    };
+
+    window.resetLayout = function() {
+        clearPersisted().then(function(layout) {
+            savedLayout = layout;
+            cancelEditMode();
+        });
+    };
+
+    // === Drag/drop reorder ===
+    var draggedEl = null;
+
+    function setDraggable(on) {
+        var c = getContainer();
+        if (!c) return;
+        c.querySelectorAll('[data-widget]').forEach(function(el) {
+            if (on) {
+                el.setAttribute('draggable', 'true');
+            } else {
+                el.removeAttribute('draggable');
+                el.classList.remove('dragging', 'drop-before', 'drop-after');
+            }
+        });
+    }
+
+    function clearDropMarkers() {
+        var c = getContainer();
+        if (!c) return;
+        c.querySelectorAll('.drop-before, .drop-after').forEach(function(el) {
+            el.classList.remove('drop-before', 'drop-after');
+        });
+    }
+
+    document.addEventListener('dragstart', function(e) {
+        if (!editing) return;
+        var el = e.target.closest('[data-widget]');
+        if (!el) return;
+        draggedEl = el;
+        el.classList.add('dragging');
+        try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', el.getAttribute('data-widget')); } catch (err) {}
+    }, true);
+
+    document.addEventListener('dragover', function(e) {
+        if (!editing || !draggedEl) return;
+        var el = e.target.closest('[data-widget]');
+        if (!el || el === draggedEl) return;
+        e.preventDefault();
+        try { e.dataTransfer.dropEffect = 'move'; } catch (err) {}
+        var rect = el.getBoundingClientRect();
+        var before = (e.clientY - rect.top) < rect.height / 2;
+        clearDropMarkers();
+        el.classList.add(before ? 'drop-before' : 'drop-after');
+    }, true);
+
+    document.addEventListener('drop', function(e) {
+        if (!editing || !draggedEl) return;
+        var el = e.target.closest('[data-widget]');
+        if (!el || el === draggedEl) return;
+        e.preventDefault();
+        var rect = el.getBoundingClientRect();
+        var before = (e.clientY - rect.top) < rect.height / 2;
+        var c = getContainer();
+        if (!c) return;
+        if (before) {
+            c.insertBefore(draggedEl, el);
+        } else {
+            c.insertBefore(draggedEl, el.nextSibling);
+        }
+        clearDropMarkers();
+    }, true);
+
+    document.addEventListener('dragend', function(e) {
+        if (draggedEl) {
+            draggedEl.classList.remove('dragging');
+            draggedEl = null;
+        }
+        clearDropMarkers();
+    }, true);
+
+    document.addEventListener('DOMContentLoaded', loadLayout);
+    if (document.readyState !== 'loading') loadLayout();
+})();
+</script>
+{% endblock %}

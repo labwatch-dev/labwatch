@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ hostname }} — Status</title>
+<meta name="description" content="Public status page for {{ hostname }} — monitored by labwatch.">
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root {
+    --bg: #0b0c0e;
+    --surface: #14161a;
+    --surface-hover: #1a1d22;
+    --border: #23262c;
+    --text: #e8ebee;
+    --text-dim: #9199a3;
+    --text-muted: #5c636c;
+    --accent: #f0a030;
+    --green: #4ade80;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --blue: #60a5fa;
+    --radius: 8px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "SF Mono", "JetBrains Mono", "Monaco", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 72px 24px;
+}
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+.brand {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.brand a { color: var(--text); }
+.updated {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.status-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    margin-bottom: 24px;
+}
+.hostname {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: var(--text);
+}
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+.dot.up { background: var(--green); box-shadow: 0 0 8px rgba(74, 222, 128, 0.45); }
+.dot.down { background: var(--red); box-shadow: 0 0 8px rgba(239, 68, 68, 0.45); }
+.status-label {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+.status-label.up { color: var(--green); }
+.status-label.down { color: var(--red); }
+.last-seen {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Heartbeat row */
+.heartbeat-section {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+.heartbeat-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+}
+.uptime-pct {
+    color: var(--green);
+    font-weight: 600;
+}
+.uptime-pct.low { color: var(--amber); }
+.uptime-pct.bad { color: var(--red); }
+.heartbeat-bar {
+    display: flex;
+    gap: 2px;
+    height: 36px;
+    align-items: stretch;
+}
+.hb-tick {
+    flex: 1;
+    border-radius: 2px;
+    min-width: 2px;
+    transition: opacity 0.15s;
+}
+.hb-tick.up { background: var(--green); }
+.hb-tick.down { background: var(--red); }
+.hb-tick.none { background: var(--border); opacity: 0.35; }
+.hb-tick:hover { opacity: 0.75; }
+.heartbeat-legend {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+/* Metrics grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+}
+.metric {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    text-align: center;
+}
+.metric-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+.metric-value {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+}
+.metric-value .unit { font-size: 14px; color: var(--text-dim); font-weight: 400; margin-left: 2px; }
+.metric-value.warn { color: var(--amber); }
+.metric-value.crit { color: var(--red); }
+.metric-value.dim { color: var(--text-muted); font-size: 18px; }
+
+.network-row {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.net-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+.net-values {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+.net-item { display: inline-flex; align-items: center; gap: 6px; }
+.net-arrow.down { color: var(--green); }
+.net-arrow.up { color: var(--blue); }
+.net-sep { color: var(--text-muted); }
+.net-values .unit { font-size: 11px; color: var(--text-dim); font-weight: 400; margin-left: 3px; }
+
+.footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+@media (max-width: 520px) {
+    .metrics-grid { grid-template-columns: 1fr 1fr; }
+    .container { padding: 32px 16px; }
+    .hostname { font-size: 18px; }
+    .heartbeat-bar { height: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="brand">
+            <a href="{{ base_url }}">labwatch</a>
+        </div>
+        <div class="updated" id="updated">updated just now</div>
+    </div>
+
+    <div class="status-card">
+        <h1 class="hostname">{{ hostname }}</h1>
+        <div class="status-row">
+            <div class="dot {% if online %}up{% else %}down{% endif %}"></div>
+            <div class="status-label {% if online %}up{% else %}down{% endif %}">
+                {% if online %}Operational{% else %}Offline{% endif %}
+            </div>
+            <div class="last-seen">
+                {% if last_seen %}last seen <span class="rel-time" data-ts="{{ last_seen }}">{{ last_seen }}</span>{% endif %}
+            </div>
+        </div>
+
+        <div class="heartbeat-section">
+            <div class="heartbeat-label">
+                <span>24h uptime</span>
+                <span class="uptime-pct{% if uptime_pct is not none and uptime_pct < 99 %} low{% endif %}{% if uptime_pct is not none and uptime_pct < 95 %} bad{% endif %}">
+                    {% if uptime_pct is not none %}{{ uptime_pct }}%{% else %}no data{% endif %}
+                </span>
+            </div>
+            <div class="heartbeat-bar">
+                {% for b in heartbeat %}
+                <div class="hb-tick {{ b }}" title="{{ b }}"></div>
+                {% endfor %}
+            </div>
+            <div class="heartbeat-legend">
+                <span>24h ago</span>
+                <span>now</span>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-label">CPU</div>
+                <div class="metric-value {% if cpu_percent is not none and cpu_percent >= 90 %}crit{% elif cpu_percent is not none and cpu_percent >= 75 %}warn{% elif cpu_percent is none %}dim{% endif %}">
+                    {% if cpu_percent is not none %}{{ cpu_percent|round(1) }}<span class="unit">%</span>{% else %}—{% endif %}
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Memory</div>
+                <div class="metric-value {% if memory_percent is not none and memory_percent >= 90 %}crit{% elif memory_percent is not none and memory_percent >= 75 %}warn{% elif memory_percent is none %}dim{% endif %}">
+                    {% if memory_percent is not none %}{{ memory_percent|round(1) }}<span class="unit">%</span>{% else %}—{% endif %}
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Disk</div>
+                <div class="metric-value {% if disk_percent is not none and disk_percent >= 90 %}crit{% elif disk_percent is not none and disk_percent >= 75 %}warn{% elif disk_percent is none %}dim{% endif %}">
+                    {% if disk_percent is not none %}{{ disk_percent|round(1) }}<span class="unit">%</span>{% else %}—{% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if online and (net_rx_mbps is not none or net_tx_mbps is not none) %}
+        <div class="network-row">
+            <div class="net-label">Network</div>
+            <div class="net-values">
+                <span class="net-item"><span class="net-arrow down">↓</span>{{ (net_rx_mbps or 0)|round(1) }}<span class="unit">Mbps</span></span>
+                <span class="net-sep">·</span>
+                <span class="net-item"><span class="net-arrow up">↑</span>{{ (net_tx_mbps or 0)|round(1) }}<span class="unit">Mbps</span></span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        monitored by <a href="{{ base_url }}">labwatch</a> &mdash; <a href="{{ base_url }}/self-hosted">self-hostable</a>, open source
+    </div>
+</div>
+<script>
+(function(){
+    // Relative "updated" label
+    var el = document.getElementById('updated');
+    var start = Date.now();
+    function tick(){
+        var s = Math.floor((Date.now() - start) / 1000);
+        if (s < 10) el.textContent = 'updated just now';
+        else if (s < 60) el.textContent = 'updated ' + s + 's ago';
+        else el.textContent = 'updated ' + Math.floor(s/60) + 'm ago';
+    }
+    setInterval(tick, 5000);
+    // Convert ISO timestamps to human-friendly relative
+    function rel(iso){
+        if(!iso) return '';
+        var d = new Date(iso.replace(' ', 'T') + (iso.length > 19 && iso.indexOf('Z') < 0 && iso.indexOf('+') < 0 ? 'Z' : ''));
+        if(isNaN(d)) return iso;
+        var s = Math.floor((Date.now() - d.getTime())/1000);
+        if(s < 0) s = 0;
+        if(s < 10) return 'just now';
+        if(s < 60) return s + 's ago';
+        if(s < 3600) return Math.floor(s/60) + 'm ago';
+        if(s < 86400) return Math.floor(s/3600) + 'h ago';
+        return Math.floor(s/86400) + 'd ago';
+    }
+    document.querySelectorAll('.rel-time').forEach(function(e){
+        var t = e.getAttribute('data-ts');
+        var r = rel(t);
+        if(r) { e.textContent = r; e.title = t; }
+    });
+    // Auto-refresh every 60s
+    setTimeout(function(){ location.reload(); }, 60000);
+})();
+</script>
+</body>
+</html>

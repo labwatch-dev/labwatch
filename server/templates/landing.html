@@ -1,0 +1,1492 @@
+{% extends "base.html" %}
+
+{% block title %}labwatch{% endblock %}
+
+{% block extra_styles %}
+/* Hero */
+.hero {
+    text-align: center;
+    padding: 100px 24px 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.hero h1 {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    color: var(--text);
+}
+
+.hero h1 .accent {
+    color: var(--accent);
+}
+
+.hero .subtitle {
+    font-size: 18px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 40px;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.hero-terminal {
+    margin-top: 60px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 4px 4px 4px 16px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-dim);
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    gap: 12px;
+}
+
+.hero-terminal code {
+    color: var(--accent);
+}
+
+.hero-terminal .prompt {
+    color: var(--text-muted);
+    user-select: none;
+}
+
+.hero-terminal {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.hero-terminal:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 24px rgba(240, 160, 48, 0.15);
+}
+
+.hero-terminal-copy {
+    margin-left: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    user-select: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.hero-terminal:hover .hero-terminal-copy {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.hero-terminal.copied .hero-terminal-copy {
+    background: var(--green, #4ade80);
+    color: var(--bg);
+}
+
+/* How it works */
+.how-it-works {
+    padding: 60px 24px 80px;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-header h2 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+
+.section-header p {
+    color: var(--text-dim);
+    font-size: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.steps {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+}
+
+.step {
+    text-align: center;
+    padding: 32px 24px;
+    position: relative;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent-glow);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.step h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.step p {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+@media (min-width: 769px) {
+    .step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 55px;
+        right: -16px;
+        width: 32px;
+        height: 2px;
+        background: var(--border-light);
+    }
+}
+
+/* Features */
+.features {
+    padding: 80px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.features-grid {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.feature-card {
+    background: var(--bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.feature-card:hover {
+    border-color: var(--accent-dim);
+    transform: translateY(-2px);
+}
+
+.feature-card.featured {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, var(--bg) 0%, rgba(240, 160, 48, 0.04) 100%);
+    grid-column: span 1;
+}
+
+.feature-card.featured .feature-icon {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.feature-card.featured h3 {
+    color: var(--accent);
+}
+
+.feature-icon {
+    margin-bottom: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--accent-glow);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+}
+
+.feature-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.feature-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.feature-card p {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.install-note {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.install-note a {
+    color: var(--text-dim);
+    text-decoration: underline;
+    text-decoration-color: var(--border-light);
+}
+
+/* Pricing */
+.pricing {
+    padding: 80px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.pricing-grid {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.price-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.price-card:hover {
+    transform: translateY(-2px);
+}
+
+.price-card.featured {
+    border-color: var(--accent);
+    box-shadow: 0 0 30px var(--accent-glow);
+    position: relative;
+}
+
+.price-card.featured::before {
+    content: 'POPULAR';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 3px 12px;
+    border-radius: 10px;
+    font-family: var(--font-mono);
+}
+
+.price-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.price-amount {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+}
+
+.price-amount .currency {
+    font-size: 20px;
+    color: var(--text-dim);
+    font-weight: 600;
+}
+
+.price-amount .period {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.price-desc {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.price-features {
+    list-style: none;
+    margin-bottom: 28px;
+    flex: 1;
+}
+
+.price-features li {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-features li:last-child {
+    border-bottom: none;
+}
+
+.price-features .check {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.price-features .dash {
+    color: var(--text-muted);
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.price-card .btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero {
+        padding: 60px 24px 50px;
+    }
+
+    .hero h1 {
+        font-size: 32px;
+    }
+
+    .hero .subtitle {
+        font-size: 16px;
+    }
+
+    .steps {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+    }
+
+    .hero-terminal {
+        font-size: 11px;
+        padding: 4px 4px 4px 10px;
+    }
+    .hero-terminal code {
+        overflow-x: auto;
+        white-space: nowrap;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .hero-terminal-copy {
+        font-size: 10px;
+        padding: 4px 8px;
+        flex-shrink: 0;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pricing-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* NLQ Demo */
+.nlq-demo {
+    padding: 80px 24px;
+}
+
+.demo-terminal {
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.demo-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(30, 30, 46, 0.5);
+    border-bottom: 1px solid var(--border);
+}
+
+.demo-body {
+    padding: 24px;
+    min-height: 200px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.demo-input-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.demo-prompt {
+    color: var(--accent);
+    font-weight: 700;
+    user-select: none;
+}
+
+.demo-query {
+    color: var(--text);
+}
+
+.demo-cursor {
+    color: var(--accent);
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.demo-response {
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.demo-response.visible {
+    opacity: 1;
+}
+
+.demo-response .highlight {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.demo-response .metric-ok {
+    color: var(--green);
+}
+
+.demo-response .metric-warn {
+    color: var(--amber);
+}
+
+.demo-response .metric-crit {
+    color: var(--red);
+}
+
+.demo-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.demo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-light);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s;
+}
+
+.demo-dot:hover {
+    background: var(--text-muted);
+}
+
+.demo-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* === Easter egg: hidden ember mascot (Konami code reveal) === */
+.ember-mascot {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    cursor: pointer;
+    user-select: none;
+    filter: drop-shadow(0 0 10px rgba(245, 166, 35, 0.35));
+    transition: filter 0.3s, transform 0.2s, opacity 0.6s;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px) scale(0.6);
+}
+.ember-mascot.revealed {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    animation: ember-entrance 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.ember-mascot.revealed::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    margin-top: -30px;
+    margin-left: -30px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245, 166, 35, 0.35) 0%, rgba(245, 166, 35, 0) 65%);
+    animation: ember-halo 2.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+.ember-mascot:hover { filter: drop-shadow(0 0 16px rgba(245, 166, 35, 0.6)); transform: scale(1.08); }
+.ember-mascot:active { transform: scale(0.94); }
+@keyframes ember-entrance {
+    0% { opacity: 0; transform: translateY(20px) scale(0.6); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes ember-halo {
+    0%, 100% { opacity: 0.4; transform: scale(0.85); }
+    50% { opacity: 0.85; transform: scale(1.15); }
+}
+.ember-body {
+    width: 38px;
+    height: 46px;
+    background: linear-gradient(180deg, #ff6b35 0%, #f5a623 35%, #ffd700 100%);
+    border-radius: 48% 48% 42% 42% / 58% 58% 38% 38%;
+    position: relative;
+    animation: ember-idle 3s ease-in-out infinite;
+}
+.ember-body::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: inherit;
+    background: radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.25) 0%, transparent 65%);
+    animation: ember-heartbeat 2.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes ember-heartbeat {
+    0%, 100% { opacity: 0.3; transform: scale(0.95); }
+    40% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.97); }
+    60% { opacity: 0.65; transform: scale(1); }
+}
+.ember-tip {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 14px;
+    background: linear-gradient(180deg, #ff4444, #ff6b35);
+    border-radius: 45% 45% 25% 25% / 75% 75% 25% 25%;
+    animation: ember-flicker 1.5s ease-in-out infinite alternate;
+}
+.ember-face {
+    position: absolute;
+    top: 38%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 16px;
+}
+.ember-brow {
+    position: absolute;
+    top: 0;
+    width: 6px;
+    height: 2px;
+    background: rgba(26, 26, 46, 0.5);
+    border-radius: 1px;
+}
+.ember-brow.l { left: 1px; transform: rotate(-5deg); }
+.ember-brow.r { right: 1px; transform: rotate(5deg); }
+.ember-eye {
+    position: absolute;
+    top: 5px;
+    width: 4px;
+    height: 5px;
+    background: #1a1a2e;
+    border-radius: 50%;
+    animation: ember-blink 4s ease-in-out infinite;
+}
+.ember-eye.l { left: 2px; }
+.ember-eye.r { right: 2px; animation-delay: 0.1s; }
+.ember-eye::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    right: 0px;
+    width: 1.5px;
+    height: 1.5px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+}
+.ember-mouth {
+    position: absolute;
+    bottom: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 3px;
+    border-bottom: 2px solid rgba(26, 26, 46, 0.55);
+    border-radius: 0 0 50% 50%;
+}
+@keyframes ember-idle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+@keyframes ember-flicker {
+    0% { transform: translateX(-50%) scaleX(1) scaleY(1); }
+    100% { transform: translateX(-50%) scaleX(0.8) scaleY(1.2); }
+}
+@keyframes ember-blink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+}
+.ember-bubble {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 8px;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    font-family: var(--font-mono);
+}
+.ember-bubble.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.ember-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 14px;
+    border: 6px solid transparent;
+    border-top-color: var(--accent);
+}
+
+/* Comparison matrix */
+.compared-to {
+    padding: 80px 24px;
+    max-width: 1040px;
+    margin: 0 auto;
+}
+.compare-matrix {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow-x: auto;
+    margin-top: 32px;
+}
+.compare-matrix table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    min-width: 720px;
+}
+.compare-matrix thead th {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    padding: 20px 16px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+.compare-matrix thead th:first-child {
+    text-align: left;
+    color: var(--text);
+}
+.compare-matrix thead th.cm-us {
+    color: var(--accent);
+    background: var(--accent-glow);
+    border-bottom-color: var(--accent-dim);
+}
+.compare-matrix tbody td {
+    padding: 14px 16px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+}
+.compare-matrix tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+.compare-matrix tbody tr:last-child td {
+    border-bottom: none;
+}
+.compare-matrix tbody tr:hover td {
+    background: var(--surface-hover);
+}
+.compare-matrix td.cm-us {
+    background: rgba(240, 160, 48, 0.05);
+    border-left: 1px solid var(--accent-dim);
+    border-right: 1px solid var(--accent-dim);
+}
+.compare-matrix tbody tr:last-child td.cm-us {
+    border-bottom: 1px solid var(--accent-dim);
+}
+.compare-matrix .yes {
+    color: var(--green);
+    font-weight: 700;
+    font-size: 16px;
+}
+.compare-matrix .no {
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 16px;
+}
+.compare-matrix .partial {
+    color: var(--amber);
+    font-weight: 600;
+    font-size: 11px;
+    font-family: var(--font-mono);
+}
+.compare-matrix .soon {
+    color: var(--accent-dim);
+    font-weight: 600;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.compare-matrix .num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+}
+.compare-matrix .num.best {
+    color: var(--green);
+    font-weight: 700;
+}
+.compare-thesis {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 760px;
+    margin: 0 auto 28px;
+    padding: 0 16px;
+}
+.compare-thesis strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Mobile: flatten the comparison table into per-feature cards.
+   Below 720px the horizontal layout becomes cramped / requires sideways
+   scroll. Each row becomes a card with the feature name as a header and
+   the four tools stacked as label: value rows. */
+@media (max-width: 720px) {
+    .compare-matrix {
+        border: none;
+        background: transparent;
+        overflow-x: visible;
+        margin-top: 24px;
+    }
+    .compare-matrix table {
+        min-width: 0;
+        display: block;
+    }
+    .compare-matrix thead {
+        display: none;
+    }
+    .compare-matrix tbody,
+    .compare-matrix tbody tr,
+    .compare-matrix tbody td {
+        display: block;
+    }
+    .compare-matrix tbody tr {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        padding: 14px 16px;
+        margin-bottom: 10px;
+    }
+    .compare-matrix tbody tr:hover td {
+        background: transparent;
+    }
+    .compare-matrix tbody td {
+        padding: 7px 0;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .compare-matrix tbody td:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .compare-matrix tbody td:first-child {
+        font-family: var(--font-sans);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        padding: 0 0 10px 0;
+        margin-bottom: 6px;
+        border-bottom: 1px solid var(--border);
+        display: block;
+    }
+    /* nth-child labels: 1=feature, 2=labwatch, 3=beszel, 4=kuma, 5=netdata */
+    .compare-matrix tbody td:nth-child(2)::before {
+        content: "labwatch";
+        color: var(--accent);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .compare-matrix tbody td:nth-child(3)::before {
+        content: "Beszel";
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .compare-matrix tbody td:nth-child(4)::before {
+        content: "Uptime Kuma";
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .compare-matrix tbody td:nth-child(5)::before {
+        content: "Netdata";
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    /* On mobile, drop the full orange cell background on labwatch —
+       keep only a subtle left-accent so it reads as "ours" without
+       looking like a highlight bug. */
+    .compare-matrix td.cm-us {
+        background: transparent;
+        border-left: none;
+        border-right: none;
+        padding-left: 0;
+    }
+    .compare-matrix tbody tr:last-child td.cm-us {
+        border-bottom: 1px solid var(--border);
+    }
+}
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero" id="install">
+    <div class="hero-content">
+        <h1>{{ t.landing_hero_title }} <span class="accent">{{ t.landing_hero_accent }}</span></h1>
+        <p class="subtitle">
+            {{ t.landing_hero_sub1 }}
+            {{ t.landing_hero_sub2 }}
+        </p>
+        <div class="hero-buttons">
+            <a href="/signup" class="btn btn-primary">{{ t.landing_btn_install }}</a>
+            <a href="/demo" class="btn btn-secondary">{{ t.landing_btn_demo }}</a>
+        </div>
+        <div class="hero-terminal" onclick="copyToClipboard('curl -fsSL {{ base_url }}/install.sh | bash')" title="Click to copy" style="cursor: pointer;">
+            <span class="prompt">$</span>
+            <code>curl -fsSL {{ base_url }}/install.sh | bash</code>
+            <span class="hero-terminal-copy">copy</span>
+        </div>
+        <p class="install-note">
+            {{ t.landing_install_note }} <a href="/download/labwatch-linux-amd64">amd64</a> / <a href="/download/labwatch-linux-arm64">arm64</a>.
+            {{ t.landing_install_note2 }}
+        </p>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works">
+    <div class="section-header">
+        <h2>{{ t.landing_steps_title }}</h2>
+        <p>{{ t.landing_steps_sub }}</p>
+    </div>
+    <div class="steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <h3>{{ t.landing_step1_title }}</h3>
+            <p>{{ t.landing_step1_desc }}</p>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <h3>{{ t.landing_step2_title }}</h3>
+            <p>{{ t.landing_step2_desc }}</p>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <h3>{{ t.landing_step3_title }}</h3>
+            <p>{{ t.landing_step3_desc }}</p>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features">
+    <div class="section-header">
+        <h2>{{ t.landing_features_title }}</h2>
+        <p>{{ t.landing_features_sub }}</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card featured">
+            <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3l2.09 6.26L20 10.27l-5 3.64 1.18 6.88L12 17.77l-6.18 3.02L7 13.91 2 10.27l5.91-1.01L12 3z"/></svg>
+            </div>
+            <h3>{{ t.landing_feat_nlq_title }}</h3>
+            <p>{{ t.landing_feat_nlq_desc }}</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+            </div>
+            <h3>{{ t.landing_feat_alerts_title }}</h3>
+            <p>{{ t.landing_feat_alerts_desc }}</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M2 12h4l3-9 6 18 3-9h4"/></svg>
+            </div>
+            <h3>{{ t.landing_feat_fleet_title }}</h3>
+            <p>{{ t.landing_feat_fleet_desc }}</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </div>
+            <h3>{{ t.landing_feat_docker_title }}</h3>
+            <p>{{ t.landing_feat_docker_desc }}</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M6 13V8h12v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4z"/></svg>
+            </div>
+            <h3>{{ t.landing_feat_stack_title }}</h3>
+            <p>{{ t.landing_feat_stack_desc }}</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>
+            </div>
+            <h3>{{ t.landing_feat_oss_title }}</h3>
+            <p>{{ t.landing_feat_oss_desc }}</p>
+        </div>
+    </div>
+</section>
+
+<!-- Compared to -->
+<section class="compared-to" id="compare">
+    <div class="section-header">
+        <h2>Compared to Beszel, Uptime Kuma &amp; Netdata</h2>
+        <p>Honest feature matrix. Everyone's open source. Each tool is good at something — labwatch is good at the things your AI assistant can actually use.</p>
+    </div>
+    <p class="compare-thesis">
+        Beszel wins on pure minimalism. Netdata wins on feature breadth. Kuma wins on uptime focus.
+        <strong>labwatch wins when your monitoring needs to talk to an AI.</strong>
+    </p>
+    <div class="compare-matrix">
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th class="cm-us">labwatch</th>
+                    <th>Beszel</th>
+                    <th>Uptime Kuma</th>
+                    <th>Netdata</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Natural-language queries <span style="color:var(--text-muted);font-size:11px">("why is pve slow?")</span></td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                </tr>
+                <tr>
+                    <td>Text-to-alert <span style="color:var(--text-muted);font-size:11px">("alert me when CPU &gt; 85%")</span></td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                </tr>
+                <tr>
+                    <td>MCP endpoint <span style="color:var(--text-muted);font-size:11px">(AI-readable metrics)</span></td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="partial">alpha</span></td>
+                </tr>
+                <tr>
+                    <td>Multi-host agents</td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="partial">indirect</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                </tr>
+                <tr>
+                    <td>Per-user dashboard layout <span style="color:var(--text-muted);font-size:11px">(drag, pin, reorder)</span></td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="partial">basic</span></td>
+                    <td><span class="partial">basic</span></td>
+                </tr>
+                <tr>
+                    <td>24h heartbeat bar</td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                </tr>
+                <tr>
+                    <td>Anomaly dots on sparklines</td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                </tr>
+                <tr>
+                    <td>One-command install <span style="color:var(--text-muted);font-size:11px">(token baked in)</span></td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                </tr>
+                <tr>
+                    <td>Click-to-test notifications</td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                </tr>
+                <tr>
+                    <td>Agent RAM <span style="color:var(--text-muted);font-size:11px">(typical steady-state)</span></td>
+                    <td class="cm-us"><span class="num">~45 MB</span></td>
+                    <td><span class="num best">~15 MB</span></td>
+                    <td><span class="num">(server only)</span></td>
+                    <td><span class="num">~150 MB</span></td>
+                </tr>
+                <tr>
+                    <td>Install complexity</td>
+                    <td class="cm-us"><span class="num best">1 command</span></td>
+                    <td><span class="num best">1 command</span></td>
+                    <td><span class="num">docker</span></td>
+                    <td><span class="num">1 command</span></td>
+                </tr>
+                <tr>
+                    <td>Public status page <span style="color:var(--text-muted);font-size:11px">(shareable, no login)</span></td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                </tr>
+                <tr>
+                    <td>Docker container stats</td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                </tr>
+                <tr>
+                    <td>GPU + temperature</td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                </tr>
+                <tr>
+                    <td>S.M.A.R.T. disk health <span style="color:var(--text-muted);font-size:11px">(temp, reallocated sectors, pass/fail)</span></td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                </tr>
+                <tr>
+                    <td>Notification channels <span style="color:var(--text-muted);font-size:11px">(integrations)</span></td>
+                    <td class="cm-us"><span class="num best">100+ via Apprise</span></td>
+                    <td><span class="num">Shoutrrr (~20)</span></td>
+                    <td><span class="num">90+</span></td>
+                    <td><span class="num">~15</span></td>
+                </tr>
+                <tr>
+                    <td>Open source</td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- NLQ Demo -->
+<section class="nlq-demo">
+    <div class="section-header">
+        <h2>{{ t.landing_demo_title }}</h2>
+        <p>{{ t.landing_demo_sub }}</p>
+    </div>
+    <div class="demo-terminal">
+        <div class="demo-bar">
+            <div class="dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="label">labwatch query</div>
+        </div>
+        <div class="demo-body">
+            <div class="demo-input-line">
+                <span class="demo-prompt">&gt;</span>
+                <span class="demo-query" id="demo-query">why is pve-storage slow?</span>
+                <span class="demo-cursor" id="demo-cursor">_</span>
+            </div>
+            <div class="demo-response visible" id="demo-response"><span class="highlight">pve-storage shows I/O pressure.</span>
+Load average (38.1) is high relative to CPU count (2) but CPU usage is low (4.2%).
+This pattern indicates <span class="metric-warn">disk or network I/O bottleneck</span> —
+processes waiting on I/O rather than computing.
+<span class="metric-ok">Memory at 12.1%, Disk at 55.3%</span> — no other resource pressure.</div>
+        </div>
+        <div class="demo-nav">
+            <button class="demo-dot active" data-idx="0" onclick="jumpToDemo(0)"></button>
+            <button class="demo-dot" data-idx="1" onclick="jumpToDemo(1)"></button>
+            <button class="demo-dot" data-idx="2" onclick="jumpToDemo(2)"></button>
+            <button class="demo-dot" data-idx="3" onclick="jumpToDemo(3)"></button>
+            <button class="demo-dot" data-idx="4" onclick="jumpToDemo(4)"></button>
+        </div>
+    </div>
+</section>
+
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+    <div class="section-header">
+        <h2>{{ t.landing_pricing_title }}</h2>
+        <p>{{ t.landing_pricing_sub }}</p>
+    </div>
+    <div class="pricing-grid">
+        <!-- Free -->
+        <div class="price-card">
+            <div class="price-name">{{ t.landing_price_free }}</div>
+            <div class="price-amount">$0</div>
+            <div class="price-desc">{{ t.landing_price_free_desc }}</div>
+            <ul class="price-features">
+                <li><span class="check">+</span> {{ t.landing_price_1_node }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_30d }} {{ t.landing_price_retention }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_alerts }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_nlq }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_weekly_digest }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_public_status }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_mcp }}</li>
+            </ul>
+            <a href="/signup" class="btn btn-secondary">{{ t.landing_price_get_started }}</a>
+        </div>
+
+        <!-- Pro (Featured) -->
+        <div class="price-card featured">
+            <div class="price-name">{{ t.landing_price_pro }}</div>
+            <div class="price-amount"><span class="currency">$</span>9<span class="period">{{ t.landing_price_mo }}</span></div>
+            <div class="price-desc">{{ t.landing_price_pro_desc }}</div>
+            <ul class="price-features">
+                <li><span class="check">+</span> {{ t.landing_price_unlimited_nodes }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_1y }} {{ t.landing_price_retention }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_everything_free }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_priority_support }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_hosted }}</li>
+            </ul>
+            <a href="/signup" class="btn btn-primary">{{ t.landing_price_get_started }}</a>
+        </div>
+
+        <!-- Business -->
+        <div class="price-card">
+            <div class="price-name">{{ t.landing_price_business }}</div>
+            <div class="price-amount">{{ t.landing_price_business_amount }}</div>
+            <div class="price-desc">{{ t.landing_price_business_desc }}</div>
+            <ul class="price-features">
+                <li><span class="check">+</span> {{ t.landing_price_business_unlimited }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_business_custom_integrations }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_business_sla }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_business_selfhost_opt }}</li>
+                <li><span class="check">+</span> {{ t.landing_price_business_onboarding }}</li>
+            </ul>
+            <a href="/support" class="btn btn-secondary">{{ t.landing_price_business_contact }}</a>
+        </div>
+    </div>
+</section>
+
+<!-- Easter egg: hidden ember mascot. Konami code (↑↑↓↓←→←→ba) reveals. -->
+<div class="ember-mascot" id="ember-mascot" title="hi">
+    <div class="ember-bubble" id="ember-bubble"></div>
+    <div class="ember-body">
+        <div class="ember-tip"></div>
+        <div class="ember-face">
+            <div class="ember-brow l"></div>
+            <div class="ember-brow r"></div>
+            <div class="ember-eye l"></div>
+            <div class="ember-eye r"></div>
+        </div>
+        <div class="ember-mouth"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+var demoData = [
+    {
+        query: "why is pve-storage slow?",
+        response: '<span class="highlight">pve-storage shows I/O pressure.</span>\nLoad average (38.1) is high relative to CPU count (2) but CPU usage is low (4.2%).\nThis pattern indicates <span class="metric-warn">disk or network I/O bottleneck</span> —\nprocesses waiting on I/O rather than computing.\n<span class="metric-ok">Memory at 12.1%, Disk at 55.3%</span> — no other resource pressure.'
+    },
+    {
+        query: "show me all alerts",
+        response: '<span class="highlight">4 active alerts across the fleet.</span>\nSeverity breakdown: <span class="metric-crit">1 critical</span>, <span class="metric-warn">3 warning</span>.\n\n  - [docker-01] <span class="metric-crit">CRITICAL</span>: Container jellyfin restart loop (12 restarts in 1h)\n  - [proxmox-01] <span class="metric-warn">WARNING</span>: Disk usage at 81.2% (threshold: 80%)\n  - [storage-01] <span class="metric-warn">WARNING</span>: Load average 38.1 exceeds threshold (4)\n  - [gpu-01] <span class="metric-warn">WARNING</span>: GPU temperature at 82°C'
+    },
+    {
+        query: "which container uses the most cpu?",
+        response: '<span class="highlight">Containers ranked by CPU usage (highest first):</span>\n\n  1. plex on docker-01: <span class="metric-warn">34.2%</span>\n  2. jellyfin on docker-01: <span class="metric-ok">12.8%</span>\n  3. qbittorrent on docker-01: <span class="metric-ok">8.1%</span>\n  4. sonarr on docker-01: <span class="metric-ok">2.4%</span>\n  5. caddy on docker-01: <span class="metric-ok">0.3%</span>\n\nplex is running hot — consider investigation.'
+    },
+    {
+        query: "what needs attention?",
+        response: '<span class="highlight">3 issues found across 2 nodes</span> — 1 needs immediate attention.\n\n<span class="metric-crit">docker-01 [CRITICAL]:</span>\n  - Container jellyfin in restart loop (12 restarts)\n  - Memory at <span class="metric-warn">87.4%</span> — risk of OOM\n\n<span class="metric-warn">proxmox-01 [WARNING]:</span>\n  - Disk /var at <span class="metric-warn">81.2%</span> — approaching capacity\n\nAll other nodes healthy.'
+    },
+    {
+        query: "how hot is gpu-server?",
+        response: '<span class="highlight">Temperatures on gpu-server:</span>\n\n  NVIDIA RTX 3090: <span class="metric-warn">78°C</span>\n  NVIDIA RTX 3090 (#2): <span class="metric-ok">72°C</span>\n  CPU Package: <span class="metric-ok">58°C</span>\n  CPU Core 0: <span class="metric-ok">56°C</span>\n  NVMe SSD: <span class="metric-ok">42°C</span>\n\nGPU #1 is warm but within safe range. All other sensors normal.'
+    }
+];
+
+var currentDemo = 0;
+var typeTimer = null;
+var cycleTimer = null;
+
+function typeQuery(text, callback) {
+    var el = document.getElementById('demo-query');
+    var cursor = document.getElementById('demo-cursor');
+    var response = document.getElementById('demo-response');
+    el.textContent = '';
+    response.classList.remove('visible');
+    response.innerHTML = '';
+    cursor.style.display = 'inline';
+    var i = 0;
+    clearInterval(typeTimer);
+    typeTimer = setInterval(function() {
+        if (i < text.length) {
+            el.textContent += text[i];
+            i++;
+        } else {
+            clearInterval(typeTimer);
+            setTimeout(function() {
+                cursor.style.display = 'none';
+                if (callback) callback();
+            }, 300);
+        }
+    }, 45);
+}
+
+function showResponse(html) {
+    var el = document.getElementById('demo-response');
+    el.innerHTML = html;
+    el.classList.add('visible');
+}
+
+function updateDots(idx) {
+    document.querySelectorAll('.demo-dot').forEach(function(dot, i) {
+        dot.classList.toggle('active', i === idx);
+    });
+}
+
+function playDemo(idx) {
+    currentDemo = idx;
+    updateDots(idx);
+    var d = demoData[idx];
+    typeQuery(d.query, function() {
+        showResponse(d.response);
+    });
+}
+
+function jumpToDemo(idx) {
+    clearTimeout(cycleTimer);
+    playDemo(idx);
+    scheduleCycle();
+}
+
+function scheduleCycle() {
+    cycleTimer = setTimeout(function() {
+        var next = (currentDemo + 1) % demoData.length;
+        playDemo(next);
+        scheduleCycle();
+    }, 6000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    playDemo(0);
+    scheduleCycle();
+});
+
+// === Easter egg: Konami code reveals ember mascot ===
+(function() {
+    var SEQ = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+    var QUIPS = [
+        "you found me ✦",
+        "↑↑↓↓ — classic",
+        "I watch the labs",
+        "fewer alerts. more sleep.",
+        "metrics taste good",
+        "tell your homelab I said hi"
+    ];
+    var pos = 0;
+    var revealed = false;
+    var quipIdx = 0;
+    var bubbleTimer = null;
+
+    function showQuip(text) {
+        var bubble = document.getElementById('ember-bubble');
+        if (!bubble) return;
+        bubble.textContent = text;
+        bubble.classList.add('visible');
+        clearTimeout(bubbleTimer);
+        bubbleTimer = setTimeout(function() {
+            bubble.classList.remove('visible');
+        }, 2800);
+    }
+
+    function reveal() {
+        if (revealed) return;
+        revealed = true;
+        var m = document.getElementById('ember-mascot');
+        if (!m) return;
+        m.classList.add('revealed');
+        setTimeout(function() { showQuip(QUIPS[0]); }, 500);
+        m.addEventListener('click', function() {
+            quipIdx = (quipIdx + 1) % QUIPS.length;
+            showQuip(QUIPS[quipIdx]);
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        var key = e.key;
+        if (key === SEQ[pos] || (SEQ[pos].length === 1 && key && key.toLowerCase() === SEQ[pos])) {
+            pos++;
+            if (pos === SEQ.length) {
+                reveal();
+                pos = 0;
+            }
+        } else {
+            pos = (key === SEQ[0]) ? 1 : 0;
+        }
+    });
+})();
+</script>
+{% endblock %}

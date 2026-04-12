@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% block title %}Alerts — labwatch{% endblock %}
+
+{% block extra_styles %}
+.alerts-page {
+    padding: 80px 24px;
+    max-width: 760px;
+    margin: 0 auto;
+}
+.alerts-page h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+.alerts-page .subtitle {
+    color: var(--text-dim);
+    margin-bottom: 32px;
+    font-size: 15px;
+}
+
+.nl-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 28px;
+}
+.nl-box label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.nl-box textarea {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 15px;
+    font-family: var(--font-sans);
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+}
+.nl-box textarea:focus { border-color: var(--accent); }
+
+.nl-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+.nl-example {
+    padding: 6px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.nl-example:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.nl-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+.nl-buttons button {
+    padding: 12px 20px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.nl-buttons button:hover { border-color: var(--accent); }
+.nl-buttons button.btn-primary {
+    background: var(--accent);
+    color: #0a0a0f;
+    border-color: var(--accent);
+    font-weight: 700;
+}
+.nl-buttons button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.preview {
+    margin-top: 16px;
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 14px;
+}
+.preview.ok {
+    display: block;
+    background: color-mix(in srgb, var(--green) 10%, transparent);
+    border: 1px solid var(--green);
+    color: var(--text);
+}
+.preview.err {
+    display: block;
+    background: color-mix(in srgb, var(--red) 10%, transparent);
+    border: 1px solid var(--red);
+    color: var(--red);
+}
+.preview .rule-summary {
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+.preview .rule-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.preview .rule-meta span { margin-right: 12px; }
+
+.current-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+}
+.current-panel h2 {
+    font-size: 16px;
+    font-family: var(--font-mono);
+    margin: 0 0 12px 0;
+}
+.current-panel .threshold-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+.current-panel .threshold-row:last-child { border-bottom: none; }
+.current-panel .threshold-key { color: var(--text-dim); }
+.current-panel .threshold-val { color: var(--accent); font-weight: 700; }
+.current-panel .threshold-custom { color: var(--green); }
+{% endblock %}
+
+{% block content %}
+<div class="alerts-page">
+    <h1>Alert Rules</h1>
+    <p class="subtitle">Describe the alert you want in plain English. We'll parse it, show you the generated rule, and apply it when you confirm. <b>No YAML, no forms.</b></p>
+
+    <div class="nl-box">
+        <label for="nl-input">Describe your alert</label>
+        <textarea id="nl-input" placeholder="e.g. alert me when any lab's disk fills past 85%"></textarea>
+
+        <div class="nl-examples">
+            <div class="nl-example" onclick="useExample(this)">alert me when CPU goes above 90%</div>
+            <div class="nl-example" onclick="useExample(this)">critical alert when memory hits 95</div>
+            <div class="nl-example" onclick="useExample(this)">warn me when disk fills past 85%</div>
+            <div class="nl-example" onclick="useExample(this)">alert me if GPU temperature exceeds 80C</div>
+            <div class="nl-example" onclick="useExample(this)">notify me when load average is above 10</div>
+        </div>
+
+        <div class="nl-buttons">
+            <button type="button" onclick="generate()">Preview rule</button>
+            <button type="button" class="btn-primary" id="apply-btn" onclick="apply()" disabled>Apply rule</button>
+        </div>
+
+        <div class="preview" id="preview"></div>
+    </div>
+
+    <div class="current-panel">
+        <h2>Current thresholds</h2>
+        <div id="current-list"></div>
+        <p class="hint" style="color:var(--text-muted);font-size:11px;margin-top:12px;font-family:var(--font-mono);">Green = customized by you. Applying a rule updates the matching threshold here.</p>
+    </div>
+</div>
+
+<script>
+const DEFAULTS = {
+    cpu_warning: 90,
+    memory_warning: 85,
+    memory_critical: 95,
+    disk_warning: 80,
+    disk_critical: 90,
+    gpu_util_warning: 90,
+    gpu_mem_warning: 90,
+    gpu_temp_warning: 85,
+    gpu_temp_critical: 95,
+    load_warning: 10,
+};
+
+const CURRENT = {{ current_thresholds | tojson | safe }};
+
+function useExample(el) {
+    document.getElementById("nl-input").value = el.textContent;
+    generate();
+}
+
+function showPreview(html, ok) {
+    const el = document.getElementById("preview");
+    el.innerHTML = html;
+    el.className = "preview " + (ok ? "ok" : "err");
+}
+
+async function generate() {
+    const text = document.getElementById("nl-input").value.trim();
+    if (!text) return;
+
+    const resp = await fetch("/api/v1/my/alerts/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+    });
+    const data = await resp.json();
+
+    if (!data.ok) {
+        showPreview("✗ " + (data.error || "Could not parse"), false);
+        document.getElementById("apply-btn").disabled = true;
+        return;
+    }
+    const r = data.rule;
+    const html = ''
+        + '<div class="rule-summary">✓ ' + escapeHtml(data.summary) + '</div>'
+        + '<div class="rule-meta">'
+        +   '<span>metric: <b>' + escapeHtml(r.metric_label) + '</b></span>'
+        +   '<span>severity: <b>' + escapeHtml(r.severity) + '</b></span>'
+        +   '<span>threshold key: <code>' + escapeHtml(r.threshold_key) + '</code></span>'
+        + '</div>';
+    showPreview(html, true);
+    document.getElementById("apply-btn").disabled = false;
+}
+
+async function apply() {
+    const text = document.getElementById("nl-input").value.trim();
+    if (!text) return;
+    const resp = await fetch("/api/v1/my/alerts/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+        showPreview("✗ " + (data.detail || "Failed"), false);
+        return;
+    }
+    showPreview(
+        '<div class="rule-summary">✓ Applied: ' + escapeHtml(data.summary) + '</div>'
+        + '<div class="rule-meta">This rule is now active for your labs.</div>',
+        true
+    );
+    document.getElementById("apply-btn").disabled = true;
+    Object.assign(CURRENT, data.thresholds);
+    renderCurrent();
+}
+
+function renderCurrent() {
+    const list = document.getElementById("current-list");
+    const rows = Object.keys(DEFAULTS).sort().map(key => {
+        const def = DEFAULTS[key];
+        const cur = CURRENT[key];
+        const isCustom = cur !== undefined && cur !== def;
+        const val = cur !== undefined ? cur : def;
+        const valClass = isCustom ? "threshold-val threshold-custom" : "threshold-val";
+        return '<div class="threshold-row">'
+            + '<span class="threshold-key">' + key + '</span>'
+            + '<span class="' + valClass + '">' + val + (key.startsWith("gpu_temp") ? "°C" : (key.startsWith("load") ? "" : "%")) + '</span>'
+            + '</div>';
+    }).join("");
+    list.innerHTML = rows;
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+renderCurrent();
+</script>
+{% endblock %}

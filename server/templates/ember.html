@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if winner %}ember was found{% else %}you found ember{% endif %}</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root {
+    --bg: #07080a;
+    --surface: #11141a;
+    --border: #262a32;
+    --text: #e6e9ec;
+    --text-dim: #8a929c;
+    --text-muted: #585f68;
+    --ember-deep: #ff4500;
+    --ember-mid: #ff7a18;
+    --ember-bright: #ffb02e;
+    --ember-pale: #ffe27a;
+    --green: #4ade80;
+    --red: #ef4444;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "SF Mono", "JetBrains Mono", "Monaco", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(ellipse at 50% 30%, #181210 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+a { color: var(--ember-bright); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 80px 24px 64px 24px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* ----- Ember mascot (SVG) ----- */
+.ember-stage {
+    position: relative;
+    width: 200px;
+    height: 240px;
+    margin: 0 auto 32px auto;
+}
+.ember-stage svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+.ember-flame {
+    transform-origin: 50% 90%;
+    animation: ember-pulse 3.2s ease-in-out infinite;
+    filter: drop-shadow(0 0 40px rgba(255, 122, 24, 0.55))
+            drop-shadow(0 0 12px rgba(255, 176, 46, 0.6));
+}
+@keyframes ember-pulse {
+    0%, 100% { transform: scale(1, 1) translateY(0); }
+    50%      { transform: scale(1.04, 0.97) translateY(-2px); }
+}
+.ember-eye, .ember-mouth { transform-origin: center; }
+.ember-eye { animation: ember-blink 5.5s ease-in-out infinite; }
+@keyframes ember-blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    94%, 96%      { transform: scaleY(0.05); }
+}
+
+/* Floating sparks */
+.spark {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--ember-bright);
+    box-shadow: 0 0 10px var(--ember-bright);
+    opacity: 0;
+    animation: spark-rise 3.5s ease-out infinite;
+}
+.spark:nth-child(1) { left: 30%;  animation-delay: 0s;   }
+.spark:nth-child(2) { left: 50%;  animation-delay: 0.6s; }
+.spark:nth-child(3) { left: 70%;  animation-delay: 1.2s; }
+.spark:nth-child(4) { left: 40%;  animation-delay: 1.8s; }
+.spark:nth-child(5) { left: 60%;  animation-delay: 2.4s; }
+@keyframes spark-rise {
+    0%   { opacity: 0; transform: translateY(0)    scale(1); }
+    20%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-160px) scale(0.4); }
+}
+
+/* ----- Headings & copy ----- */
+h1 {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    background: linear-gradient(180deg, var(--ember-pale), var(--ember-bright) 60%, var(--ember-deep));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: -0.5px;
+}
+.subtitle {
+    color: var(--text-dim);
+    margin: 0 auto 32px auto;
+    max-width: 480px;
+}
+
+/* ----- Card ----- */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 28px 24px 28px;
+    margin-top: 24px;
+    text-align: left;
+}
+.card h2 {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-dim);
+    margin: 0 0 16px 0;
+}
+
+.field {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.field input[type="email"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border 0.15s;
+}
+.field input[type="email"]:focus {
+    border-color: var(--ember-mid);
+}
+.field button {
+    background: linear-gradient(180deg, var(--ember-bright), var(--ember-mid));
+    color: #1a0f06;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.15s;
+}
+.field button:hover { filter: brightness(1.1); }
+.field button:active { transform: scale(0.97); }
+.field button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fineprint {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+}
+
+.result {
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    display: none;
+}
+.result.ok    { display: block; background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.4); color: var(--green); }
+.result.err   { display: block; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.4); color: var(--red); }
+.result.late  { display: block; background: rgba(255, 122, 24, 0.08); border: 1px solid rgba(255, 122, 24, 0.35); color: var(--ember-bright); }
+
+.winner-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 24px;
+    text-align: left;
+}
+.winner-box .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.winner-box .value {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    color: var(--ember-bright);
+    margin-bottom: 16px;
+}
+
+.footer {
+    margin-top: 48px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align: center;
+}
+.footer a { color: var(--text-dim); }
+
+@media (max-width: 520px) {
+    .wrap { padding: 48px 16px; }
+    h1 { font-size: 22px; }
+    .ember-stage { width: 160px; height: 200px; }
+    .field { flex-direction: column; align-items: stretch; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="ember-stage">
+        <span class="spark"></span>
+        <span class="spark"></span>
+        <span class="spark"></span>
+        <span class="spark"></span>
+        <span class="spark"></span>
+        <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="emberGrad" cx="50%" cy="65%" r="65%">
+                    <stop offset="0%"  stop-color="#ffe27a"/>
+                    <stop offset="35%" stop-color="#ffb02e"/>
+                    <stop offset="70%" stop-color="#ff7a18"/>
+                    <stop offset="100%" stop-color="#ff4500"/>
+                </radialGradient>
+                <radialGradient id="emberCore" cx="50%" cy="70%" r="35%">
+                    <stop offset="0%" stop-color="#fff5d0" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="#ffe27a" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+            <g class="ember-flame">
+                <!-- Flame body -->
+                <path d="M100 30
+                         C 60 75, 40 120, 50 165
+                         C 55 200, 80 220, 100 220
+                         C 120 220, 145 200, 150 165
+                         C 160 120, 140 75, 100 30 Z"
+                      fill="url(#emberGrad)"/>
+                <!-- Inner core glow -->
+                <ellipse cx="100" cy="160" rx="42" ry="55" fill="url(#emberCore)"/>
+                <!-- Face -->
+                <g transform="translate(100 155)">
+                    <ellipse class="ember-eye" cx="-14" cy="-8" rx="3.5" ry="5" fill="#1a0f06"/>
+                    <ellipse class="ember-eye" cx="14"  cy="-8" rx="3.5" ry="5" fill="#1a0f06"/>
+                    <path class="ember-mouth" d="M -8 8 Q 0 16 8 8" stroke="#1a0f06" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                </g>
+            </g>
+        </svg>
+    </div>
+
+    {% if winner %}
+        <h1>ember was found</h1>
+        <p class="subtitle">
+            this easter egg has already been claimed.
+            but you spent the time to find it &mdash; that puts you in good company.
+        </p>
+        <div class="winner-box">
+            <div class="label">found by</div>
+            <div class="value">{{ winner.email_obscured }}</div>
+            <div class="label">via</div>
+            <div class="value">{{ winner.found_via }}</div>
+            <div class="label">on</div>
+            <div class="value">{{ winner.claimed_at }}</div>
+        </div>
+    {% else %}
+        <h1>you found ember</h1>
+        <p class="subtitle">
+            you're the first person curious enough to actually look. that earns you
+            <strong style="color:var(--ember-bright)">one year of labwatch pro, on the house</strong>.
+            drop your email below and we'll set it up.
+        </p>
+        <div class="card">
+            <h2>claim your year</h2>
+            <form id="claim-form" onsubmit="return claim(event)">
+                <div class="field">
+                    <input type="email" id="email" placeholder="you@yourdomain.com" required autocomplete="email">
+                    <button type="submit" id="claim-btn">claim</button>
+                </div>
+                <div class="fineprint">
+                    one winner total. credited within 24h. no spam, just the activation email.
+                </div>
+                <div id="result" class="result"></div>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="footer">
+        <a href="{{ base_url }}">labwatch</a> &mdash; the homelab monitor that talks back
+    </div>
+</div>
+
+<script>
+function claim(e) {
+    e.preventDefault();
+    var email = document.getElementById('email').value.trim();
+    var btn = document.getElementById('claim-btn');
+    var res = document.getElementById('result');
+    res.className = 'result';
+    res.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'claiming...';
+    fetch('/api/v1/ember/claim', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email: email, found_via: '{{ found_via }}'})
+    })
+    .then(function(r){ return r.json().then(function(j){ return {ok: r.ok, body: j}; }); })
+    .then(function(r){
+        if (r.ok && r.body.success) {
+            res.className = 'result ok';
+            res.textContent = 'claimed. expect an email at ' + email + ' within 24h.';
+            btn.textContent = 'claimed';
+        } else if (r.body && r.body.already_claimed) {
+            res.className = 'result late';
+            res.textContent = 'someone got here first. refresh to see who.';
+            btn.textContent = 'too late';
+        } else {
+            res.className = 'result err';
+            res.textContent = (r.body && r.body.detail) || 'something went wrong';
+            btn.disabled = false;
+            btn.textContent = 'claim';
+        }
+    })
+    .catch(function(err){
+        res.className = 'result err';
+        res.textContent = 'network error: ' + err;
+        btn.disabled = false;
+        btn.textContent = 'claim';
+    });
+    return false;
+}
+</script>
+</body>
+</html>

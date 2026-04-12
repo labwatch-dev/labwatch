@@ -1,0 +1,1762 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lab.display_name or lab.hostname }}{% endblock %}
+
+{% block extra_styles %}
+/* Back link */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 32px;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: var(--accent);
+}
+
+.back-link .arrow {
+    font-size: 16px;
+}
+
+/* Lab header */
+.lab-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.lab-header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.lab-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.lab-meta-item {
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lab-meta-item .value {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+}
+
+.lab-meta-item .sep {
+    color: var(--border-light);
+    margin: 0 2px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+}
+
+.status-pill.online {
+    background: var(--green-dim);
+    color: var(--green);
+}
+
+.status-pill.stale {
+    background: var(--amber-dim);
+    color: var(--amber);
+}
+
+.status-pill.offline {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
+.status-pill .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Two-column layout */
+.detail-columns {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.detail-left, .detail-right {
+    min-width: 0;
+}
+
+/* Section styling */
+.detail-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+}
+
+.section-body {
+    padding: 20px;
+}
+
+/* System metrics */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+}
+
+.metric-card-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.metric-card-value {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    margin-bottom: 8px;
+}
+
+.metric-card-value.green { color: var(--green); }
+.metric-card-value.amber { color: var(--amber); }
+.metric-card-value.red { color: var(--red); }
+.metric-card-value.dim { color: var(--text-dim); }
+
+.metric-card-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.metric-card-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s ease;
+}
+
+.metric-card-detail {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    margin-top: 6px;
+}
+
+/* Tables (Docker, Services) */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+}
+
+.data-table tbody td {
+    font-size: 13px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+    background: var(--surface-hover);
+}
+
+.container-name {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.container-image {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.state-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.state-running {
+    background: var(--green-dim);
+    color: var(--green);
+}
+
+.state-stopped, .state-exited {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
+.state-restarting {
+    background: var(--amber-dim);
+    color: var(--amber);
+}
+
+.state-paused {
+    background: var(--blue-dim);
+    color: var(--blue);
+}
+
+.restart-count {
+    font-family: var(--font-mono);
+}
+
+.restart-count.warning {
+    color: var(--amber);
+    font-weight: 600;
+}
+
+/* Service status */
+.status-up {
+    color: var(--green);
+}
+
+.status-down {
+    color: var(--red);
+}
+
+/* Inline highlight classes for table cells (GPU, SMART, etc.) */
+.warning { color: var(--amber); font-weight: 600; }
+.danger { color: var(--red); font-weight: 600; }
+
+.response-time {
+    color: var(--text-muted);
+}
+
+/* Alerts timeline */
+.alerts-list {
+    list-style: none;
+}
+
+.alert-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.alert-item:last-child {
+    border-bottom: none;
+}
+
+.alert-severity {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    margin-top: 1px;
+}
+
+.alert-severity.critical {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
+.alert-severity.warning {
+    background: var(--amber-dim);
+    color: var(--amber);
+}
+
+.alert-severity.info {
+    background: var(--blue-dim);
+    color: var(--blue);
+}
+
+.alert-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.alert-message {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 4px;
+}
+
+.alert-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.alerts-empty {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* Admin section */
+.admin-section {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+}
+
+.admin-section h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-dim);
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.admin-field {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.admin-field-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+}
+
+.admin-field-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.admin-field-value code {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--text-dim);
+    background: var(--bg);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-field-value .masked {
+    color: var(--text-muted);
+    letter-spacing: 2px;
+}
+
+.copy-btn {
+    background: var(--accent-glow);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.copy-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.danger-zone {
+    margin-top: 32px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--red);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.danger-zone-text h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--red);
+    margin-bottom: 4px;
+}
+
+.danger-zone-text p {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Delete confirmation modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+.modal-box h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--red);
+    margin-bottom: 8px;
+}
+.modal-box p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+.modal-actions .btn { min-width: 100px; }
+
+/* Empty data state */
+.empty-data {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .detail-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .lab-header {
+        flex-direction: column;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .danger-zone {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Intelligence Digest */
+.digest-card {
+    background: var(--bg-card, #1a1a1a);
+    border: 1px solid var(--border, #333);
+    border-radius: 12px;
+    padding: 24px;
+}
+.digest-meta {
+    font-size: 12px;
+    color: var(--text-muted, #666);
+    margin-bottom: 16px;
+}
+.digest-content {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-primary, #e0e0e0);
+    white-space: pre-line;
+}
+.digest-content strong {
+    color: var(--accent, #f0a030);
+}
+.generate-digest-btn {
+    background: var(--accent, #f0a030);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: opacity 0.2s;
+}
+.generate-digest-btn:hover {
+    opacity: 0.85;
+}
+
+/* Metrics History Charts */
+.charts-section {
+    margin-bottom: 20px;
+}
+.charts-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    margin-bottom: 0;
+}
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+@media (max-width: 768px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.chart-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    position: relative;
+    height: 280px;
+}
+.chart-card canvas {
+    max-height: 240px;
+}
+.chart-card h3 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    font-family: var(--font-mono);
+}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <a href="{% if user_email %}/my/dashboard{% else %}/dashboard{% endif %}" class="back-link">
+        <span class="arrow">&larr;</span> {{ t.lab_back }}
+    </a>
+
+    {% if is_demo %}
+    <div style="display: inline-block; background: rgba(70, 130, 200, 0.12); border: 1px solid rgba(70, 130, 200, 0.4); color: #7ab7ff; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; padding: 4px 12px; border-radius: 4px; margin-bottom: 12px;">Demo — synthetic data. <a href="/signup" style="color: inherit; text-decoration: underline;">Sign up</a> to monitor your own.</div>
+    {% endif %}
+    <!-- Lab Header -->
+    <div class="lab-header">
+        <div class="lab-header-left">
+            <h1 id="lab-title" style="display: inline-flex; align-items: center; gap: 10px;">
+                <span id="lab-display-name">{{ lab.display_name or lab.hostname }}</span>
+                {% if not is_demo %}
+                <button type="button" id="rename-btn" onclick="startRenameLab()" title="Rename"
+                    style="background: none; border: 1px solid var(--border); color: var(--text-dim); border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; font-family: var(--font-sans);">
+                    rename
+                </button>
+                {% endif %}
+            </h1>
+            <div class="lab-meta-row">
+                {% if lab.display_name %}
+                <span class="lab-meta-item" title="Real system hostname">
+                    <span style="color: var(--text-muted);">hostname</span>
+                    <span class="value">{{ lab.hostname }}</span>
+                </span>
+                {% endif %}
+                <span class="lab-meta-item">
+                    <span class="value">{{ lab.os | default('Unknown OS') }}</span>
+                    <span class="sep">/</span>
+                    <span class="value">{{ lab.arch | default('unknown') }}</span>
+                </span>
+                <span class="lab-meta-item">
+                    Agent <span class="value">{{ lab.agent_version | default('--') }}</span>
+                </span>
+                <span class="lab-meta-item">
+                    Registered <span class="value" data-timestamp="{{ lab.registered_at }}">{{ lab.registered_at | default('--') }}</span>
+                </span>
+                <span class="lab-meta-item">
+                    Last seen <span class="value" data-timestamp="{{ lab.last_seen }}">--</span>
+                </span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            {% if maintenance_active %}
+            <span class="status-pill" title="Alerts are currently silenced" style="background: rgba(240, 160, 48, 0.12); color: var(--amber); border: 1px solid rgba(240, 160, 48, 0.45);">
+                <span class="dot" style="background: var(--amber); box-shadow: 0 0 8px rgba(240, 160, 48, 0.55);"></span>
+                Maintenance
+            </span>
+            {% endif %}
+            <span class="status-pill {{ 'online' if online else 'offline' }}">
+                <span class="dot"></span>
+                {{ t.lab_online if online else t.lab_offline }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="detail-columns">
+        <!-- Left Column: Metrics -->
+        <div class="detail-left">
+            <!-- System Metrics -->
+            <div class="detail-section">
+                <div class="section-title">{{ t.lab_system }}</div>
+                <div class="section-body">
+                    <div class="metrics-grid">
+                        {% set sys = system %}
+                        {# A lab is "has_data" only if it reported a non-zero cpu count. Offline/never-installed
+                           labs send no data and should render dim placeholders, not 0% in green. #}
+                        {% set has_data = (sys.cpu_count | default(0)) > 0 %}
+
+                        {% set cpu = sys.cpu_percent | default(0) %}
+                        <div class="metric-card">
+                            <div class="metric-card-label">{{ t.lab_cpu }}</div>
+                            <div class="metric-card-value {% if not has_data %}dim{% elif cpu >= 85 %}red{% elif cpu >= 60 %}amber{% else %}green{% endif %}">
+                                {% if has_data %}{{ "%.1f" | format(cpu) }}%{% else %}—{% endif %}
+                            </div>
+                            <div class="metric-card-bar">
+                                <div class="metric-card-fill" style="width: {% if has_data %}{{ cpu }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif cpu >= 85 %}--red{% elif cpu >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                            </div>
+                            {% if sys.cpu_count %}
+                            <div class="metric-card-detail">{{ sys.cpu_count }} cores</div>
+                            {% endif %}
+                        </div>
+
+                        {% set mem = sys.memory_percent | default(0) %}
+                        <div class="metric-card">
+                            <div class="metric-card-label">{{ t.lab_memory }}</div>
+                            <div class="metric-card-value {% if not has_data %}dim{% elif mem >= 85 %}red{% elif mem >= 60 %}amber{% else %}green{% endif %}">
+                                {% if has_data %}{{ "%.1f" | format(mem) }}%{% else %}—{% endif %}
+                            </div>
+                            <div class="metric-card-bar">
+                                <div class="metric-card-fill" style="width: {% if has_data %}{{ mem }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif mem >= 85 %}--red{% elif mem >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                            </div>
+                            {% if sys.memory_total_gb %}
+                            <div class="metric-card-detail">{{ "%.1f" | format(sys.memory_total_gb) }} GB total</div>
+                            {% endif %}
+                        </div>
+
+                        {% set disk = sys.disk_percent | default(0) %}
+                        <div class="metric-card">
+                            <div class="metric-card-label">{{ t.lab_disk }}</div>
+                            <div class="metric-card-value {% if not has_data %}dim{% elif disk >= 85 %}red{% elif disk >= 60 %}amber{% else %}green{% endif %}">
+                                {% if has_data %}{{ "%.1f" | format(disk) }}%{% else %}—{% endif %}
+                            </div>
+                            <div class="metric-card-bar">
+                                <div class="metric-card-fill" style="width: {% if has_data %}{{ disk }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif disk >= 85 %}--red{% elif disk >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                            </div>
+                            {% if sys.disk_total_gb %}
+                            <div class="metric-card-detail">{{ "%.1f" | format(sys.disk_total_gb) }} GB total</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-card-label">{{ t.lab_network }}</div>
+                            <div class="metric-card-value dim">
+                                {% if system.net_rx_mbps is defined %}
+                                {{ "%.1f" | format(system.net_rx_mbps) }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </div>
+                            {% if system.net_rx_mbps is defined %}
+                            <div class="metric-card-detail">Mbps rx / {{ "%.1f" | format(system.net_tx_mbps | default(0)) }} tx</div>
+                            {% else %}
+                            <div class="metric-card-detail">No data</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-card-label">{{ t.lab_load_average }}</div>
+                            <div class="metric-card-value dim">
+                                {{ sys.load_average | default('--') }}
+                            </div>
+                            {% if sys.uptime_seconds is defined %}
+                            {% set days = (sys.uptime_seconds // 86400) | int %}
+                            {% set hours = ((sys.uptime_seconds % 86400) // 3600) | int %}
+                            <div class="metric-card-detail">{{ t.lab_uptime }}: {{ days }}d {{ hours }}h</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics History Charts -->
+            <div class="detail-section charts-section">
+                <div class="charts-section-title">{{ t.lab_history_24h }}</div>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>{{ t.lab_cpu_memory }}</h3>
+                        <canvas id="cpuMemChart" height="200"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>{{ t.lab_load_average }}</h3>
+                        <canvas id="loadChart" height="200"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>{{ t.lab_network if t.lab_network else 'Network' }} (Mbps)</h3>
+                        <canvas id="netChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intelligence Digest -->
+            {% if digest %}
+            <div class="detail-section">
+                <h2 class="section-title">{{ t.lab_digest }}</h2>
+                <div class="digest-card">
+                    <div class="digest-meta">
+                        Generated {{ digest.created_at[:10] }} |
+                        Period: {{ digest.period_start[:10] }} to {{ digest.period_end[:10] }}
+                    </div>
+                    <div class="digest-content">
+                        {{ digest.summary | md_bold | replace('\n', '<br>') | safe }}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="detail-section">
+                <h2 class="section-title">{{ t.lab_digest }}</h2>
+                <div class="digest-card">
+                    <div class="digest-meta">{{ t.lab_digest_none }}</div>
+                    <button class="generate-digest-btn" onclick="generateDigest()">{{ t.lab_digest_generate }}</button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- GPU Devices -->
+            {% if gpu is defined and gpu.gpu_count | default(0) > 0 %}
+            <div class="detail-section">
+                <div class="section-title">
+                    {{ t.lab_gpu }}
+                    <span style="opacity: 0.5; margin-left: 8px;">{{ gpu.gpu_count }}</span>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Utilization</th>
+                            <th>VRAM</th>
+                            <th>Temperature</th>
+                            <th>Power</th>
+                            <th>Fan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in gpu.gpus | default([]) %}
+                        <tr>
+                            <td>{{ g.index | default(loop.index0) }}</td>
+                            <td><span class="container-name">{{ g.name | default('Unknown GPU') }}</span></td>
+                            <td>
+                                {% set g_util = g.utilization_percent | default(0) %}
+                                <span class="{{ 'warning' if g_util > 90 else '' }}">{{ "%.1f" | format(g_util) }}%</span>
+                            </td>
+                            <td>
+                                {% set g_mem = g.memory | default({}) %}
+                                {% set g_mem_used = (g_mem.used_bytes | default(0)) / 1073741824 %}
+                                {% set g_mem_total = (g_mem.total_bytes | default(0)) / 1073741824 %}
+                                {% set g_mem_pct = g_mem.used_percent | default(0) %}
+                                <span class="{{ 'warning' if g_mem_pct > 90 else '' }}">{{ "%.1f" | format(g_mem_used) }} / {{ "%.1f" | format(g_mem_total) }} GB ({{ "%.0f" | format(g_mem_pct) }}%)</span>
+                            </td>
+                            <td>
+                                {% set g_temp = g.temperature_celsius | default(0) %}
+                                <span class="{{ 'warning' if g_temp > 85 else '' }}">{{ "%.0f" | format(g_temp) }}°C</span>
+                            </td>
+                            <td>{{ "%.0f" | format(g.power_watts | default(0)) }}W / {{ "%.0f" | format(g.power_limit_watts | default(0)) }}W</td>
+                            <td>{{ "%.0f" | format(g.fan_speed_percent | default(0)) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- S.M.A.R.T. Disk Health -->
+            {% if smart is defined and smart.device_count | default(0) > 0 %}
+            <div class="detail-section">
+                <div class="section-title">
+                    Disk health
+                    <span style="opacity: 0.5; margin-left: 8px;">{{ smart.device_count }}</span>
+                    {% if smart.unhealthy_count and smart.unhealthy_count > 0 %}
+                    <span class="danger" style="margin-left: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        {{ smart.unhealthy_count }} unhealthy
+                    </span>
+                    {% endif %}
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Device</th>
+                            <th>Model</th>
+                            <th>Type</th>
+                            <th>Health</th>
+                            <th>Temp</th>
+                            <th>Power-on</th>
+                            <th>Realloc</th>
+                            <th>Pending</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in smart.devices | default([]) %}
+                        <tr>
+                            <td><span class="container-name">{{ d.device | default('?') }}</span></td>
+                            <td>{{ d.model | default('—') }}</td>
+                            <td>{{ d.type | default('—') }}</td>
+                            <td>
+                                {% if d.healthy %}
+                                <span class="status-up">PASSED</span>
+                                {% else %}
+                                <span class="danger">FAILING</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set d_temp = d.temperature_c | default(0) %}
+                                {% if d_temp %}
+                                <span class="{{ 'warning' if d_temp > 55 else '' }}{{ ' danger' if d_temp > 65 else '' }}">{{ "%.0f" | format(d_temp) }}°C</span>
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set h = d.power_on_hours | default(0) %}
+                                {% if h %}{{ h }}h ({{ "%.1f" | format(h / 8760) }}y){% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% set rs = d.reallocated_sector_ct | default(0) %}
+                                <span class="{{ 'warning' if rs > 0 else '' }}">{{ rs }}</span>
+                            </td>
+                            <td>
+                                {% set ps = d.pending_sector_ct | default(0) %}
+                                <span class="{{ 'danger' if ps > 0 else '' }}">{{ ps }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if smart.error %}
+                <div style="margin-top: 10px; font-size: 12px; color: var(--text-dim);">{{ smart.error }}</div>
+                {% endif %}
+            </div>
+            {% elif smart is defined and smart.error %}
+            <div class="detail-section">
+                <div class="section-title">Disk health</div>
+                <div style="font-size: 13px; color: var(--text-dim); padding: 12px 0;">
+                    SMART data unavailable: {{ smart.error }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Docker Containers -->
+            <div class="detail-section">
+                <div class="section-title">
+                    {{ t.lab_docker }}
+                    {% set docker_data = metrics.docker.data if metrics.docker and metrics.docker.data else {} %}
+                    {% set containers = docker_data.containers | default([]) %}
+                    {% if containers %}<span style="opacity: 0.5; margin-left: 8px;">{{ containers | length }}</span>{% endif %}
+                </div>
+                {% if containers %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>{{ t.lab_docker_name }}</th>
+                            <th>{{ t.lab_docker_image }}</th>
+                            <th>{{ t.lab_docker_state }}</th>
+                            <th>{{ t.lab_docker_cpu }}</th>
+                            <th>{{ t.lab_docker_memory }}</th>
+                            <th>{{ t.lab_docker_restarts }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in containers %}
+                        <tr>
+                            <td>
+                                <span class="container-name">{{ c.name | default('unknown') }}</span>
+                            </td>
+                            <td>
+                                <span class="container-image">{{ c.image | default('--') }}</span>
+                            </td>
+                            <td>
+                                {% set state = c.state | default(c.status | default('unknown')) | lower %}
+                                <span class="state-badge state-{{ state }}">{{ state }}</span>
+                            </td>
+                            <td>{{ "%.1f" | format(c.cpu_percent | default(0)) }}%</td>
+                            <td>
+                                {% if c.memory_usage_bytes is defined and c.memory_usage_bytes %}
+                                {{ "%.0f" | format(c.memory_usage_bytes / 1048576) }} MB
+                                {% elif c.memory_usage is defined %}
+                                {{ c.memory_usage }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set restarts = c.restart_count | default(c.restarts | default(0)) %}
+                                <span class="restart-count {{ 'warning' if restarts > 3 else '' }}">{{ restarts }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-data">{{ t.lab_docker_empty }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Services -->
+            <div class="detail-section">
+                <div class="section-title">
+                    {{ t.lab_services }}
+                    {% set services = metrics.services.data.services if metrics.services and metrics.services.data else [] %}
+                    {% if services %}<span style="opacity: 0.5; margin-left: 8px;">{{ services | length }}</span>{% endif %}
+                </div>
+                {% if services %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>{{ t.lab_services_name }}</th>
+                            <th>{{ t.lab_services_type }}</th>
+                            <th>{{ t.lab_services_status }}</th>
+                            <th>{{ t.lab_services_response }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for svc in services %}
+                        <tr>
+                            <td><span class="container-name">{{ svc.name | default('unknown') }}</span></td>
+                            <td>{{ svc.type | default('--') }}</td>
+                            <td>
+                                {% if svc.healthy is defined %}
+                                    {% if svc.healthy %}
+                                    <span class="status-up">up</span>
+                                    {% else %}
+                                    <span class="status-down">down</span>
+                                    {% endif %}
+                                {% else %}
+                                    {% set svc_status = svc.status | default('unknown') | lower %}
+                                    {% if svc_status == 'up' or svc_status == 'healthy' %}
+                                    <span class="status-up">up</span>
+                                    {% else %}
+                                    <span class="status-down">down</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="response-time">
+                                    {% if svc.response_time_ms is defined %}
+                                    {{ svc.response_time_ms }}ms
+                                    {% else %}
+                                    --
+                                    {% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-data">{{ t.lab_services_empty }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Alerts -->
+        <div class="detail-right">
+            <div class="detail-section">
+                <div class="section-title">
+                    {{ t.lab_alerts }}
+                    {% if alerts %}<span style="opacity: 0.5; margin-left: 8px;">{{ alerts | length }}</span>{% endif %}
+                </div>
+                {% if alerts %}
+                <ul class="alerts-list">
+                    {% for alert in alerts %}
+                    <li class="alert-item">
+                        <span class="alert-severity {{ alert.severity | default('info') | lower }}">{{ alert.severity | default('info') }}</span>
+                        <div class="alert-content">
+                            <div class="alert-message">{{ alert.message }}</div>
+                            <div class="alert-time" data-timestamp="{{ alert.created_at | default(alert.timestamp | default('')) }}">
+                                {{ alert.created_at | default(alert.timestamp | default('--')) }}
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="alerts-empty">
+                    {{ t.lab_alerts_empty }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Thresholds -->
+    {% if user_email %}
+    <div class="admin-section" id="thresholds-section">
+        <h2>Alert Thresholds</h2>
+        <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 16px;">Customize when alerts trigger for this node. Leave blank to use defaults.</p>
+        <div class="admin-grid" id="threshold-controls" style="gap: 12px;">
+            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
+                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">CPU warning</label>
+                <input type="number" id="th-cpu_warning" min="1" max="100" placeholder="90" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
+                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+            </div>
+            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
+                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">Memory warning</label>
+                <input type="number" id="th-memory_warning" min="1" max="100" placeholder="85" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
+                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+            </div>
+            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
+                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">Memory critical</label>
+                <input type="number" id="th-memory_critical" min="1" max="100" placeholder="95" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
+                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+            </div>
+            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
+                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">Disk warning</label>
+                <input type="number" id="th-disk_warning" min="1" max="100" placeholder="80" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
+                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+            </div>
+            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
+                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">Disk critical</label>
+                <input type="number" id="th-disk_critical" min="1" max="100" placeholder="90" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
+                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button class="copy-btn" onclick="saveThresholds()" style="background: var(--accent); color: var(--bg); padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 600;">Save</button>
+            <button class="copy-btn" onclick="resetThresholds()" style="padding: 8px 16px;">Reset to defaults</button>
+        </div>
+        <div id="threshold-msg" style="font-size: 12px; margin-top: 8px; color: var(--green);"></div>
+    </div>
+    {% endif %}
+
+    {% if not is_demo %}
+    <!-- Public Shareable Status Page -->
+    <div class="admin-section" id="public-status-section">
+        <h2>Public status page</h2>
+        <p style="color: var(--text-dim); font-size: 13px; margin-top: -4px; margin-bottom: 18px;">
+            Share a read-only status page for this lab with a public URL. Shows uptime bar, current CPU/memory/disk, and online state. No token, no lab id, no alerts. Auto-refreshes every 60 seconds.
+        </p>
+        <div id="public-status-toggle" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <button type="button" class="btn" id="public-status-btn" onclick="togglePublicStatus()">
+                Loading...
+            </button>
+            <div id="public-status-url-box" style="display: none; flex: 1; min-width: 280px;">
+                <div class="admin-field-value" style="align-items: center;">
+                    <code id="public-status-url" style="flex: 1; overflow-x: auto; white-space: nowrap;"></code>
+                    <button type="button" class="copy-btn" onclick="copyPublicUrl()">Copy</button>
+                    <a id="public-status-open" href="#" target="_blank" rel="noopener" class="copy-btn" style="text-decoration: none;">Open</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+    {% if not is_demo %}
+    <!-- Maintenance Mode -->
+    <div class="admin-section" id="maintenance-section">
+        <h2>Maintenance mode</h2>
+        <p style="color: var(--text-dim); font-size: 13px; margin-top: -4px; margin-bottom: 18px;">
+            Silence all alerts for this lab during planned downtime (reboots, upgrades, cable swaps). Agent metrics still flow in, but no new alerts are created and active alerts auto-resolve when you enable it.
+        </p>
+        <div id="maintenance-inactive-view">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <input type="text" id="maint-reason" placeholder="Reason (optional)  e.g. kernel upgrade" maxlength="200"
+                    style="flex: 1; min-width: 220px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
+                <select id="maint-duration" style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
+                    <option value="30">30 min</option>
+                    <option value="60" selected>1 hour</option>
+                    <option value="120">2 hours</option>
+                    <option value="240">4 hours</option>
+                    <option value="480">8 hours</option>
+                    <option value="1440">24 hours</option>
+                    <option value="">No limit</option>
+                </select>
+                <button type="button" class="btn" id="maint-enable-btn" onclick="enableMaintenance()">Enter maintenance</button>
+            </div>
+        </div>
+        <div id="maintenance-active-view" style="display: none;">
+            <div style="background: rgba(240, 160, 48, 0.08); border: 1px solid rgba(240, 160, 48, 0.35); border-radius: var(--radius); padding: 14px 16px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px rgba(240, 160, 48, 0.6);"></span>
+                    <strong style="color: var(--amber); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Maintenance active</strong>
+                    <span id="maint-time-remaining" style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); margin-left: auto;"></span>
+                </div>
+                <div id="maint-reason-display" style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;"></div>
+                <button type="button" class="btn" id="maint-disable-btn" onclick="disableMaintenance()">End maintenance</button>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+    {% if not is_demo %}
+    <!-- Admin Section -->
+    <div class="admin-section">
+        <h2>{{ t.lab_admin }}</h2>
+        <div class="admin-grid">
+            <div class="admin-field">
+                <div class="admin-field-label">{{ t.lab_admin_token }}</div>
+                <div class="admin-field-value">
+                    <code>
+                        <span class="masked" id="api-token-masked">&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;</span>
+                        <span id="api-token-plain" style="display:none;">{{ lab.api_token | default('--') }}</span>
+                    </code>
+                    <button class="copy-btn" onclick="toggleToken()">{{ t.lab_admin_reveal }}</button>
+                    <button class="copy-btn" onclick="copyToClipboard('{{ lab.api_token | default('') }}')">{{ t.lab_admin_copy }}</button>
+                </div>
+            </div>
+            <div class="admin-field">
+                <div class="admin-field-label">{{ t.lab_admin_lab_id }}</div>
+                <div class="admin-field-value">
+                    <code>{{ lab.id }}</code>
+                    <button class="copy-btn" onclick="copyToClipboard('{{ lab.id }}')">{{ t.lab_admin_copy }}</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="danger-zone">
+            <div class="danger-zone-text">
+                <h3>{{ t.lab_admin_delete }}</h3>
+                <p>{{ t.lab_admin_delete_desc }}</p>
+            </div>
+            <button class="btn btn-danger" onclick="showDeleteModal()">{{ t.lab_admin_delete_btn }}</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if not is_demo %}
+<!-- Delete confirmation modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <h3>{{ t.lab_admin_delete }}</h3>
+        <p>{{ t.lab_admin_delete_confirm }}</p>
+        <div class="modal-actions">
+            <button class="btn" onclick="hideDeleteModal()">{{ t.cancel if t.cancel else 'Cancel' }}</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">{{ t.lab_admin_delete_btn }}</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch({% if is_demo %}'/demo/lab/{{ lab.id }}/history'{% elif user_email %}'/my/lab/{{ lab.id }}/history'{% else %}'/api/v1/labs/{{ lab.id }}/history?secret={{ secret }}'{% endif %})
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.timestamps || data.timestamps.length === 0) return;
+
+            var labels = data.timestamps.map(function(t) {
+                var d = new Date(t);
+                return d.getHours().toString().padStart(2, '0') + ':' +
+                       d.getMinutes().toString().padStart(2, '0');
+            });
+
+            var chartDefaults = {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        labels: { color: '#aaa', font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#666', maxTicksLimit: 12, font: { size: 10 } },
+                        grid: { color: '#222' }
+                    }
+                }
+            };
+
+            // CPU & Memory chart
+            new Chart(document.getElementById('cpuMemChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'CPU %',
+                            data: data.cpu,
+                            borderColor: '#f0a030',
+                            backgroundColor: 'rgba(240, 160, 48, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Memory %',
+                            data: data.memory,
+                            borderColor: '#3080f0',
+                            backgroundColor: 'rgba(48, 128, 240, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: chartDefaults.responsive,
+                    maintainAspectRatio: chartDefaults.maintainAspectRatio,
+                    interaction: chartDefaults.interaction,
+                    plugins: chartDefaults.plugins,
+                    scales: {
+                        x: chartDefaults.scales.x,
+                        y: {
+                            min: 0, max: 100,
+                            ticks: { color: '#666', callback: function(v) { return v + '%'; }, font: { size: 10 } },
+                            grid: { color: '#222' }
+                        }
+                    }
+                }
+            });
+
+            // Load Average chart
+            new Chart(document.getElementById('loadChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Load (1m)',
+                        data: data.load,
+                        borderColor: '#30f080',
+                        backgroundColor: 'rgba(48, 240, 128, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: chartDefaults.responsive,
+                    maintainAspectRatio: chartDefaults.maintainAspectRatio,
+                    interaction: chartDefaults.interaction,
+                    plugins: chartDefaults.plugins,
+                    scales: {
+                        x: chartDefaults.scales.x,
+                        y: {
+                            min: 0,
+                            ticks: { color: '#666', font: { size: 10 } },
+                            grid: { color: '#222' }
+                        }
+                    }
+                }
+            });
+
+            // Network chart
+            if (data.net_rx && data.net_tx) {
+                new Chart(document.getElementById('netChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'RX (Mbps)',
+                                data: data.net_rx,
+                                borderColor: '#30c0f0',
+                                backgroundColor: 'rgba(48, 192, 240, 0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 0,
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'TX (Mbps)',
+                                data: data.net_tx,
+                                borderColor: '#f07030',
+                                backgroundColor: 'rgba(240, 112, 48, 0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 0,
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: chartDefaults.responsive,
+                        maintainAspectRatio: chartDefaults.maintainAspectRatio,
+                        interaction: chartDefaults.interaction,
+                        plugins: chartDefaults.plugins,
+                        scales: {
+                            x: chartDefaults.scales.x,
+                            y: {
+                                min: 0,
+                                ticks: { color: '#666', callback: function(v) { return v.toFixed(1); }, font: { size: 10 } },
+                                grid: { color: '#222' }
+                            }
+                        }
+                    }
+                });
+            }
+        })
+        .catch(function(err) { console.error('Failed to load chart data:', err); });
+});
+</script>
+<script>
+    // Toggle API token visibility
+    function toggleToken() {
+        var masked = document.getElementById('api-token-masked');
+        var plain = document.getElementById('api-token-plain');
+        var btn = event.target;
+        if (masked.style.display !== 'none') {
+            masked.style.display = 'none';
+            plain.style.display = 'inline';
+            btn.textContent = 'Hide';
+        } else {
+            masked.style.display = 'inline';
+            plain.style.display = 'none';
+            btn.textContent = 'Reveal';
+        }
+    }
+
+    // Generate intelligence digest
+    function generateDigest() {
+        var btn = document.querySelector('.generate-digest-btn');
+        btn.textContent = '{{ t.lab_digest_generating }}';
+        btn.disabled = true;
+        fetch('/api/v1/admin/digest/{{ lab.id }}', {
+            method: 'POST',
+            headers: { 'X-Admin-Secret': '{{ secret }}' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            location.reload();
+        })
+        .catch(function(err) {
+            btn.textContent = 'Error - try again';
+            btn.disabled = false;
+        });
+    }
+
+
+    {% if not is_demo %}
+    // ---- Public status page ----
+    var _publicStatusState = { enabled: false, url: '' };
+    function renderPublicStatus() {
+        var btn = document.getElementById('public-status-btn');
+        var box = document.getElementById('public-status-url-box');
+        var urlEl = document.getElementById('public-status-url');
+        var openEl = document.getElementById('public-status-open');
+        if (_publicStatusState.enabled) {
+            btn.textContent = 'Disable public page';
+            btn.classList.add('btn-danger');
+            box.style.display = 'block';
+            urlEl.textContent = _publicStatusState.url;
+            openEl.href = _publicStatusState.url;
+        } else {
+            btn.textContent = 'Enable public page';
+            btn.classList.remove('btn-danger');
+            box.style.display = 'none';
+        }
+    }
+    function loadPublicStatus() {
+        fetch('/api/v1/my/lab/{{ lab.id }}/public-status')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                _publicStatusState.enabled = !!d.enabled;
+                _publicStatusState.url = d.url || '';
+                renderPublicStatus();
+            })
+            .catch(function() {
+                var btn = document.getElementById('public-status-btn');
+                if (btn) btn.textContent = 'Enable public page';
+            });
+    }
+    function togglePublicStatus() {
+        var btn = document.getElementById('public-status-btn');
+        btn.disabled = true;
+        var method = _publicStatusState.enabled ? 'DELETE' : 'POST';
+        fetch('/api/v1/my/lab/{{ lab.id }}/public-status', { method: method })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                _publicStatusState.enabled = !!d.enabled;
+                _publicStatusState.url = d.url || _publicStatusState.url;
+                renderPublicStatus();
+                btn.disabled = false;
+                if (d.enabled && typeof showToast === 'function') {
+                    showToast('Public page enabled');
+                } else if (!d.enabled && typeof showToast === 'function') {
+                    showToast('Public page disabled');
+                }
+            })
+            .catch(function(err) {
+                btn.disabled = false;
+                if (typeof showToast === 'function') showToast('Failed: ' + err);
+            });
+    }
+    function copyPublicUrl() {
+        var url = _publicStatusState.url;
+        if (!url) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function() {
+                if (typeof showToast === 'function') showToast('URL copied');
+            });
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = url;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+            if (typeof showToast === 'function') showToast('URL copied');
+        }
+    }
+    loadPublicStatus();
+    {% endif %}
+
+    {% if not is_demo %}
+    // ---- Maintenance mode ----
+    var _maintState = { enabled: false, reason: '', until: null };
+    var _maintTicker = null;
+
+    function fmtRemaining(untilIso) {
+        if (!untilIso) return 'no limit';
+        var d = new Date(untilIso + (untilIso.indexOf('Z') < 0 && untilIso.indexOf('+') < 0 ? 'Z' : ''));
+        if (isNaN(d)) return '';
+        var s = Math.floor((d.getTime() - Date.now()) / 1000);
+        if (s <= 0) return 'expiring…';
+        if (s < 60) return s + 's left';
+        if (s < 3600) return Math.floor(s / 60) + 'm left';
+        if (s < 86400) {
+            var h = Math.floor(s / 3600);
+            var m = Math.floor((s % 3600) / 60);
+            return h + 'h ' + m + 'm left';
+        }
+        return Math.floor(s / 86400) + 'd left';
+    }
+
+    function renderMaintenance() {
+        var inactive = document.getElementById('maintenance-inactive-view');
+        var active = document.getElementById('maintenance-active-view');
+        if (!inactive || !active) return;
+        if (_maintState.enabled) {
+            inactive.style.display = 'none';
+            active.style.display = 'block';
+            var reasonEl = document.getElementById('maint-reason-display');
+            reasonEl.textContent = _maintState.reason ? ('Reason: ' + _maintState.reason) : 'No reason given.';
+            var timeEl = document.getElementById('maint-time-remaining');
+            timeEl.textContent = fmtRemaining(_maintState.until);
+            if (_maintTicker) clearInterval(_maintTicker);
+            _maintTicker = setInterval(function() {
+                timeEl.textContent = fmtRemaining(_maintState.until);
+            }, 15000);
+        } else {
+            inactive.style.display = 'block';
+            active.style.display = 'none';
+            if (_maintTicker) { clearInterval(_maintTicker); _maintTicker = null; }
+        }
+    }
+
+    function loadMaintenance() {
+        fetch('/api/v1/my/lab/{{ lab.id }}/maintenance')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                _maintState.enabled = !!d.enabled;
+                _maintState.reason = d.reason || '';
+                _maintState.until = d.until || null;
+                renderMaintenance();
+            })
+            .catch(function() {});
+    }
+
+    function enableMaintenance() {
+        var btn = document.getElementById('maint-enable-btn');
+        btn.disabled = true;
+        var reason = (document.getElementById('maint-reason').value || '').trim();
+        var durSel = document.getElementById('maint-duration');
+        var durVal = durSel.value;
+        var body = { reason: reason };
+        if (durVal) body.duration_minutes = parseInt(durVal, 10);
+        fetch('/api/v1/my/lab/{{ lab.id }}/maintenance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                _maintState.enabled = !!d.enabled;
+                _maintState.reason = d.reason || '';
+                _maintState.until = d.until || null;
+                renderMaintenance();
+                btn.disabled = false;
+                if (typeof showToast === 'function') showToast('Maintenance enabled — alerts silenced');
+            })
+            .catch(function(err) {
+                btn.disabled = false;
+                if (typeof showToast === 'function') showToast('Failed: ' + err);
+            });
+    }
+
+    function disableMaintenance() {
+        var btn = document.getElementById('maint-disable-btn');
+        btn.disabled = true;
+        fetch('/api/v1/my/lab/{{ lab.id }}/maintenance', { method: 'DELETE' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                _maintState.enabled = !!d.enabled;
+                renderMaintenance();
+                btn.disabled = false;
+                if (typeof showToast === 'function') showToast('Maintenance ended');
+            })
+            .catch(function(err) {
+                btn.disabled = false;
+                if (typeof showToast === 'function') showToast('Failed: ' + err);
+            });
+    }
+    loadMaintenance();
+    {% endif %}
+
+    {% if not is_demo %}
+    // ---- Inline rename ----
+    function startRenameLab() {
+        var titleSpan = document.getElementById('lab-display-name');
+        if (!titleSpan) return;
+        var current = titleSpan.textContent.trim();
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.value = current;
+        input.maxLength = 64;
+        input.style.fontFamily = 'var(--font-mono)';
+        input.style.fontSize = 'inherit';
+        input.style.fontWeight = 'inherit';
+        input.style.background = 'var(--surface)';
+        input.style.border = '1px solid var(--accent)';
+        input.style.borderRadius = '6px';
+        input.style.padding = '2px 8px';
+        input.style.color = 'var(--text)';
+        input.style.outline = 'none';
+        input.style.minWidth = '240px';
+        var parent = titleSpan.parentNode;
+        parent.replaceChild(input, titleSpan);
+        input.focus();
+        input.select();
+
+        var done = false;
+        function finish(save) {
+            if (done) return;
+            done = true;
+            var newName = input.value.trim();
+            if (!save) {
+                parent.replaceChild(titleSpan, input);
+                return;
+            }
+            fetch('/api/v1/my/lab/{{ lab.id }}/display-name', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newName })
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    var finalName = d.name || '{{ lab.hostname }}';
+                    titleSpan.textContent = finalName;
+                    parent.replaceChild(titleSpan, input);
+                    if (typeof showToast === 'function') showToast('Renamed');
+                    // If the user just set or cleared the rename, the subtitle may need
+                    // to flip — easiest is a soft reload so the "hostname" meta row updates.
+                    setTimeout(function() { location.reload(); }, 400);
+                })
+                .catch(function(err) {
+                    parent.replaceChild(titleSpan, input);
+                    if (typeof showToast === 'function') showToast('Rename failed: ' + err);
+                });
+        }
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+            else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+        });
+        input.addEventListener('blur', function() { finish(true); });
+    }
+    {% endif %}
+
+    {% if not is_demo %}
+    // Delete modal
+    function showDeleteModal() {
+        document.getElementById('deleteModal').classList.add('active');
+    }
+    function hideDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('active');
+    }
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) hideDeleteModal();
+    });
+
+    function confirmDelete() {
+        var btn = document.getElementById('confirmDeleteBtn');
+        btn.disabled = true;
+        btn.textContent = '{{ t.deleting if t.deleting else "Deleting..." }}';
+        fetch('/api/v1/admin/lab/{{ lab.id }}', {
+            method: 'DELETE',
+            headers: { 'X-Admin-Secret': '{{ secret }}' }
+        })
+        .then(function(res) {
+            if (res.ok) {
+                window.location.href = '/dashboard';
+            } else {
+                hideDeleteModal();
+                showToast('Failed to delete lab');
+                btn.disabled = false;
+                btn.textContent = '{{ t.lab_admin_delete_btn }}';
+            }
+        })
+        .catch(function(err) {
+            hideDeleteModal();
+            showToast('Error: ' + err.message);
+            btn.disabled = false;
+            btn.textContent = '{{ t.lab_admin_delete_btn }}';
+        });
+    }
+    {% endif %}
+
+    {% if user_email %}
+    // Load thresholds on page load
+    (function() {
+        fetch('/api/v1/my/thresholds/{{ lab.id }}')
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(data) {
+                if (!data) return;
+                var th = data.thresholds;
+                ['cpu_warning', 'memory_warning', 'memory_critical', 'disk_warning', 'disk_critical'].forEach(function(key) {
+                    var el = document.getElementById('th-' + key);
+                    if (el && th[key] !== undefined) el.value = th[key];
+                });
+            });
+    })();
+
+    function saveThresholds() {
+        var body = {};
+        ['cpu_warning', 'memory_warning', 'memory_critical', 'disk_warning', 'disk_critical'].forEach(function(key) {
+            var el = document.getElementById('th-' + key);
+            if (el && el.value) body[key] = parseInt(el.value);
+        });
+        fetch('/api/v1/my/thresholds/{{ lab.id }}', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        }).then(function(r) {
+            var msg = document.getElementById('threshold-msg');
+            msg.textContent = r.ok ? 'Saved!' : 'Error saving';
+            msg.style.color = r.ok ? 'var(--green)' : 'var(--red)';
+            setTimeout(function() { msg.textContent = ''; }, 3000);
+        });
+    }
+
+    function resetThresholds() {
+        fetch('/api/v1/my/thresholds/{{ lab.id }}', { method: 'DELETE' })
+            .then(function(r) {
+                if (r.ok) {
+                    ['cpu_warning', 'memory_warning', 'memory_critical', 'disk_warning', 'disk_critical'].forEach(function(key) {
+                        var el = document.getElementById('th-' + key);
+                        if (el) el.value = '';
+                    });
+                    var msg = document.getElementById('threshold-msg');
+                    msg.textContent = 'Reset to defaults';
+                    msg.style.color = 'var(--green)';
+                    setTimeout(function() { msg.textContent = ''; }, 3000);
+                }
+            });
+    }
+    {% endif %}
+</script>
+{% endblock %}

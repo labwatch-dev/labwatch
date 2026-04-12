@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Monitor your homelab infrastructure — CPU, memory, disk, network, containers, and more. Open-source, self-hosted, lightweight.">
+    <meta name="theme-color" content="#0a0a0f">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%23f0a030'/></svg>">
+    <title>{% block title %}labwatch{% endblock %} — homelab intelligence</title>
+    <style>
+        :root, [data-theme="dark"] {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface-hover: #1a1a26;
+            --border: #1e1e2e;
+            --border-light: #2a2a3e;
+            --accent: #f0a030;
+            --accent-dim: #c08020;
+            --accent-glow: rgba(240, 160, 48, 0.15);
+            --accent-glow-strong: rgba(240, 160, 48, 0.3);
+            --text: #e0e0e8;
+            --text-dim: #8888a0;
+            --text-muted: #555568;
+            --green: #30c060;
+            --green-dim: rgba(48, 192, 96, 0.15);
+            --red: #e04040;
+            --red-dim: rgba(224, 64, 64, 0.15);
+            --blue: #4080e0;
+            --blue-dim: rgba(64, 128, 224, 0.15);
+            --amber: #f0a030;
+            --amber-dim: rgba(240, 160, 48, 0.15);
+            --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius: 8px;
+            --radius-sm: 4px;
+            --max-width: 1200px;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--text);
+        }
+
+        code, pre, .mono {
+            font-family: var(--font-mono);
+        }
+
+        /* Navigation */
+        body > nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+        }
+
+        .nav-inner {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+        }
+
+        .nav-logo {
+            font-family: var(--font-mono);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-logo .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse-dot 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--accent); }
+            50% { opacity: 0.5; box-shadow: 0 0 4px var(--accent); }
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-links a.active {
+            color: var(--accent);
+        }
+
+        .lang-switcher select {
+            background: var(--surface);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 4px 8px;
+            font-size: 12px;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            outline: none;
+        }
+
+        .lang-switcher select:hover {
+            border-color: var(--accent-dim);
+            color: var(--text);
+        }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* Main content */
+        main {
+            flex: 1;
+        }
+
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            text-decoration: none;
+            font-family: var(--font-sans);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0a0a0f;
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: #fbb040;
+            color: #0a0a0f;
+            box-shadow: 0 0 20px var(--accent-glow-strong);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-dim);
+            border-color: var(--border-light);
+        }
+
+        .btn-secondary:hover {
+            color: var(--text);
+            border-color: var(--text-dim);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: var(--red-dim);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        .badge-accent {
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        .badge-red {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        .badge-green {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .badge-blue {
+            background: var(--blue-dim);
+            color: var(--blue);
+        }
+
+        .badge-amber {
+            background: var(--amber-dim);
+            color: var(--amber);
+        }
+
+        /* Progress bars */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        .progress-green { background: var(--green); }
+        .progress-amber { background: var(--amber); }
+        .progress-red { background: var(--red); }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--border-light);
+        }
+
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .card-link:hover .card {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 24px;
+            margin-top: 80px;
+        }
+
+        .footer-inner {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer-brand {
+            font-family: var(--font-mono);
+            color: var(--text-dim);
+        }
+
+        .footer-brand span {
+            color: var(--accent);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            font-size: 13px;
+            transition: color 0.15s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface);
+            border: 1px solid var(--accent);
+            color: var(--text);
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-family: var(--font-mono);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 56px;
+                left: 0;
+                right: 0;
+                background: var(--surface);
+                border-bottom: 1px solid var(--border);
+                flex-direction: column;
+                padding: 16px 24px;
+                gap: 16px;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Light theme */
+        [data-theme="light"] {
+            --bg: #f5f5f8;
+            --surface: #ffffff;
+            --surface-hover: #f0f0f4;
+            --border: #e0e0e6;
+            --border-light: #d0d0d8;
+            --text: #1a1a2e;
+            --text-dim: #555568;
+            --text-muted: #8888a0;
+            --green-dim: rgba(48, 192, 96, 0.12);
+            --red-dim: rgba(224, 64, 64, 0.12);
+            --blue-dim: rgba(64, 128, 224, 0.12);
+            --amber-dim: rgba(240, 160, 48, 0.12);
+        }
+
+        [data-theme="light"] body > nav {
+            background: rgba(245, 245, 248, 0.9);
+        }
+
+        [data-theme="light"] .btn-primary {
+            color: #ffffff;
+        }
+
+        [data-theme="light"] .btn-primary:hover {
+            color: #ffffff;
+        }
+
+        [data-theme="light"] .nav-links a.btn.btn-primary {
+            color: #ffffff !important;
+        }
+
+        /* Accent color overrides */
+        [data-accent="blue"] {
+            --accent: #4080e0;
+            --accent-dim: #3060b0;
+            --accent-glow: rgba(64, 128, 224, 0.15);
+            --accent-glow-strong: rgba(64, 128, 224, 0.3);
+            --amber: #f0a030;
+        }
+
+        [data-accent="green"] {
+            --accent: #30b060;
+            --accent-dim: #208848;
+            --accent-glow: rgba(48, 176, 96, 0.15);
+            --accent-glow-strong: rgba(48, 176, 96, 0.3);
+            --amber: #f0a030;
+        }
+
+        [data-accent="purple"] {
+            --accent: #8060d0;
+            --accent-dim: #6040a0;
+            --accent-glow: rgba(128, 96, 208, 0.15);
+            --accent-glow-strong: rgba(128, 96, 208, 0.3);
+            --amber: #f0a030;
+        }
+
+        [data-accent="red"] {
+            --accent: #e04060;
+            --accent-dim: #b03050;
+            --accent-glow: rgba(224, 64, 96, 0.15);
+            --accent-glow-strong: rgba(224, 64, 96, 0.3);
+            --amber: #f0a030;
+        }
+
+        [data-accent="cyan"] {
+            --accent: #20b0c0;
+            --accent-dim: #188898;
+            --accent-glow: rgba(32, 176, 192, 0.15);
+            --accent-glow-strong: rgba(32, 176, 192, 0.3);
+            --amber: #f0a030;
+        }
+
+        /* Settings panel */
+        /* Account dropdown menu */
+        .account-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 4px 12px 4px 4px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: var(--font-sans);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .account-toggle:hover {
+            border-color: var(--accent);
+        }
+
+        .account-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent-glow-strong);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            font-family: var(--font-mono);
+        }
+
+        .account-email {
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .account-dropdown {
+            display: none;
+            position: absolute;
+            top: 44px;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            min-width: 240px;
+            z-index: 200;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+
+        .account-dropdown.open {
+            display: block;
+        }
+
+        .account-dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .account-avatar-lg {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent-glow-strong);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            font-family: var(--font-mono);
+            flex-shrink: 0;
+        }
+
+        .account-dropdown-email {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 170px;
+        }
+
+        .account-dropdown-plan {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .account-dropdown-divider {
+            height: 1px;
+            background: var(--border);
+        }
+
+        .account-dropdown-item {
+            display: block;
+            padding: 10px 16px;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+
+        .account-dropdown-item:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+
+        .account-dropdown-logout {
+            color: var(--red);
+        }
+
+        .account-dropdown-logout:hover {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        @media (max-width: 768px) {
+            .account-email { display: none; }
+            .account-toggle svg { display: none; }
+            .account-toggle { padding: 4px; border-radius: 50%; }
+        }
+
+        .settings-toggle {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .settings-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .settings-panel {
+            display: none;
+            position: absolute;
+            top: 56px;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            min-width: 260px;
+            z-index: 200;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .settings-panel.open {
+            display: block;
+        }
+
+        .settings-section {
+            margin-bottom: 16px;
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-family: var(--font-mono);
+        }
+
+        .theme-options {
+            display: flex;
+            gap: 6px;
+        }
+
+        .theme-btn {
+            flex: 1;
+            padding: 6px 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--font-sans);
+            transition: all 0.2s;
+        }
+
+        .theme-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .theme-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .accent-options {
+            display: flex;
+            gap: 8px;
+        }
+
+        .accent-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .accent-dot:hover {
+            transform: scale(1.15);
+        }
+
+        .accent-dot.active {
+            border-color: var(--text);
+            box-shadow: 0 0 8px rgba(255,255,255,0.2);
+        }
+
+        .accent-dot[data-color="default"] { background: #f0a030; }
+        .accent-dot[data-color="blue"] { background: #4080e0; }
+        .accent-dot[data-color="green"] { background: #30b060; }
+        .accent-dot[data-color="purple"] { background: #8060d0; }
+        .accent-dot[data-color="red"] { background: #e04060; }
+        .accent-dot[data-color="cyan"] { background: #20b0c0; }
+
+        .layout-options {
+            display: flex;
+            gap: 6px;
+        }
+
+        .layout-btn {
+            flex: 1;
+            padding: 6px 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--font-sans);
+            transition: all 0.2s;
+        }
+
+        .layout-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .layout-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        /* Notification toggle switches */
+        .notif-pref-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .notif-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .notif-toggle label {
+            cursor: pointer;
+        }
+        .notif-switch {
+            position: relative;
+            width: 32px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+        .notif-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .notif-slider {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--border);
+            border-radius: 9px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .notif-slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            left: 2px;
+            top: 2px;
+            background: var(--bg);
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .notif-switch input:checked + .notif-slider {
+            background: var(--accent);
+        }
+        .notif-switch input:checked + .notif-slider::before {
+            transform: translateX(14px);
+        }
+
+        /* Compact layout mode */
+        [data-layout="compact"] .lab-card {
+            padding: 16px;
+        }
+
+        [data-layout="compact"] .lab-hostname {
+            font-size: 15px;
+        }
+
+        [data-layout="compact"] .metric-bar {
+            height: 4px;
+        }
+
+        [data-layout="compact"] .labs-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        /* Minimal layout — status dots only */
+        [data-layout="minimal"] .lab-card {
+            padding: 10px 16px;
+        }
+        [data-layout="minimal"] .lab-metrics,
+        [data-layout="minimal"] .lab-card-footer,
+        [data-layout="minimal"] .lab-os {
+            display: none;
+        }
+        [data-layout="minimal"] .lab-card-header {
+            margin-bottom: 0;
+        }
+        [data-layout="minimal"] .lab-hostname {
+            font-size: 14px;
+        }
+        [data-layout="minimal"] .labs-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+        }
+        [data-layout="minimal"] .fleet-summary {
+            display: none;
+        }
+        [data-layout="minimal"] .query-section {
+            display: none;
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">
+                <span class="dot"></span>
+                labwatch
+            </a>
+            <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+            <ul class="nav-links">
+                {% if user_email %}
+                <li><a href="/my/dashboard" {% if active_page == 'dashboard' %}class="active"{% endif %}>{{ t.nav_dashboard if t else 'Dashboard' }}</a></li>
+                {% else %}
+                <li><a href="/demo" {% if active_page == 'dashboard' %}class="active"{% endif %}>{{ t.nav_demo if t else 'Demo' }}</a></li>
+                {% endif %}
+                <li><a href="/docs" {% if active_page == 'docs' %}class="active"{% endif %}>{{ t.nav_docs if t else 'Docs' }}</a></li>
+                {% if not user_email %}
+                {# github link hidden until repo is public — preflight 2026-04-10 #}
+                <li><a href="/#compare">{{ t.nav_compare if t else 'Compare' }}</a></li>
+                <li><a href="/#pricing" {% if active_page == 'pricing' %}class="active"{% endif %}>{{ t.nav_pricing if t else 'Pricing' }}</a></li>
+                {% endif %}
+                <li><a href="/support" {% if active_page == 'support' %}class="active"{% endif %}>{{ t.nav_support if t else 'Support' }}</a></li>
+                {% if user_email %}
+                <li class="account-menu-wrap" style="position:relative;">
+                    <button class="account-toggle" onclick="toggleAccountMenu(event)">
+                        <span class="account-avatar">{{ user_email[0]|upper }}</span>
+                        <span class="account-email">{{ user_email }}</span>
+                        <svg width="10" height="6" viewBox="0 0 10 6" fill="currentColor" style="margin-left:4px;opacity:0.5;"><path d="M1 1l4 4 4-4"/></svg>
+                    </button>
+                    <div class="account-dropdown" id="account-dropdown">
+                        <div class="account-dropdown-header">
+                            <span class="account-avatar-lg">{{ user_email[0]|upper }}</span>
+                            <div>
+                                <div class="account-dropdown-email">{{ user_email }}</div>
+                                <div class="account-dropdown-plan">{{ t.nav_free_plan if t else 'Free plan' }}</div>
+                            </div>
+                        </div>
+                        <div class="account-dropdown-divider"></div>
+                        <a href="/my/dashboard" class="account-dropdown-item">{{ t.nav_dashboard if t else 'Dashboard' }}</a>
+                        <a href="/my/add-node" class="account-dropdown-item">{{ t.nav_add_node if t else '+ Add Node' }}</a>
+                        <a href="/my/notifications" class="account-dropdown-item">Notifications</a>
+                        <a href="/my/alerts" class="account-dropdown-item">Alert Rules</a>
+                        <a href="/set-password" class="account-dropdown-item">{{ t.nav_account_settings if t else 'Account Settings' }}</a>
+                        <div class="account-dropdown-divider"></div>
+                        <a href="/logout" class="account-dropdown-item account-dropdown-logout">{{ t.nav_logout if t else 'Log out' }}</a>
+                    </div>
+                </li>
+                {% else %}
+                <li><a href="/login" {% if active_page == 'login' %}class="active"{% endif %}>{{ t.nav_login if t else 'Log in' }}</a></li>
+                <li><a href="/signup" class="btn btn-primary btn-sm" style="color:#0a0a0f">{{ t.nav_get_started if t else 'Get Started' }}</a></li>
+                {% endif %}
+                {% if languages %}
+                <li class="lang-switcher">
+                    <select onchange="window.location.href='/lang/'+this.value" aria-label="Language">
+                        {% for lc in languages %}
+                        <option value="{{ lc }}" {% if lc == lang %}selected{% endif %}>{{ language_names[lc] if language_names else lc }}</option>
+                        {% endfor %}
+                    </select>
+                </li>
+                {% endif %}
+                <li style="position:relative;">
+                    <button class="settings-toggle" onclick="toggleSettings(event)" aria-label="Settings" title="{{ t.settings_title if t else 'Settings' }}">&#9881;</button>
+                    <div class="settings-panel" id="settings-panel">
+                        <div class="settings-section">
+                            <div class="settings-label">{{ t.settings_theme if t else 'Theme' }}</div>
+                            <div class="theme-options">
+                                <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')">{{ t.settings_dark if t else 'Dark' }}</button>
+                                <button class="theme-btn" data-theme="light" onclick="setTheme('light')">{{ t.settings_light if t else 'Light' }}</button>
+                            </div>
+                        </div>
+                        <div class="settings-section">
+                            <div class="settings-label">{{ t.settings_accent if t else 'Accent Color' }}</div>
+                            <div class="accent-options">
+                                <div class="accent-dot" data-color="default" onclick="setAccent('default')" title="Amber"></div>
+                                <div class="accent-dot" data-color="blue" onclick="setAccent('blue')" title="Blue"></div>
+                                <div class="accent-dot" data-color="green" onclick="setAccent('green')" title="Green"></div>
+                                <div class="accent-dot" data-color="purple" onclick="setAccent('purple')" title="Purple"></div>
+                                <div class="accent-dot" data-color="red" onclick="setAccent('red')" title="Red"></div>
+                                <div class="accent-dot" data-color="cyan" onclick="setAccent('cyan')" title="Cyan"></div>
+                            </div>
+                        </div>
+                        <div class="settings-section">
+                            <div class="settings-label">{{ t.settings_layout if t else 'Card Layout' }}</div>
+                            <div class="layout-options">
+                                <button class="layout-btn" data-layout="default" onclick="setLayout('default')">{{ t.settings_default if t else 'Default' }}</button>
+                                <button class="layout-btn" data-layout="compact" onclick="setLayout('compact')">{{ t.settings_compact if t else 'Compact' }}</button>
+                                <button class="layout-btn" data-layout="minimal" onclick="setLayout('minimal')">{{ t.settings_minimal if t else 'Minimal' }}</button>
+                            </div>
+                        </div>
+                        {% if user_email %}
+                        <div class="settings-section">
+                            <div class="settings-label">{{ t.settings_notifications if t else 'Notifications' }}</div>
+                            <div class="notif-pref-list" id="notif-prefs"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-brand"><span>labwatch</span> — {{ t.footer_tagline if t else 'homelab monitoring' }}</div>
+            <nav class="footer-links">
+                <a href="/docs">{{ t.nav_docs if t else 'Docs' }}</a>
+                <a href="/self-hosted">{{ t.footer_self_hosted if t else 'Self-Hosted' }}</a>
+                <a href="/support">{{ t.nav_support if t else 'Support' }}</a>
+                {# github link hidden until repo is public — preflight 2026-04-10 #}
+            </nav>
+            <div>{{ t.footer_copyright if t else '&copy; 2026 labwatch. All rights reserved.' }}</div>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // --- Personalization ---
+        function getCookie(name) {
+            var m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+            return m ? decodeURIComponent(m[1]) : null;
+        }
+        function setCookie(name, value) {
+            document.cookie = name + '=' + encodeURIComponent(value) + ';path=/;max-age=' + (365*86400) + ';SameSite=Lax';
+        }
+
+        // Apply saved preferences immediately
+        (function() {
+            var theme = getCookie('lw_theme') || 'dark';
+            var accent = getCookie('lw_accent') || 'default';
+            var layout = getCookie('lw_layout') || 'default';
+            document.documentElement.setAttribute('data-theme', theme);
+            if (accent !== 'default') document.documentElement.setAttribute('data-accent', accent);
+            if (layout !== 'default') document.documentElement.setAttribute('data-layout', layout);
+        })();
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            setCookie('lw_theme', theme);
+            updateSettingsUI();
+        }
+
+        function setAccent(accent) {
+            if (accent === 'default') {
+                document.documentElement.removeAttribute('data-accent');
+            } else {
+                document.documentElement.setAttribute('data-accent', accent);
+            }
+            setCookie('lw_accent', accent);
+            updateSettingsUI();
+        }
+
+        function setLayout(layout) {
+            if (layout === 'default') {
+                document.documentElement.removeAttribute('data-layout');
+            } else {
+                document.documentElement.setAttribute('data-layout', layout);
+            }
+            setCookie('lw_layout', layout);
+            updateSettingsUI();
+        }
+
+        function updateSettingsUI() {
+            var theme = getCookie('lw_theme') || 'dark';
+            var accent = getCookie('lw_accent') || 'default';
+            var layout = getCookie('lw_layout') || 'default';
+            document.querySelectorAll('.theme-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+            });
+            document.querySelectorAll('.accent-dot').forEach(function(dot) {
+                dot.classList.toggle('active', dot.getAttribute('data-color') === accent);
+            });
+            document.querySelectorAll('.layout-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-layout') === layout);
+            });
+        }
+
+        function toggleSettings(e) {
+            e.stopPropagation();
+            var panel = document.getElementById('settings-panel');
+            panel.classList.toggle('open');
+            // Close account menu if open
+            var acct = document.getElementById('account-dropdown');
+            if (acct) acct.classList.remove('open');
+            if (panel.classList.contains('open')) {
+                updateSettingsUI();
+                loadNotifPrefs();
+            }
+        }
+
+        var _notifLabels = {
+            cpu_high: 'CPU high',
+            memory_high: 'Memory high',
+            memory_critical: 'Memory critical',
+            disk_high: 'Disk high',
+            disk_critical: 'Disk critical',
+            gpu_high: 'GPU high',
+            gpu_temp_high: 'GPU temp',
+            container_restarts: 'Container restarts',
+            service_down: 'Service down'
+        };
+
+        function loadNotifPrefs() {
+            var container = document.getElementById('notif-prefs');
+            if (!container) return;
+            fetch('/api/v1/my/notification-prefs')
+                .then(function(r) { return r.ok ? r.json() : null; })
+                .then(function(data) {
+                    if (!data) return;
+                    var prefs = data.prefs;
+                    container.innerHTML = '';
+                    Object.keys(_notifLabels).forEach(function(key) {
+                        var checked = prefs[key] !== false;
+                        container.innerHTML += '<div class="notif-toggle">'
+                            + '<label for="notif-' + key + '">' + _notifLabels[key] + '</label>'
+                            + '<div class="notif-switch">'
+                            + '<input type="checkbox" id="notif-' + key + '" ' + (checked ? 'checked' : '') + ' onchange="saveNotifPref(\'' + key + '\', this.checked)">'
+                            + '<span class="notif-slider"></span>'
+                            + '</div></div>';
+                    });
+                });
+        }
+
+        function saveNotifPref(key, value) {
+            var body = {};
+            document.querySelectorAll('#notif-prefs input[type=checkbox]').forEach(function(cb) {
+                body[cb.id.replace('notif-', '')] = cb.checked;
+            });
+            fetch('/api/v1/my/notification-prefs', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+        }
+
+        function toggleAccountMenu(e) {
+            e.stopPropagation();
+            var dropdown = document.getElementById('account-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('open');
+                // Close settings if open
+                var panel = document.getElementById('settings-panel');
+                if (panel) panel.classList.remove('open');
+            }
+        }
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', function(e) {
+            var panel = document.getElementById('settings-panel');
+            if (panel && !panel.contains(e.target) && !e.target.classList.contains('settings-toggle')) {
+                panel.classList.remove('open');
+            }
+            var dropdown = document.getElementById('account-dropdown');
+            if (dropdown && !dropdown.contains(e.target) && !e.target.closest('.account-toggle')) {
+                dropdown.classList.remove('open');
+            }
+        });
+    </script>
+
+    <script>
+        // Time ago utility
+        function timeAgo(dateStr) {
+            if (!dateStr) return 'never';
+            const now = new Date();
+            // Server stores UTC timestamps without 'Z' suffix — add it so JS parses as UTC
+            const date = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+            const seconds = Math.floor((now - date) / 1000);
+
+            if (seconds < 0) return 'just now';
+            if (seconds < 60) return seconds + 's ago';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + ' min ago';
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + 'h ago';
+            const days = Math.floor(hours / 24);
+            if (days < 30) return days + 'd ago';
+            const months = Math.floor(days / 30);
+            return months + 'mo ago';
+        }
+
+        // Copy to clipboard utility
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                showToast('Copied!');
+            }).catch(function() {
+                // Fallback for older browsers
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('Copied!');
+            });
+        }
+
+        // Toast notification
+        function showToast(message, duration) {
+            duration = duration || 2000;
+            var toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // Progress bar color helper
+        function progressColor(value) {
+            if (value >= 85) return 'progress-red';
+            if (value >= 60) return 'progress-amber';
+            return 'progress-green';
+        }
+
+        // Severity badge helper
+        function severityBadge(severity) {
+            var classes = {
+                'critical': 'badge-red',
+                'warning': 'badge-amber',
+                'info': 'badge-blue'
+            };
+            return classes[severity] || 'badge-accent';
+        }
+
+        // Update all relative timestamps on the page
+        function updateTimestamps() {
+            document.querySelectorAll('[data-timestamp]').forEach(function(el) {
+                el.textContent = timeAgo(el.getAttribute('data-timestamp'));
+            });
+        }
+
+        // Run timestamp updates every 30s
+        setInterval(updateTimestamps, 30000);
+        document.addEventListener('DOMContentLoaded', updateTimestamps);
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

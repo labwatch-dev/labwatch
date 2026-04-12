@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+venv/
+.venv/
+
+# Environment
+.env
+*.env.local
+
+# Data
+data/
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Go build artifacts
+agent/labwatch
+agent/labwatch-*
+server/dist/
+agent/dist/
+
+# Backups
+*.bak
+*.bak-*
+*.backup
+*~
+server.bak*
+
+# Secrets — never commit these even if the file matches no other rule
+*secret*
+*credentials*
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

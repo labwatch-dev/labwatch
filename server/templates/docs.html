@@ -1,0 +1,1539 @@
+{% extends "base.html" %}
+
+{% block title %}API Docs{% endblock %}
+
+{% block extra_styles %}
+.docs-hero {
+    padding: 60px 0 40px;
+    text-align: center;
+}
+
+.docs-hero h1 {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.docs-hero p {
+    color: var(--text-dim);
+    font-size: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.docs-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 40px;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 24px 80px;
+}
+
+.docs-sidebar {
+    position: sticky;
+    top: 80px;
+    align-self: start;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+.docs-sidebar h3 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    margin-top: 20px;
+}
+
+.docs-sidebar h3:first-child {
+    margin-top: 0;
+}
+
+.docs-sidebar a {
+    display: block;
+    padding: 4px 0;
+    font-size: 13px;
+    color: var(--text-dim);
+    transition: color 0.15s;
+}
+
+.docs-sidebar a:hover,
+.docs-sidebar a.active {
+    color: var(--accent);
+}
+
+.docs-content {
+    min-width: 0;
+}
+
+.docs-section {
+    margin-bottom: 48px;
+}
+
+.docs-section > h2 {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.docs-section > h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 28px;
+    margin-bottom: 12px;
+    color: var(--text);
+}
+
+.docs-section p {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.endpoint {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.endpoint-header:hover {
+    background: var(--surface-hover);
+}
+
+.endpoint-method {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    min-width: 56px;
+    text-align: center;
+}
+
+.method-get { background: var(--blue-dim); color: var(--blue); }
+.method-post { background: var(--green-dim); color: var(--green); }
+.method-put { background: var(--amber-dim); color: var(--amber); }
+.method-delete { background: var(--red-dim); color: var(--red); }
+
+.endpoint-path {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text);
+}
+
+.endpoint-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-left: auto;
+}
+
+.endpoint-auth {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    background: var(--border);
+    color: var(--text-muted);
+}
+
+.endpoint-chevron {
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    font-size: 12px;
+}
+
+.endpoint.open .endpoint-chevron {
+    transform: rotate(90deg);
+}
+
+.endpoint-body {
+    display: none;
+    padding: 0 18px 18px;
+    border-top: 1px solid var(--border);
+}
+
+.endpoint.open .endpoint-body {
+    display: block;
+    padding-top: 16px;
+}
+
+.endpoint-body p {
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.endpoint-body h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+.code-block {
+    background: #0d0d14;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    overflow-x: auto;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.code-block .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--border);
+    border: none;
+    color: var(--text-muted);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.code-block:hover .copy-btn {
+    opacity: 1;
+}
+
+.code-block .copy-btn:hover {
+    color: var(--text);
+    background: var(--border-light);
+}
+
+.param-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.param-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding: 6px 12px 6px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.param-table td {
+    padding: 8px 12px 8px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+.param-table .param-name {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.param-table .param-type {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.param-table .param-required {
+    color: var(--red);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.param-table .param-optional {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.response-code {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.response-code.code-2xx { color: var(--green); }
+.response-code.code-4xx { color: var(--amber); }
+.response-code.code-5xx { color: var(--red); }
+
+.alert-box {
+    background: var(--amber-dim);
+    border: 1px solid rgba(240, 160, 48, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.alert-box strong {
+    color: var(--amber);
+}
+
+@media (max-width: 768px) {
+    .docs-layout {
+        grid-template-columns: 1fr;
+    }
+    .docs-sidebar {
+        position: static;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 20px;
+    }
+    .docs-sidebar h3 {
+        width: 100%;
+        margin-top: 12px;
+    }
+    .endpoint-desc {
+        display: none;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="docs-hero">
+    <h1>API Documentation</h1>
+    <p>Everything you need to integrate with labwatch. The API uses JSON for request/response bodies and standard HTTP status codes.</p>
+</div>
+
+<div class="docs-layout">
+    <aside class="docs-sidebar">
+        <h3>Getting Started</h3>
+        <a href="#overview">Overview</a>
+        <a href="#authentication">Authentication</a>
+        <a href="#quickstart">Quick Start</a>
+
+        <h3>Agent API</h3>
+        <a href="#signup">Signup</a>
+        <a href="#register">Register Agent</a>
+        <a href="#ingest">Ingest Metrics</a>
+        <a href="#status">Agent Status</a>
+
+        <h3>Fleet API</h3>
+        <a href="#list-labs">List Labs</a>
+        <a href="#lab-history">Lab History</a>
+        <a href="#lab-export">Export Data</a>
+        <a href="#delete-lab">Delete Lab</a>
+        <a href="#admin-dashboard">Admin Dashboard</a>
+
+        <h3>Widgets</h3>
+        <a href="#widget-uptime">Uptime Timeline</a>
+        <a href="#widget-alerts">Alert Feed</a>
+        <a href="#widget-sparkline">Metric Sparkline</a>
+
+        <h3>Intelligence</h3>
+        <a href="#query">Natural Language Query</a>
+        <a href="#nlq-stats">NLQ Stats</a>
+        <a href="#digest-lab">Lab Digest</a>
+        <a href="#digest-fleet">Fleet Digest</a>
+
+        <h3>Notifications</h3>
+        <a href="#notif-list">List Channels</a>
+        <a href="#notif-create">Create Channel</a>
+        <a href="#notif-update">Update Channel</a>
+        <a href="#notif-delete">Delete Channel</a>
+        <a href="#notif-test">Test Channel</a>
+
+        <h3>MCP (LLM Tools)</h3>
+        <a href="#mcp-token">Generate Token</a>
+        <a href="#mcp-endpoint">JSON-RPC Endpoint</a>
+
+        <h3>Dashboard (Session)</h3>
+        <a href="#my-api">User API reference</a>
+    </aside>
+
+    <div class="docs-content">
+        <!-- Overview -->
+        <section class="docs-section" id="overview">
+            <h2>Overview</h2>
+            <p>The labwatch API is organized around REST. All endpoints accept and return JSON (except where noted). The base URL for all API requests is your labwatch server instance.</p>
+            <p>Rate limits: agents can ingest once per minute per node. API queries are limited to 60 requests per minute per admin key.</p>
+
+            <div class="alert-box">
+                <strong>Alpha notice:</strong> This API is in active development. Endpoints are stable but response shapes may gain new fields. We won't remove fields without a major version bump.
+            </div>
+
+            <p style="margin-top:16px;">Running your own server? See <a href="/self-hosted" style="color:var(--accent);">Self-Hosted labwatch</a> for the docker-compose quickstart, environment reference, and agent config pointing at a local instance.</p>
+        </section>
+
+        <!-- Authentication -->
+        <section class="docs-section" id="authentication">
+            <h2>Authentication</h2>
+            <p>labwatch uses two authentication methods depending on the endpoint:</p>
+
+            <h3>Agent Bearer Token</h3>
+            <p>Agents authenticate with a Bearer token received during registration. Include it in the <code>Authorization</code> header:</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard('Authorization: Bearer lw_abc123...')">copy</button>
+Authorization: Bearer lw_abc123...</div>
+
+            <h3>Admin Secret</h3>
+            <p>Admin endpoints require the <code>X-Admin-Secret</code> header. This is set during server setup and gives full access to all data and configuration. You can also pass it as a <code>?secret=</code> query parameter on GET endpoints where convenient.</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard('X-Admin-Secret: your-secret-here')">copy</button>
+X-Admin-Secret: your-secret-here</div>
+
+            <h3>Session Cookie</h3>
+            <p>Endpoints under <code>/api/v1/my/*</code> are used by the dashboard UI and authenticate with a signed session cookie set by <code>POST /login</code>. They are not intended for server-to-server use — prefer the admin-secret endpoints for integrations.</p>
+
+            <h3>MCP Token</h3>
+            <p>The <code>POST /api/mcp</code> endpoint accepts a bearer MCP token with the <code>lw_mcp_</code> prefix. Generate one from the dashboard or via <code>POST /api/v1/my/mcp/token</code> (session-authed). See the <a href="#mcp-token" style="color:var(--accent);">MCP section</a>.</p>
+        </section>
+
+        <!-- Quick Start -->
+        <section class="docs-section" id="quickstart">
+            <h2>Quick Start</h2>
+            <p>Get monitoring running in under 2 minutes. The signup response includes a signed one-command install link that bakes your credentials into the agent config — you never have to touch <code>config.yaml</code> by hand.</p>
+
+            <h3>1. Sign up for a free account</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this.parentElement.querySelector('code').textContent)">copy</button>
+<code>curl -X POST {{ base_url }}/api/v1/signup \
+  -H 'Content-Type: application/json' \
+  -d '{"email": "you@example.com", "hostname": "my-server"}'</code></div>
+            <p>The response includes a <code>lab_id</code>, a bearer <code>token</code>, and a ready-to-run <code>install_command</code>.</p>
+
+            <h3>2. Run the install command</h3>
+            <p>Copy the <code>install_command</code> from the signup response and run it on the machine you want to monitor. It downloads the agent binary, writes <code>/etc/labwatch/config.yaml</code> with your credentials, and enables the systemd service:</p>
+            <div class="code-block"><code>curl -fsSL {{ base_url }}/install/i/&lt;one-time-token&gt; | sudo bash</code></div>
+            <p>The one-time token expires after 15 minutes. If you need a fresh link, call <code>/api/v1/my/add-node</code> from the dashboard or sign up again.</p>
+
+            <h3>3. That's it</h3>
+            <p>Metrics start flowing within 60 seconds. Open your dashboard at <code>{{ base_url }}/my/dashboard</code> to see them.</p>
+
+            <div class="alert-box">
+                <strong>Uninstall:</strong> <code>curl -fsSL {{ base_url }}/install.sh | sudo bash -s uninstall</code> removes the agent, service unit, and config directory.
+            </div>
+        </section>
+
+        <!-- Signup -->
+        <section class="docs-section" id="signup">
+            <h2>Signup</h2>
+
+            <div class="endpoint" id="ep-signup">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/signup</span>
+                    <span class="endpoint-desc">Self-service account creation</span>
+                    <span class="endpoint-auth">public</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Create a new free-tier account. Returns credentials for the admin dashboard and a pre-registered first node.</p>
+
+                    <h4>Request Body</h4>
+                    <table class="param-table">
+                        <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                        <tr>
+                            <td class="param-name">email</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Your email address</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">hostname</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-optional">optional</span></td>
+                            <td>Name for your first node (default: "my-server")</td>
+                        </tr>
+                    </table>
+
+                    <h4>Request Body (optional fields)</h4>
+                    <table class="param-table">
+                        <tr>
+                            <td class="param-name">password</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-optional">optional</span></td>
+                            <td>Set a password to enable web login (min 8 chars). Without it you can still query via the token.</td>
+                        </tr>
+                    </table>
+
+                    <h4>Example</h4>
+                    <div class="code-block"><code>curl -X POST https://your-server/api/v1/signup \
+  -H 'Content-Type: application/json' \
+  -d '{"email": "admin@lab.local", "hostname": "proxmox-01"}'</code></div>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "lab_id": "31738bc8-df1e-46f9-9c83-d33f0b16eda9",
+  "token": "6ddf02b7418585cb97b6829d368dfcd6aca04bcc...",
+  "install_command": "curl -fsSL https://your-server/install/i/&lt;signed&gt; | sudo bash",
+  "config_snippet": "api_endpoint: \"https://your-server/api/v1\"\ntoken: \"...\"\nlab_id: \"...\"\ninterval: 60s\ndocker:\n  enabled: true\n  socket: /var/run/docker.sock",
+  "next_steps": [
+    "Run: curl -fsSL https://your-server/install/i/&lt;signed&gt; | sudo bash",
+    "View your dashboard at https://your-server/my/dashboard"
+  ]
+}</code></div>
+
+                    <h4>Errors</h4>
+                    <table class="param-table">
+                        <tr><th>Code</th><th>Meaning</th></tr>
+                        <tr><td><span class="response-code code-4xx">400</span></td><td>Invalid email, short password, or free-tier cap reached (3 nodes)</td></tr>
+                        <tr><td><span class="response-code code-4xx">429</span></td><td>Too many signups from this IP — rate limited</td></tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Register -->
+        <section class="docs-section" id="register">
+            <h2>Register Agent</h2>
+
+            <div class="endpoint" id="ep-register">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/register</span>
+                    <span class="endpoint-desc">Register a new monitoring agent</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Register a new node for monitoring. The agent calls this on first startup to get its credentials.</p>
+
+                    <h4>Headers</h4>
+                    <table class="param-table">
+                        <tr><th>Header</th><th>Value</th></tr>
+                        <tr><td class="param-name">X-Admin-Secret</td><td>Your admin secret</td></tr>
+                    </table>
+
+                    <h4>Request Body</h4>
+                    <table class="param-table">
+                        <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                        <tr>
+                            <td class="param-name">hostname</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Hostname of the node</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">os</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Operating system (e.g., "linux")</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">arch</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Architecture (e.g., "amd64", "arm64")</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">agent_version</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Agent version string</td>
+                        </tr>
+                    </table>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "lab_id": "lab_proxmox-01_x7k2",
+  "token": "lw_...",
+  "message": "Registered successfully"
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ingest -->
+        <section class="docs-section" id="ingest">
+            <h2>Ingest Metrics</h2>
+
+            <div class="endpoint" id="ep-ingest">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/ingest</span>
+                    <span class="endpoint-desc">Submit metrics from an agent</span>
+                    <span class="endpoint-auth">bearer</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Submit a metrics snapshot from a monitoring agent. The agent sends this every 60 seconds (configurable). Metrics are stored and processed for alerts, digests, and queries.</p>
+
+                    <h4>Headers</h4>
+                    <table class="param-table">
+                        <tr><th>Header</th><th>Value</th></tr>
+                        <tr><td class="param-name">Authorization</td><td>Bearer &lt;token&gt;</td></tr>
+                    </table>
+
+                    <h4>Request Body</h4>
+                    <table class="param-table">
+                        <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                        <tr>
+                            <td class="param-name">lab_id</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Your lab identifier</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">timestamp</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-optional">optional</span></td>
+                            <td>ISO 8601 timestamp (defaults to server time)</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">collectors</td>
+                            <td class="param-type">object</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Collector data keyed by type</td>
+                        </tr>
+                    </table>
+
+                    <h4>Collector Types</h4>
+                    <p>The <code>collectors</code> object can contain the following keys:</p>
+                    <table class="param-table">
+                        <tr><th>Key</th><th>Description</th></tr>
+                        <tr><td class="param-name">system</td><td>CPU, memory, disk, network, load, uptime, temperatures</td></tr>
+                        <tr><td class="param-name">docker</td><td>Container list with health, restarts, CPU/memory per container</td></tr>
+                        <tr><td class="param-name">services</td><td>HTTP/TCP health check results with response times</td></tr>
+                        <tr><td class="param-name">gpu</td><td>GPU utilization, memory, temperature per device</td></tr>
+                    </table>
+
+                    <h4>Example</h4>
+                    <div class="code-block"><code>curl -X POST https://your-server/api/v1/ingest \
+  -H 'Authorization: Bearer lw_abc123...' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "lab_id": "lab_proxmox-01_x7k2",
+    "collectors": {
+      "system": {
+        "data": {
+          "cpu": {"total_percent": 23.5, "count": 8},
+          "memory": {"used_percent": 62.1, "total_bytes": 34359738368},
+          "disk": [{"mount": "/", "used_percent": 45.2}],
+          "load_average": {"1m": 1.2, "5m": 0.8, "15m": 0.6},
+          "uptime_seconds": 864000
+        }
+      },
+      "docker": {
+        "data": {
+          "containers": [
+            {"name": "caddy", "state": "running", "health": "healthy",
+             "cpu_percent": 0.5, "memory_mb": 32}
+          ]
+        }
+      }
+    }
+  }'</code></div>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "status": "ok",
+  "alerts_triggered": 0
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Status -->
+        <section class="docs-section" id="status">
+            <h2>Agent Status</h2>
+
+            <div class="endpoint" id="ep-status">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/status/{lab_id}</span>
+                    <span class="endpoint-desc">Get current node status</span>
+                    <span class="endpoint-auth">bearer</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns the current status of a monitored node, including latest metrics and active alerts.</p>
+
+                    <h4>Path Parameters</h4>
+                    <table class="param-table">
+                        <tr><th>Param</th><th>Type</th><th>Description</th></tr>
+                        <tr><td class="param-name">lab_id</td><td class="param-type">string</td><td>The lab identifier</td></tr>
+                    </table>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "lab_id": "lab_proxmox-01_x7k2",
+  "hostname": "proxmox-01",
+  "last_seen": "2026-03-19T22:30:00",
+  "cpu_percent": 23.5,
+  "memory_percent": 62.1,
+  "disk_percent": 45.2,
+  "container_count": 12,
+  "alerts": []
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- List Labs -->
+        <section class="docs-section" id="list-labs">
+            <h2>List Labs</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/admin/labs</span>
+                    <span class="endpoint-desc">List all monitored nodes</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns a list of all registered labs with their current online status and latest metrics summary.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "labs": [
+    {
+      "lab_id": "lab_proxmox-01_x7k2",
+      "hostname": "proxmox-01",
+      "last_seen": "2026-03-19T22:30:00",
+      "online": true,
+      "cpu_percent": 23.5,
+      "memory_percent": 62.1,
+      "disk_percent": 45.2
+    }
+  ]
+}</code></div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/labs</span>
+                    <span class="endpoint-desc">List labs with full agent metadata</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns all labs with full agent metadata (OS, architecture, agent version, registration timestamp) in addition to the current metrics summary. Use this when you need provisioning-level detail; use <code>/api/v1/admin/labs</code> for a leaner response.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "labs": [
+    {
+      "lab_id": "lab_proxmox-01_x7k2",
+      "hostname": "proxmox-01",
+      "os": "linux",
+      "arch": "amd64",
+      "agent_version": "0.4.2",
+      "registered_at": "2026-02-14T09:12:03",
+      "last_seen": "2026-03-19T22:30:00",
+      "online": true,
+      "cpu_percent": 23.5,
+      "memory_percent": 62.1,
+      "disk_percent": 45.2
+    }
+  ],
+  "total": 1
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard Overview -->
+        <section class="docs-section" id="admin-dashboard">
+            <h2>Admin Dashboard</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/admin/dashboard</span>
+                    <span class="endpoint-desc">Fleet-wide summary snapshot</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns enriched per-lab data plus a fleet-wide alert total — the snapshot used by the admin dashboard auto-refresh. Every lab includes its system/docker/GPU summary, online flag, and alert counts in a single call, so you don't have to loop over <code>/api/v1/labs</code> + <code>/api/v1/status/{lab_id}</code>.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "labs": [
+    {
+      "id": "lab_proxmox-01_x7k2",
+      "hostname": "proxmox-01",
+      "online": true,
+      "cpu_percent": 23.5,
+      "memory_percent": 62.1,
+      "disk_percent": 45.2,
+      "container_count": 12,
+      "alert_count": 1,
+      "critical_count": 0
+    }
+  ],
+  "total": 1,
+  "total_alerts": 1
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Widgets -->
+        <section class="docs-section" id="widget-uptime">
+            <h2>Uptime Timeline</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/widgets/uptime</span>
+                    <span class="endpoint-desc">Per-lab uptime segments</span>
+                    <span class="endpoint-auth">session</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns online/offline segments for every lab the current session can see, over the requested window. Used to draw the uptime timeline widget on the dashboard. When called without a session it returns segments for all labs.</p>
+
+                    <h4>Query Parameters</h4>
+                    <table class="param-table">
+                        <tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                        <tr><td class="param-name">hours</td><td class="param-type">int</td><td>24</td><td>Size of the timeline window</td></tr>
+                    </table>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <p>Keyed by <code>lab_id</code>. Each entry carries the display hostname plus a list of segments. Segment <code>status</code> is one of <code>online</code>, <code>offline</code>, <code>stale</code>, or <code>no-data</code> (the period before the lab was registered).</p>
+                    <div class="code-block"><code>{
+  "lab_proxmox-01_x7k2": {
+    "hostname": "proxmox-01",
+    "real_hostname": "proxmox-01",
+    "segments": [
+      {"start": "2026-03-18T22:00:00", "end": "2026-03-19T03:12:00", "status": "online"},
+      {"start": "2026-03-19T03:12:00", "end": "2026-03-19T03:14:00", "status": "offline"},
+      {"start": "2026-03-19T03:14:00", "end": "2026-03-19T22:00:00", "status": "online"}
+    ]
+  }
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="docs-section" id="widget-alerts">
+            <h2>Alert Feed</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/widgets/alerts</span>
+                    <span class="endpoint-desc">Recent alerts across the fleet</span>
+                    <span class="endpoint-auth">session</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns the most recent alerts across all labs the current session owns. Powers the alerts rollup widget on the dashboard.</p>
+
+                    <h4>Query Parameters</h4>
+                    <table class="param-table">
+                        <tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                        <tr><td class="param-name">limit</td><td class="param-type">int</td><td>20</td><td>Max number of alerts to return</td></tr>
+                    </table>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>[
+  {
+    "lab_id": "lab_proxmox-01_x7k2",
+    "hostname": "proxmox-01",
+    "severity": "warning",
+    "kind": "disk_high",
+    "message": "/ is at 82%",
+    "triggered_at": "2026-03-19T22:11:04"
+  }
+]</code></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="docs-section" id="widget-sparkline">
+            <h2>Metric Sparkline</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/widgets/sparkline/{lab_id}/{metric}</span>
+                    <span class="endpoint-desc">Short-window time series</span>
+                    <span class="endpoint-auth">public</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns a compact time series for a single lab and metric — just enough points to draw an inline sparkline.</p>
+
+                    <h4>Path Parameters</h4>
+                    <table class="param-table">
+                        <tr><th>Param</th><th>Type</th><th>Description</th></tr>
+                        <tr><td class="param-name">lab_id</td><td class="param-type">string</td><td>Lab identifier</td></tr>
+                        <tr><td class="param-name">metric</td><td class="param-type">string</td><td>One of <code>cpu</code>, <code>memory</code>, <code>disk</code></td></tr>
+                    </table>
+
+                    <h4>Query Parameters</h4>
+                    <table class="param-table">
+                        <tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                        <tr><td class="param-name">hours</td><td class="param-type">int</td><td>1</td><td>Window size</td></tr>
+                    </table>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <p>Returns a downsampled list of at most ~30 points across the window.</p>
+                    <div class="code-block"><code>[
+  {"timestamp": "2026-03-19T21:00:00", "value": 12.4},
+  {"timestamp": "2026-03-19T21:02:00", "value": 13.1},
+  {"timestamp": "2026-03-19T21:04:00", "value": 12.8}
+]</code></div>
+
+                    <h4>Errors</h4>
+                    <table class="param-table">
+                        <tr><th>Code</th><th>Meaning</th></tr>
+                        <tr><td><span class="response-code code-4xx">400</span></td><td>Metric is not one of cpu/memory/disk</td></tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lab History -->
+        <section class="docs-section" id="lab-history">
+            <h2>Lab History</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/labs/{lab_id}/history</span>
+                    <span class="endpoint-desc">Time-series metrics data</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns time-series metrics for a specific lab, suitable for charting. Default window is 24 hours.</p>
+
+                    <h4>Query Parameters</h4>
+                    <table class="param-table">
+                        <tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                        <tr>
+                            <td class="param-name">hours</td>
+                            <td class="param-type">int</td>
+                            <td>24</td>
+                            <td>Number of hours of history to return</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">secret</td>
+                            <td class="param-type">string</td>
+                            <td>—</td>
+                            <td>Admin secret (alternative to header)</td>
+                        </tr>
+                    </table>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "lab_id": "lab_proxmox-01_x7k2",
+  "hours": 24,
+  "metrics": [
+    {
+      "timestamp": "2026-03-19T21:00:00",
+      "cpu_percent": 23.5,
+      "memory_percent": 62.1,
+      "disk_percent": 45.2,
+      "load_1m": 1.2
+    }
+  ]
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Export -->
+        <section class="docs-section" id="lab-export">
+            <h2>Export Data</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/admin/lab/{lab_id}/export</span>
+                    <span class="endpoint-desc">Export all lab data as JSON</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Exports all stored metrics for a lab as a downloadable JSON file. Useful for backups, migrations, or external analysis.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <p>Returns a JSON file download with all metrics, alerts, and configuration for the specified lab.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Delete Lab -->
+        <section class="docs-section" id="delete-lab">
+            <h2>Delete Lab</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-delete">DELETE</span>
+                    <span class="endpoint-path">/api/v1/admin/lab/{lab_id}</span>
+                    <span class="endpoint-desc">Remove a monitored node</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Permanently removes a lab and all its stored metrics, alerts, and digests. This cannot be undone.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "message": "Lab deleted",
+  "lab_id": "lab_proxmox-01_x7k2"
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Natural Language Query -->
+        <section class="docs-section" id="query">
+            <h2>Natural Language Query</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/query</span>
+                    <span class="endpoint-desc">Ask questions in plain English</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Ask questions about your infrastructure in natural language. The engine analyzes your metrics data and returns a plain-English answer with supporting data.</p>
+
+                    <h4>Request Body</h4>
+                    <table class="param-table">
+                        <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                        <tr>
+                            <td class="param-name">question</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Your question in plain English</td>
+                        </tr>
+                    </table>
+
+                    <h4>Example Questions</h4>
+                    <div class="code-block"><code>"How's my lab?"
+"Why is pve-storage slow?"
+"Is caddy running?"
+"Which server uses the most CPU?"
+"Am I running out of disk?"
+"What happened last night?"</code></div>
+
+                    <h4>Example</h4>
+                    <div class="code-block"><code>curl -X POST https://your-server/api/v1/query \
+  -H 'X-Admin-Secret: your-secret' \
+  -H 'Content-Type: application/json' \
+  -d '{"question": "Why is pve-storage slow?"}'</code></div>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "answer": "I/O pressure — load average 38.1 with only 2% CPU usage suggests a disk or network bottleneck, not a compute issue. Memory is fine at 62%. Check for heavy NFS traffic or failing drives.",
+  "confidence": 0.85,
+  "sources": ["system_metrics", "load_analysis"]
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lab Digest -->
+        <section class="docs-section" id="digest-lab">
+            <h2>Lab Digest</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/admin/digest/{lab_id}</span>
+                    <span class="endpoint-desc">Generate a health digest for a node</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Generates a plain-English intelligence digest for a specific lab, analyzing trends, anomalies, and health over the specified period.</p>
+
+                    <h4>Query Parameters</h4>
+                    <table class="param-table">
+                        <tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                        <tr>
+                            <td class="param-name">days</td>
+                            <td class="param-type">int</td>
+                            <td>7</td>
+                            <td>Number of days to analyze</td>
+                        </tr>
+                    </table>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "lab_id": "lab_proxmox-01_x7k2",
+  "period_days": 7,
+  "grade": "B+",
+  "summary": "proxmox-01 had moderate activity over the last 7 days...",
+  "metrics": {
+    "cpu_avg": 15.2,
+    "cpu_peak": 72.1,
+    "memory_avg": 62.0,
+    "disk_current": 78.3
+  },
+  "concerns": ["Disk at 78% — approaching warning threshold"],
+  "generated_at": "2026-03-19T22:30:00"
+}</code></div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/admin/digest/{lab_id}</span>
+                    <span class="endpoint-desc">Retrieve stored digest</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns the most recently generated digest for a lab without regenerating it.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fleet Digest -->
+        <section class="docs-section" id="digest-fleet">
+            <h2>Fleet Digest</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/admin/digest</span>
+                    <span class="endpoint-desc">Generate fleet-wide intelligence briefing</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Generates a comprehensive digest across all monitored nodes. Includes per-node grades, fleet-wide trends, anomalies, and recommendations.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "fleet_size": 5,
+  "period_days": 7,
+  "overall_grade": "B",
+  "summary": "Your fleet of 5 nodes is generally healthy...",
+  "nodes": [
+    {"lab_id": "...", "hostname": "proxmox-01", "grade": "A"},
+    {"lab_id": "...", "hostname": "pve-storage", "grade": "C"}
+  ],
+  "recommendations": [
+    "pve-storage disk usage trending upward — consider cleanup"
+  ]
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NLQ Stats -->
+        <section class="docs-section" id="nlq-stats">
+            <h2>NLQ Stats &amp; Misses</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/admin/nlq/stats</span>
+                    <span class="endpoint-desc">Intent hit counts + fallback rate</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns matched/total counts, miss rate, per-intent hit counts, and the top repeated misses in the last <code>hours</code> window. Useful for spotting coverage gaps.</p>
+
+                    <h4>Query Parameters</h4>
+                    <table class="param-table">
+                        <tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                        <tr><td class="param-name">hours</td><td class="param-type">int</td><td>168</td><td>Rolling window (default 7 days)</td></tr>
+                    </table>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "hours": 168,
+  "total": 1842,
+  "matched": 1795,
+  "miss_rate": 0.026,
+  "by_type": [
+    {"query_type": "status", "n": 812},
+    {"query_type": "disk_pressure", "n": 204}
+  ],
+  "top_misses": [
+    {"question": "show me gpu temps", "n": 4},
+    {"question": "any flapping services", "n": 2}
+  ]
+}</code></div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/admin/nlq/misses</span>
+                    <span class="endpoint-desc">Recent unmatched queries</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns the most recent queries that fell through to the fallback handler, newest first. Use this to harvest new intents to add to the NLQ engine.</p>
+
+                    <h4>Query Parameters</h4>
+                    <table class="param-table">
+                        <tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                        <tr><td class="param-name">limit</td><td class="param-type">int</td><td>100</td><td>Max misses to return</td></tr>
+                    </table>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "misses": [
+    {
+      "id": 4821,
+      "asked_at": "2026-03-19T22:10:00",
+      "email": "admin@lab.local",
+      "question": "show me gpu temps",
+      "query_type": "fallback",
+      "confidence": 0.0
+    }
+  ]
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notification Channels -->
+        <section class="docs-section" id="notif-list">
+            <h2>List Notification Channels</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/admin/notifications</span>
+                    <span class="endpoint-desc">List all notification channels</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns all configured notification channels.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "channels": [
+    {
+      "id": 1,
+      "type": "ntfy",
+      "name": "Phone alerts",
+      "config": {"topic": "labwatch-alerts"},
+      "enabled": true
+    }
+  ]
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="docs-section" id="notif-create">
+            <h2>Create Notification Channel</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/admin/notifications</span>
+                    <span class="endpoint-desc">Create a new notification channel</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Create a new notification channel. Supported types: <code>webhook</code> (Slack, Discord, generic), <code>ntfy</code> (push notifications).</p>
+
+                    <h4>Request Body</h4>
+                    <table class="param-table">
+                        <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                        <tr>
+                            <td class="param-name">type</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>"webhook" or "ntfy"</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">name</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Display name for the channel</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">config</td>
+                            <td class="param-type">object</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Channel-specific configuration</td>
+                        </tr>
+                    </table>
+
+                    <h4>Webhook Config</h4>
+                    <div class="code-block"><code>{"url": "https://hooks.slack.com/services/..."}</code></div>
+
+                    <h4>ntfy Config</h4>
+                    <div class="code-block"><code>{"topic": "labwatch-alerts", "server": "https://ntfy.sh"}</code></div>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "id": 1,
+  "message": "Channel created"
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="docs-section" id="notif-update">
+            <h2>Update Notification Channel</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-put">PUT</span>
+                    <span class="endpoint-path">/api/v1/admin/notifications/{channel_id}</span>
+                    <span class="endpoint-desc">Update channel configuration</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Update an existing notification channel's name, config, or enabled status.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="docs-section" id="notif-delete">
+            <h2>Delete Notification Channel</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-delete">DELETE</span>
+                    <span class="endpoint-path">/api/v1/admin/notifications/{channel_id}</span>
+                    <span class="endpoint-desc">Remove a notification channel</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Permanently removes a notification channel.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="docs-section" id="notif-test">
+            <h2>Test Notification Channel</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/admin/notifications/{channel_id}/test</span>
+                    <span class="endpoint-desc">Send a test notification</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Sends a test message through the specified channel to verify it's configured correctly.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "message": "Test notification sent",
+  "channel_id": 1
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MCP -->
+        <section class="docs-section" id="mcp-token">
+            <h2>MCP Tokens</h2>
+            <p>labwatch exposes a Model Context Protocol endpoint so LLM tools (Claude Desktop, Cursor, custom agents) can query your fleet directly. Authentication uses a bearer token with the <code>lw_mcp_</code> prefix — generate it from the dashboard or through the API below.</p>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/my/mcp/token</span>
+                    <span class="endpoint-desc">Generate a new MCP token</span>
+                    <span class="endpoint-auth">session</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Creates a new MCP bearer token for the logged-in user. The plaintext token is returned <strong>once</strong> — only its hash is stored. Lose it and you'll have to generate a new one.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "token": "lw_mcp_abc123...",
+  "endpoint": "https://your-server/api/mcp",
+  "expires": "never",
+  "warning": "Save this token now — it will not be shown again."
+}</code></div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-delete">DELETE</span>
+                    <span class="endpoint-path">/api/v1/my/mcp/token</span>
+                    <span class="endpoint-desc">Revoke all MCP tokens</span>
+                    <span class="endpoint-auth">session</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Revokes every MCP token for the logged-in user.</p>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{"revoked": true}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="docs-section" id="mcp-endpoint">
+            <h2>MCP JSON-RPC Endpoint</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/mcp</span>
+                    <span class="endpoint-desc">Model Context Protocol JSON-RPC 2.0</span>
+                    <span class="endpoint-auth">mcp token</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>JSON-RPC 2.0 endpoint implementing MCP protocol version <code>2024-11-05</code>. Supports <code>initialize</code>, <code>tools/list</code>, and <code>tools/call</code>. Authentication is a bearer <code>lw_mcp_</code> token in the <code>Authorization</code> header — tokens are scoped to the user who created them and only expose that user's labs.</p>
+
+                    <h4>Headers</h4>
+                    <table class="param-table">
+                        <tr><th>Header</th><th>Value</th></tr>
+                        <tr><td class="param-name">Authorization</td><td>Bearer lw_mcp_&lt;token&gt;</td></tr>
+                        <tr><td class="param-name">Content-Type</td><td>application/json</td></tr>
+                    </table>
+
+                    <h4>Initialize</h4>
+                    <div class="code-block"><code>curl -X POST https://your-server/api/mcp \
+  -H 'Authorization: Bearer lw_mcp_...' \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize"}'</code></div>
+
+                    <h4>List Tools</h4>
+                    <div class="code-block"><code>{"jsonrpc":"2.0","id":2,"method":"tools/list"}</code></div>
+                    <p>Returns the list of tools the user can call. Typical tools: <code>list_labs</code>, <code>get_lab</code>, <code>get_lab_history</code>, <code>list_alerts</code>, <code>query</code> (natural language), and <code>get_digest</code>.</p>
+
+                    <h4>Call a Tool</h4>
+                    <div class="code-block"><code>{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "get_lab",
+    "arguments": {"lab_id": "lab_proxmox-01_x7k2"}
+  }
+}</code></div>
+
+                    <h4>Response <span class="response-code code-2xx">200</span></h4>
+                    <div class="code-block"><code>{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "content": [{"type": "text", "text": "{ ...lab json... }"}],
+    "isError": false
+  }
+}</code></div>
+
+                    <h4>Claude Desktop config</h4>
+                    <p>Drop this into <code>claude_desktop_config.json</code> to wire labwatch as an MCP server:</p>
+                    <div class="code-block"><code>{
+  "mcpServers": {
+    "labwatch": {
+      "url": "https://your-server/api/mcp",
+      "headers": {"Authorization": "Bearer lw_mcp_..."}
+    }
+  }
+}</code></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User API reference (session-scoped) -->
+        <section class="docs-section" id="my-api">
+            <h2>Dashboard (Session) API</h2>
+            <p>These endpoints power the authed dashboard UI and authenticate with the signed session cookie set by <code>POST /login</code>. They're documented here for completeness — for server-to-server automation prefer the admin-secret endpoints in the sections above.</p>
+
+            <h3>Your Fleet</h3>
+            <table class="param-table">
+                <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/dashboard</td><td>Enriched labs for the auto-refresh feed (metrics, alerts, heartbeats, pins)</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/add-node</td><td>Register a new node under the current user and return token + install command</td></tr>
+            </table>
+
+            <h3>Layout &amp; Pins</h3>
+            <table class="param-table">
+                <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Get the saved widget layout</td></tr>
+                <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Save a new widget layout</td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Reset layout to the default</td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/pins</td><td>List pinned labs</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/pin/{lab_id}</td><td>Pin a lab</td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/pin/{lab_id}</td><td>Unpin a lab</td></tr>
+            </table>
+
+            <h3>Alert Thresholds</h3>
+            <table class="param-table">
+                <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/thresholds</td><td>List all per-lab thresholds for the user</td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/thresholds/{lab_id}</td><td>Get thresholds for one lab</td></tr>
+                <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/thresholds/{lab_id}</td><td>Set thresholds for one lab</td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/thresholds/{lab_id}</td><td>Reset thresholds to the default</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/alerts/generate</td><td>Ask the NLQ engine to suggest thresholds from recent metrics</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/alerts/apply</td><td>Apply a generated threshold set</td></tr>
+            </table>
+
+            <h3>Per-Lab Controls</h3>
+            <table class="param-table">
+                <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Get the public status page config (token, enabled)</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Enable a public status page (returns <code>/s/{public_id}</code>)</td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Disable the public status page</td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Check if the lab is in a maintenance window</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Start a maintenance window (alerts suppressed)</td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>End the active maintenance window</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/display-name</td><td>Set a custom display name for a lab</td></tr>
+            </table>
+
+            <h3>Notifications</h3>
+            <table class="param-table">
+                <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/notification-prefs</td><td>Get personal notification preferences</td></tr>
+                <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/notification-prefs</td><td>Update preferences (quiet hours, severities)</td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/notifications</td><td>List personal notification channels</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications</td><td>Create a new channel</td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}</td><td>Delete a channel</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}/test</td><td>Send a test notification</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/test-inline</td><td>Test a channel config without saving it</td></tr>
+            </table>
+        </section>
+
+    </div>
+</div>
+{% endblock %}

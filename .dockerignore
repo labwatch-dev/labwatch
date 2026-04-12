@@ -1,0 +1,9 @@
+.git
+**/__pycache__
+**/*.pyc
+server/data/
+**/*.db
+screenshots/
+agent/cmd/
+agent/internal/
+agent/go.*

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.support_title }} - labwatch{% endblock %}
+
+{% block extra_styles %}
+.support-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+}
+
+.support-page h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+
+.support-page .subtitle {
+    color: var(--text-dim);
+    font-size: 16px;
+    margin-bottom: 48px;
+}
+
+.support-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+}
+
+.support-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.support-card:hover {
+    border-color: var(--border-light);
+    transform: translateY(-2px);
+}
+
+.support-card .icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+    display: block;
+    width: 48px;
+    height: 48px;
+    line-height: 48px;
+    text-align: center;
+    background: var(--accent-glow);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-weight: 700;
+}
+
+.support-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.support-card p {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.support-card a.link {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.support-card a.link:hover {
+    text-decoration: underline;
+}
+
+.support-email {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--accent);
+}
+
+.faq-section {
+    margin-top: 48px;
+}
+
+.faq-section h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 24px;
+}
+
+.faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.faq-question {
+    padding: 18px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: color 0.2s;
+}
+
+.faq-question:hover {
+    color: var(--accent);
+}
+
+.faq-question .toggle {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 18px;
+    transition: transform 0.2s;
+}
+
+.faq-answer {
+    padding: 0 20px 18px;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.7;
+    display: none;
+}
+
+.faq-item.open .faq-answer {
+    display: block;
+}
+
+.faq-item.open .toggle {
+    transform: rotate(45deg);
+}
+
+@media (max-width: 768px) {
+    .support-page {
+        padding: 40px 24px 60px;
+    }
+    .support-page h1 {
+        font-size: 24px;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="support-page">
+    <h1>{{ t.support_title }}</h1>
+    <p class="subtitle">{{ t.support_subtitle }}</p>
+
+    <div class="support-grid">
+        <div class="support-card">
+            <div class="icon">@</div>
+            <h3>{{ t.support_email_title }}</h3>
+            <p>{{ t.support_email_desc }}</p>
+            <div class="support-email">support@labwatch.dev</div>
+        </div>
+
+        <div class="support-card">
+            <div class="icon">?</div>
+            <h3>{{ t.support_docs_title }}</h3>
+            <p>{{ t.support_docs_desc }}</p>
+            <a href="/docs" class="link">{{ t.support_docs_link }} &rarr;</a>
+        </div>
+
+        <div class="support-card">
+            <div class="icon">!</div>
+            <h3>{{ t.support_github_title }}</h3>
+            <p>{{ t.support_github_desc }}</p>
+            <a href="https://github.com/zazastation/labwatch/issues" target="_blank" rel="noopener" class="link">{{ t.support_github_link }} &rarr;</a>
+        </div>
+    </div>
+
+    <div class="faq-section">
+        <h2>{{ t.support_faq_title }}</h2>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                <span>{{ t.support_faq_q1 }}</span>
+                <span class="toggle">+</span>
+            </div>
+            <div class="faq-answer">{{ t.support_faq_a1 }}</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                <span>{{ t.support_faq_q2 }}</span>
+                <span class="toggle">+</span>
+            </div>
+            <div class="faq-answer">{{ t.support_faq_a2 }}</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                <span>{{ t.support_faq_q3 }}</span>
+                <span class="toggle">+</span>
+            </div>
+            <div class="faq-answer">{{ t.support_faq_a3 }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+# labwatch agent configuration
+# Copy to /etc/labwatch/config.yaml
+
+# API endpoint — point this to your labwatch server
+api_endpoint: "http://your-server:8097/api/v1"
+
+# Admin secret — needed for registration only (labwatch --register)
+# After registering, you can remove this line
+admin_secret: ""
+
+# Authentication token (obtained during registration)
+token: ""
+
+# Lab identifier (auto-assigned during registration)
+lab_id: ""
+
+# Collection interval (minimum 10s)
+interval: 60s
+
+# Docker monitoring
+docker:
+  enabled: true
+  socket: "/var/run/docker.sock"
+
+# Service health checks
+services:
+  - name: "Web Server"
+    type: "http"
+    endpoint: "http://localhost:80"
+    timeout: "5s"
+
+  - name: "Database"
+    type: "tcp"
+    endpoint: "localhost:5432"
+    timeout: "3s"
+
+  # Add more services as needed:
+  # - name: "Plex"
+  #   type: "http"
+  #   endpoint: "http://localhost:32400/web"
+  #   timeout: "5s"
+  #
+  # - name: "Pi-hole DNS"
+  #   type: "tcp"
+  #   endpoint: "localhost:53"
+  #   timeout: "2s"
