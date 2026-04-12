@@ -1172,9 +1172,9 @@ _DEMO_LAB_DETAILS: dict[str, dict] = {
             {"name": "pbs", "image": "proxmox/pbs:latest", "state": "running", "cpu_percent": 0.8, "memory_usage_bytes": 163577856, "restart_count": 0},
         ],
         "_services": [
-            {"name": "SSH", "port": 22, "status": "healthy"},
-            {"name": "Proxmox VE", "port": 8006, "status": "healthy"},
-            {"name": "HTTP", "port": 80, "status": "healthy"},
+            {"name": "SSH", "port": 22, "type": "ssh", "status": "healthy", "response_time_ms": 2},
+            {"name": "Proxmox VE", "port": 8006, "type": "http", "status": "healthy", "response_time_ms": 45},
+            {"name": "HTTP", "port": 80, "type": "http", "status": "healthy", "response_time_ms": 8},
         ],
         "_alerts": [{"severity": "warning", "rule_name": "High memory", "message": "Memory at 61% — approaching threshold", "created_at": "2026-04-12T08:00:00"}],
     },
@@ -1192,9 +1192,9 @@ _DEMO_LAB_DETAILS: dict[str, dict] = {
             {"name": "homeassistant", "image": "homeassistant/home-assistant:stable", "state": "running", "cpu_percent": 2.1, "memory_usage_bytes": 325058560, "restart_count": 1},
         ],
         "_services": [
-            {"name": "SSH", "port": 22, "status": "healthy"},
-            {"name": "HTTP", "port": 80, "status": "healthy"},
-            {"name": "HTTPS", "port": 443, "status": "healthy"},
+            {"name": "SSH", "port": 22, "type": "ssh", "status": "healthy", "response_time_ms": 1},
+            {"name": "HTTP", "port": 80, "type": "http", "status": "healthy", "response_time_ms": 5},
+            {"name": "HTTPS", "port": 443, "type": "http", "status": "healthy", "response_time_ms": 12},
         ],
         "_alerts": [],
     },
@@ -1206,9 +1206,9 @@ _DEMO_LAB_DETAILS: dict[str, dict] = {
         "_online": True, "_cpu": 4.2, "_mem": 72.8, "_disk": 78.1, "_load": 3.21,
         "_containers": [],
         "_services": [
-            {"name": "SSH", "port": 22, "status": "healthy"},
-            {"name": "SMB", "port": 445, "status": "healthy"},
-            {"name": "NFS", "port": 2049, "status": "healthy"},
+            {"name": "SSH", "port": 22, "type": "ssh", "status": "healthy", "response_time_ms": 3},
+            {"name": "SMB", "port": 445, "type": "smb", "status": "healthy", "response_time_ms": 6},
+            {"name": "NFS", "port": 2049, "type": "nfs", "status": "healthy", "response_time_ms": 4},
         ],
         "_alerts": [
             {"severity": "critical", "rule_name": "Disk space critical", "message": "Disk at 78% — running low", "created_at": "2026-04-12T06:00:00"},
@@ -1223,7 +1223,7 @@ _DEMO_LAB_DETAILS: dict[str, dict] = {
         "_online": False, "_cpu": 0, "_mem": 0, "_disk": 55.3, "_load": 0,
         "_containers": [],
         "_services": [
-            {"name": "SSH", "port": 22, "status": "down"},
+            {"name": "SSH", "port": 22, "type": "ssh", "status": "down"},
         ],
         "_alerts": [{"severity": "critical", "rule_name": "Node offline", "message": "No heartbeat for 3 hours", "created_at": "2026-04-12T09:00:00"}],
     },
