@@ -828,12 +828,12 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Name</th>
-                            <th>Utilization</th>
-                            <th>VRAM</th>
-                            <th>Temperature</th>
-                            <th>Power</th>
-                            <th>Fan</th>
+                            <th>{{ t.lab_gpu_name if t and t.lab_gpu_name else "Name" }}</th>
+                            <th>{{ t.lab_gpu_util if t and t.lab_gpu_util else "Utilization" }}</th>
+                            <th>{{ t.lab_gpu_vram if t and t.lab_gpu_vram else "VRAM" }}</th>
+                            <th>{{ t.lab_gpu_temp if t and t.lab_gpu_temp else "Temperature" }}</th>
+                            <th>{{ t.lab_gpu_power if t and t.lab_gpu_power else "Power" }}</th>
+                            <th>{{ t.lab_gpu_fan if t and t.lab_gpu_fan else "Fan" }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -880,14 +880,14 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Device</th>
-                            <th>Model</th>
-                            <th>Type</th>
-                            <th>Health</th>
-                            <th>Temp</th>
-                            <th>Power-on</th>
-                            <th>Realloc</th>
-                            <th>Pending</th>
+                            <th>{{ t.lab_smart_device if t and t.lab_smart_device else "Device" }}</th>
+                            <th>{{ t.lab_smart_model if t and t.lab_smart_model else "Model" }}</th>
+                            <th>{{ t.lab_smart_type if t and t.lab_smart_type else "Type" }}</th>
+                            <th>{{ t.lab_smart_health if t and t.lab_smart_health else "Health" }}</th>
+                            <th>{{ t.lab_smart_temp if t and t.lab_smart_temp else "Temp" }}</th>
+                            <th>{{ t.lab_smart_poweron if t and t.lab_smart_poweron else "Power-on" }}</th>
+                            <th>{{ t.lab_smart_realloc if t and t.lab_smart_realloc else "Realloc" }}</th>
+                            <th>{{ t.lab_smart_pending if t and t.lab_smart_pending else "Pending" }}</th>
                         </tr>
                     </thead>
                     <tbody>

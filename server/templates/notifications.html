@@ -238,8 +238,8 @@
                         <option value="telegram">Telegram</option>
                         <option value="gotify">Gotify</option>
                         <option value="pushover">Pushover</option>
-                        <option value="apprise">Apprise (100+ services)</option>
-                        <option value="webhook">Generic webhook</option>
+                        <option value="apprise">Apprise ({{ t.notif_apprise_desc if t and t.notif_apprise_desc else "100+ services" }})</option>
+                        <option value="webhook">{{ t.notif_generic_webhook if t and t.notif_generic_webhook else "Generic webhook" }}</option>
                     </select>
                 </div>
             </div>

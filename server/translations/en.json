@@ -415,5 +415,20 @@
   "add_node_onecommand": "One-command install",
   "add_node_recommended": "(recommended, expires in 15 min)",
   "add_node_onecommand_desc": "Downloads the agent, writes config.yaml with your credentials, and starts the service. No token pasting.",
-  "add_node_manual": "Or do it manually (3 steps)"
+  "add_node_manual": "Or do it manually (3 steps)",
+  "lab_gpu_util": "Utilization",
+  "lab_gpu_temp": "Temperature",
+  "lab_smart_poweron": "Power-on",
+  "notif_apprise_desc": "100+ services",
+  "notif_generic_webhook": "Generic webhook",
+  "notif_label_cpu_high": "CPU high",
+  "notif_label_mem_high": "Memory high",
+  "notif_label_mem_crit": "Memory critical",
+  "notif_label_disk_high": "Disk high",
+  "notif_label_disk_crit": "Disk critical",
+  "notif_label_gpu_high": "GPU high",
+  "notif_label_gpu_temp": "GPU temp",
+  "notif_label_container_restarts": "Container restarts",
+  "notif_label_service_down": "Service down",
+  "dashboard_search_placeholder": "Filter labs by hostname or OS…  ( press / )"
 }
