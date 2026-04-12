@@ -245,4 +245,7 @@ The server runs comfortably on a Raspberry Pi or any small VM. The agent uses <6
 
 ## License
 
-MIT
+- **Server** (Python/FastAPI): [AGPL-3.0](LICENSE)
+- **Agent** (Go binary): [MIT](agent/LICENSE)
+
+The agent is MIT-licensed so you can embed it anywhere without restrictions. The server is AGPL — if you modify and host it, share your changes.
