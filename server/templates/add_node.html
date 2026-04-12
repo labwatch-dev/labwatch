@@ -188,17 +188,17 @@
         <div class="step" style="border-color: var(--accent); background: var(--accent-glow);">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                 <span class="step-num" style="background: var(--accent); color: var(--bg);">★</span>
-                <span class="step-title" style="color: var(--accent);">One-command install <span style="font-size:11px;color:var(--text-dim);font-weight:400;">(recommended, expires in 15 min)</span></span>
+                <span class="step-title" style="color: var(--accent);">{{ t.add_node_onecommand if t and t.add_node_onecommand else "One-command install" }} <span style="font-size:11px;color:var(--text-dim);font-weight:400;">{{ t.add_node_recommended if t and t.add_node_recommended else "(recommended, expires in 15 min)" }}</span></span>
             </div>
             <div class="code-block" id="install-command" onclick="copyToClipboard(this.textContent.trim(), this)" title="Click to copy"></div>
             <p style="font-size:11px;color:var(--text-muted);margin-top:8px;font-family:var(--font-mono);">
-                Downloads the agent, writes config.yaml with your credentials, and starts the service. No token pasting.
+                {{ t.add_node_onecommand_desc if t and t.add_node_onecommand_desc else "Downloads the agent, writes config.yaml with your credentials, and starts the service. No token pasting." }}
             </p>
         </div>
 
         <details style="margin-top:16px;">
             <summary style="cursor:pointer;color:var(--text-dim);font-size:13px;font-family:var(--font-mono);padding:8px 0;">
-                Or do it manually (3 steps)
+                {{ t.add_node_manual if t and t.add_node_manual else "Or do it manually (3 steps)" }}
             </summary>
             <div class="step" style="margin-top:12px;">
                 <span class="step-num">1</span>

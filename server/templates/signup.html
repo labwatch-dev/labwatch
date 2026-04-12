@@ -214,13 +214,13 @@
 
         <div class="step">
             <span class="step-num">1</span>
-            <span class="step-title">paste this on any linux box — installs + starts the agent</span>
+            <span class="step-title">{{ t.signup_step1_title if t and t.signup_step1_title else "paste this on any linux box — installs + starts the agent" }}</span>
             <div class="code-block" id="install-cmd" onclick="copyToClipboard(this.textContent.trim())">
                 loading…
             </div>
-            <p class="copy-hint">↑ click anywhere on the command to copy</p>
+            <p class="copy-hint">{{ t.signup_copy_hint if t and t.signup_copy_hint else "↑ click anywhere on the command to copy" }}</p>
             <p style="color: var(--text-dim); font-size: 12px; margin-top: 8px;">
-                link expires in 15 minutes — if it does, come back and we'll regenerate.
+                {{ t.signup_link_expires if t and t.signup_link_expires else "link expires in 15 minutes — if it does, come back and we'll regenerate." }}
             </p>
         </div>
 
@@ -283,7 +283,7 @@ async function handleSignup(e) {
         errorEl.textContent = err.message;
         errorEl.style.display = 'block';
         btn.disabled = false;
-        btn.textContent = 'Create my lab';
+        btn.textContent = '{{ t.signup_submit if t and t.signup_submit else "Create my lab" }}';
     }
 }
 </script>

@@ -407,5 +407,13 @@
   "notif_saved": "Saved.",
   "notif_test_sending": "Sending test...",
   "notif_test_ok": "Test sent",
-  "notif_test_fail": "Test FAILED"
+  "notif_test_fail": "Test FAILED",
+  "signup_step1_title": "paste this on any linux box — installs + starts the agent",
+  "signup_loading": "loading…",
+  "signup_copy_hint": "↑ click anywhere on the command to copy",
+  "signup_link_expires": "link expires in 15 minutes — if it does, come back and we’ll regenerate.",
+  "add_node_onecommand": "One-command install",
+  "add_node_recommended": "(recommended, expires in 15 min)",
+  "add_node_onecommand_desc": "Downloads the agent, writes config.yaml with your credentials, and starts the service. No token pasting.",
+  "add_node_manual": "Or do it manually (3 steps)"
 }
