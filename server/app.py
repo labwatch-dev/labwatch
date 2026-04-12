@@ -1108,10 +1108,15 @@ _DEMO_LAB_DETAILS: dict[str, dict] = {
         "api_token": "demo-token",
         "_online": True, "_cpu": 23.4, "_mem": 61.2, "_disk": 44.8, "_load": 1.82,
         "_containers": [
-            {"name": "caddy", "state": "running", "cpu_percent": 0.3, "memory_mb": 42},
-            {"name": "pihole", "state": "running", "cpu_percent": 0.1, "memory_mb": 88},
-            {"name": "grafana", "state": "running", "cpu_percent": 1.2, "memory_mb": 210},
-            {"name": "pbs", "state": "running", "cpu_percent": 0.8, "memory_mb": 156},
+            {"name": "caddy", "image": "caddy:2-alpine", "state": "running", "cpu_percent": 0.3, "memory_usage_bytes": 44040192, "restart_count": 0},
+            {"name": "pihole", "image": "pihole/pihole:latest", "state": "running", "cpu_percent": 0.1, "memory_usage_bytes": 92274688, "restart_count": 0},
+            {"name": "grafana", "image": "grafana/grafana:10.4", "state": "running", "cpu_percent": 1.2, "memory_usage_bytes": 220200960, "restart_count": 0},
+            {"name": "pbs", "image": "proxmox/pbs:latest", "state": "running", "cpu_percent": 0.8, "memory_usage_bytes": 163577856, "restart_count": 0},
+        ],
+        "_services": [
+            {"name": "SSH", "port": 22, "status": "healthy"},
+            {"name": "Proxmox VE", "port": 8006, "status": "healthy"},
+            {"name": "HTTP", "port": 80, "status": "healthy"},
         ],
         "_alerts": [{"severity": "warning", "rule_name": "High memory", "message": "Memory at 61% — approaching threshold", "created_at": "2026-04-12T08:00:00"}],
     },
@@ -1122,11 +1127,16 @@ _DEMO_LAB_DETAILS: dict[str, dict] = {
         "api_token": "demo-token",
         "_online": True, "_cpu": 8.1, "_mem": 38.7, "_disk": 29.3, "_load": 0.45,
         "_containers": [
-            {"name": "portainer", "state": "running", "cpu_percent": 0.5, "memory_mb": 120},
-            {"name": "uptime-kuma", "state": "running", "cpu_percent": 0.2, "memory_mb": 95},
-            {"name": "dashy", "state": "running", "cpu_percent": 0.1, "memory_mb": 64},
-            {"name": "nginx-proxy", "state": "running", "cpu_percent": 0.4, "memory_mb": 38},
-            {"name": "homeassistant", "state": "running", "cpu_percent": 2.1, "memory_mb": 310},
+            {"name": "portainer", "image": "portainer/portainer-ce:latest", "state": "running", "cpu_percent": 0.5, "memory_usage_bytes": 125829120, "restart_count": 0},
+            {"name": "uptime-kuma", "image": "louislam/uptime-kuma:1", "state": "running", "cpu_percent": 0.2, "memory_usage_bytes": 99614720, "restart_count": 0},
+            {"name": "dashy", "image": "lissy93/dashy:latest", "state": "running", "cpu_percent": 0.1, "memory_usage_bytes": 67108864, "restart_count": 0},
+            {"name": "nginx-proxy", "image": "jwilder/nginx-proxy:latest", "state": "running", "cpu_percent": 0.4, "memory_usage_bytes": 39845888, "restart_count": 0},
+            {"name": "homeassistant", "image": "homeassistant/home-assistant:stable", "state": "running", "cpu_percent": 2.1, "memory_usage_bytes": 325058560, "restart_count": 1},
+        ],
+        "_services": [
+            {"name": "SSH", "port": 22, "status": "healthy"},
+            {"name": "HTTP", "port": 80, "status": "healthy"},
+            {"name": "HTTPS", "port": 443, "status": "healthy"},
         ],
         "_alerts": [],
     },
@@ -1137,6 +1147,11 @@ _DEMO_LAB_DETAILS: dict[str, dict] = {
         "api_token": "demo-token",
         "_online": True, "_cpu": 4.2, "_mem": 72.8, "_disk": 78.1, "_load": 3.21,
         "_containers": [],
+        "_services": [
+            {"name": "SSH", "port": 22, "status": "healthy"},
+            {"name": "SMB", "port": 445, "status": "healthy"},
+            {"name": "NFS", "port": 2049, "status": "healthy"},
+        ],
         "_alerts": [
             {"severity": "critical", "rule_name": "Disk space critical", "message": "Disk at 78% — running low", "created_at": "2026-04-12T06:00:00"},
             {"severity": "warning", "rule_name": "High load", "message": "Load average 3.21 — above threshold", "created_at": "2026-04-12T07:30:00"},
@@ -1149,6 +1164,9 @@ _DEMO_LAB_DETAILS: dict[str, dict] = {
         "api_token": "demo-token",
         "_online": False, "_cpu": 0, "_mem": 0, "_disk": 55.3, "_load": 0,
         "_containers": [],
+        "_services": [
+            {"name": "SSH", "port": 22, "status": "down"},
+        ],
         "_alerts": [{"severity": "critical", "rule_name": "Node offline", "message": "No heartbeat for 3 hours", "created_at": "2026-04-12T09:00:00"}],
     },
 }
@@ -1178,10 +1196,16 @@ def demo_lab_detail(request: Request, lab_id: str):
         "containers": detail["_containers"],
     }
 
+    # Structure metrics as the template expects (metrics.docker.data, metrics.services.data)
+    demo_metrics = {
+        "docker": {"data": {"containers": detail["_containers"]}},
+        "services": {"data": {"services": detail.get("_services", [])}},
+    }
+
     return templates.TemplateResponse("lab_detail.html", _tpl_context(
         request, lab=lab, online=detail["_online"],
         gpu={}, system=system, docker=docker,
-        metrics=[], history_count=24, alerts=detail["_alerts"],
+        metrics=demo_metrics, history_count=24, alerts=detail["_alerts"],
         stats={"total_metrics": 1440, "oldest_metric": (now - timedelta(days=7)).isoformat()},
         secret="demo", is_demo=True,
         digest=_DEMO_DIGESTS.get(lab_id),
