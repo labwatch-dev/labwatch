@@ -1277,7 +1277,7 @@ X-Admin-Secret: your-secret-here</div>
   "channels": [
     {
       "id": 1,
-      "type": "ntfy",
+      "channel_type": "ntfy",
       "name": "Phone alerts",
       "config": {"topic": "labwatch-alerts"},
       "enabled": true
@@ -1306,7 +1306,7 @@ X-Admin-Secret: your-secret-here</div>
                     <table class="param-table">
                         <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
                         <tr>
-                            <td class="param-name">type</td>
+                            <td class="param-name">channel_type</td>
                             <td class="param-type">string</td>
                             <td><span class="param-required">required</span></td>
                             <td>"webhook", "ntfy", "discord", "slack", "telegram", "gotify", "pushover", or "apprise"</td>
