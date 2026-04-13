@@ -353,9 +353,9 @@ cd labwatch</div>
             <h3><span class="step-num">2</span>Set your admin secret</h3>
             <p>Create a <code>.env</code> file next to <code>docker-compose.yml</code>:</p>
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
-ADMIN_SECRET=$(openssl rand -hex 24)
+ADMIN_SECRET=paste-a-random-string-here
 BASE_URL=http://labwatch.lan:8097</div>
-            <p>Save it &mdash; you'll need <code>ADMIN_SECRET</code> to log in and to register agents.</p>
+            <p>Generate a secret with <code>openssl rand -hex 24</code> and paste it as the value. You'll need it to log in and to register agents.</p>
 
             <h3><span class="step-num">3</span>Start the stack</h3>
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
@@ -443,7 +443,7 @@ docker cp labwatch:/app/data/backup.db ./labwatch-$(date +%F).db</div>
             <h2>Install agents</h2>
             <p>Once the server is running, install the agent on each machine you want to monitor. The installer pulls the latest binary from your labwatch instance &mdash; no external dependency:</p>
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
-curl -fsSL http://your-labwatch-host:8097/install.sh | bash</div>
+curl -fsSL http://your-labwatch-host:8097/install.sh | sudo bash</div>
             <p>The script installs the agent to <code>/usr/local/bin/labwatch</code>, creates a systemd unit, and drops an empty config at <code>/etc/labwatch/config.yaml</code>. Prefer to review scripts before running? Download it first:</p>
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
 curl -fsSL http://your-labwatch-host:8097/install.sh -o install.sh

@@ -46,10 +46,14 @@ def _check_login_rate(ip: str, max_attempts: int = 10, window: int = 300) -> boo
         for k in stale:
             del _login_attempts[k]
         _login_attempts_last_gc = now
-    attempts = _login_attempts[ip]
+    attempts = _login_attempts.get(ip, [])
     # Prune old entries for this IP
-    _login_attempts[ip] = [t for t in attempts if now - t < window]
-    return len(_login_attempts[ip]) < max_attempts
+    pruned = [t for t in attempts if now - t < window]
+    if pruned:
+        _login_attempts[ip] = pruned
+    elif ip in _login_attempts:
+        del _login_attempts[ip]
+    return len(pruned) < max_attempts
 
 def _record_login_attempt(ip: str):
     _login_attempts[ip].append(time.monotonic())

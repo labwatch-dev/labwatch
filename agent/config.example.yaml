@@ -14,6 +14,9 @@ token: ""
 # Lab identifier (auto-assigned during registration)
 lab_id: ""
 
+# Hostname reported to the server (defaults to system hostname)
+hostname: ""
+
 # Collection interval (minimum 10s)
 interval: 60s
 
@@ -22,25 +25,32 @@ docker:
   enabled: true
   socket: "/var/run/docker.sock"
 
-# Service health checks
-services:
-  - name: "Web Server"
-    type: "http"
-    endpoint: "http://localhost:80"
-    timeout: "5s"
+# GPU monitoring (nvidia-smi must be available)
+gpu:
+  enabled: true
 
-  - name: "Database"
-    type: "tcp"
-    endpoint: "localhost:5432"
-    timeout: "3s"
+# S.M.A.R.T. disk health monitoring
+smart:
+  enabled: true
 
-  # Add more services as needed:
-  # - name: "Plex"
-  #   type: "http"
-  #   endpoint: "http://localhost:32400/web"
-  #   timeout: "5s"
-  #
-  # - name: "Pi-hole DNS"
-  #   type: "tcp"
-  #   endpoint: "localhost:53"
-  #   timeout: "2s"
+# Service health checks (uncomment and edit as needed)
+# services:
+#   - name: "Web Server"
+#     type: "http"
+#     endpoint: "http://localhost:80"
+#     timeout: "5s"
+#
+#   - name: "Database"
+#     type: "tcp"
+#     endpoint: "localhost:5432"
+#     timeout: "3s"
+#
+#   - name: "Plex"
+#     type: "http"
+#     endpoint: "http://localhost:32400/web"
+#     timeout: "5s"
+#
+#   - name: "Pi-hole DNS"
+#     type: "tcp"
+#     endpoint: "localhost:53"
+#     timeout: "2s"

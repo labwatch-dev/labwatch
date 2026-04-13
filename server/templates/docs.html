@@ -1092,6 +1092,7 @@ X-Admin-Secret: your-secret-here</div>
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
   "answer": "I/O pressure — load average 38.1 with only 2% CPU usage suggests a disk or network bottleneck, not a compute issue. Memory is fine at 62%. Check for heavy NFS traffic or failing drives.",
+  "query_type": "load_analysis",
   "confidence": 0.85,
   "sources": ["system_metrics", "load_analysis"]
 }</code></div>
@@ -1328,8 +1329,14 @@ X-Admin-Secret: your-secret-here</div>
                         <tr>
                             <td class="param-name">config</td>
                             <td class="param-type">object</td>
-                            <td><span class="param-required">required</span></td>
-                            <td>Channel-specific configuration</td>
+                            <td><span class="param-optional">optional</span></td>
+                            <td>Channel-specific configuration (defaults to {})</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">min_severity</td>
+                            <td class="param-type">string</td>
+                            <td><span class="param-optional">optional</span></td>
+                            <td>"info", "warning" (default), or "critical"</td>
                         </tr>
                     </table>
 
@@ -1342,7 +1349,7 @@ X-Admin-Secret: your-secret-here</div>
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
   "id": 1,
-  "message": "Channel created"
+  "status": "created"
 }</code></div>
                 </div>
             </div>
@@ -1398,8 +1405,9 @@ X-Admin-Secret: your-secret-here</div>
 
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
-  "message": "Test notification sent",
-  "channel_id": 1
+  "success": true,
+  "channel_id": 1,
+  "message": "Test notification sent successfully"
 }</code></div>
                 </div>
             </div>
