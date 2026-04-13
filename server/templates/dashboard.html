@@ -1789,8 +1789,8 @@ function dismissSuggestions() {
         var lsPinned = JSON.parse(localStorage.getItem('labwatch_pinned') || '[]');
         var isPinned = lab.pinned || lsPinned.indexOf(lab.id) !== -1;
         var pinClass = isPinned ? 'pin-star active' : 'pin-star';
-        var pinBtn = '<button class="' + pinClass + '" onclick="togglePin(event, \'' + lab.id + '\')" title="Pin node">★</button>';
-        return '<a href="' + labUrl + '" class="lab-card' + (isPinned ? ' pinned' : '') + '" data-lab-id="' + lab.id + '" draggable="true">'
+        var pinBtn = '<button class="' + pinClass + '" onclick="togglePin(event, \'' + escapeHtml(lab.id) + '\')" title="Pin node">★</button>';
+        return '<a href="' + labUrl + '" class="lab-card' + (isPinned ? ' pinned' : '') + '" data-lab-id="' + escapeHtml(lab.id) + '" draggable="true">'
             + '<div class="lab-card-header">'
             + '<div>'
             + '<div class="lab-hostname">' + escapeHtml(lab.display_name || lab.hostname) + (lab.maintenance ? ' <span class="maint-badge" title="Maintenance mode — alerts silenced">maint</span>' : '') + '</div>'

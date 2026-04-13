@@ -424,8 +424,8 @@ async function loadChannels() {
         +   '<div class="notif-sub">min severity: ' + escHtml(c.min_severity || "warning") + ' · ' + (c.enabled === false ? 'disabled' : 'enabled') + '</div>'
         + '</div>'
         + '<div class="notif-actions">'
-        +   '<button class="btn-test" onclick="testChannel(\'' + c.id + '\', \'' + escHtml(c.name).replace(/\'/g,"\\'") + '\')">Send test</button>'
-        +   '<button class="btn-delete" onclick="deleteChannel(\'' + c.id + '\', \'' + escHtml(c.name).replace(/\'/g,"\\'") + '\')">Delete</button>'
+        +   '<button class="btn-test" onclick="testChannel(\'' + escHtml(String(c.id)) + '\', \'' + escHtml(c.name).replace(/\'/g,"\\'") + '\')">Send test</button>'
+        +   '<button class="btn-delete" onclick="deleteChannel(\'' + escHtml(String(c.id)) + '\', \'' + escHtml(c.name).replace(/\'/g,"\\'") + '\')">Delete</button>'
         + '</div>'
         + '</div>'
     ).join("");

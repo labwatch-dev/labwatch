@@ -227,7 +227,7 @@ async function generate() {
     const data = await resp.json();
 
     if (!data.ok) {
-        showPreview("✗ " + (data.error || "Could not parse"), false);
+        showPreview("✗ " + escapeHtml(data.error || "Could not parse"), false);
         document.getElementById("apply-btn").disabled = true;
         return;
     }
@@ -253,7 +253,7 @@ async function apply() {
     });
     const data = await resp.json();
     if (!resp.ok) {
-        showPreview("✗ " + (data.detail || "Failed"), false);
+        showPreview("✗ " + escapeHtml(data.detail || "Failed"), false);
         return;
     }
     showPreview(

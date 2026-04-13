@@ -1174,7 +1174,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     fetch({% if is_demo %}'/demo/lab/{{ lab.id }}/history'{% elif user_email %}'/my/lab/{{ lab.id }}/history'{% else %}'/api/v1/labs/{{ lab.id }}/history?secret=' + encodeURIComponent({{ secret | tojson }}){% endif %})
