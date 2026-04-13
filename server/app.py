@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+from starlette.middleware.gzip import GzipMiddleware
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr, format="%(name)s: %(message)s")
 
@@ -72,6 +73,8 @@ app = FastAPI(
     openapi_url=None,
 )
 
+app.add_middleware(GzipMiddleware, minimum_size=1000)
+
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
 
@@ -111,6 +114,8 @@ async def csrf_origin_check(request: Request, call_next):
     return await call_next(request)
 
 
+_STATIC_PAGES = frozenset({"/", "/docs", "/about", "/privacy", "/terms", "/support", "/self-hosted", "/compare"})
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     response = await call_next(request)
@@ -119,6 +124,12 @@ async def security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+    # Cache headers: static marketing pages cacheable, dashboard private
+    path = request.url.path
+    if path in _STATIC_PAGES:
+        response.headers["Cache-Control"] = "public, max-age=300"
+    elif path.startswith("/my/") or path.startswith("/dashboard"):
+        response.headers["Cache-Control"] = "private, max-age=30"
     return response
 
 
@@ -1218,15 +1229,9 @@ def ingest_metrics(body: MetricPayload, lab: dict = Depends(_require_agent_auth)
             detail="Token does not match the provided lab_id",
         )
 
-    # Store each collector type separately
+    # Store all collector types + update last_seen in a single transaction
     collectors = body.collectors or {}
-    stored_types = []
-    for metric_type, data in collectors.items():
-        db.store_metrics(lab["id"], metric_type, data)
-        stored_types.append(metric_type)
-
-    # Update last seen
-    db.update_last_seen(lab["id"])
+    stored_types = db.store_metrics_batch(lab["id"], collectors)
 
     # Run analysis
     alerts = analyze_metrics(lab["id"], collectors)

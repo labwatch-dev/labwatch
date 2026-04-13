@@ -101,6 +101,8 @@ def init_db() -> None:
                 created_at  TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_signups_email ON signups(email);
+            CREATE INDEX IF NOT EXISTS idx_signups_lab_id ON signups(lab_id);
+            CREATE INDEX IF NOT EXISTS idx_signups_ip ON signups(ip_address, created_at);
         """)
         conn.commit()
 
@@ -449,28 +451,50 @@ def store_metrics(lab_id: str, metric_type: str, data: Any) -> None:
         conn.close()
 
 
+def store_metrics_batch(lab_id: str, collectors: dict[str, Any]) -> list[str]:
+    """Store multiple collector types in a single transaction. Returns stored types."""
+    now = datetime.now(timezone.utc).isoformat()
+    conn = _connect()
+    try:
+        stored = []
+        for metric_type, data in collectors.items():
+            data_json = json.dumps(data) if not isinstance(data, str) else data
+            conn.execute(
+                """INSERT INTO metrics (lab_id, timestamp, metric_type, data, created_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (lab_id, now, metric_type, data_json, now),
+            )
+            stored.append(metric_type)
+        conn.execute("UPDATE labs SET last_seen = ? WHERE id = ?", (now, lab_id))
+        conn.commit()
+        return stored
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def get_latest_metrics(lab_id: str) -> dict[str, Any]:
-    """Get the most recent metric of each type for a lab."""
+    """Get the most recent metric of each type for a lab (single query)."""
     conn = _connect()
     try:
         rows = conn.execute(
-            """SELECT DISTINCT metric_type FROM metrics WHERE lab_id = ?""",
-            (lab_id,),
+            """SELECT m.* FROM metrics m
+               INNER JOIN (
+                   SELECT metric_type, MAX(timestamp) AS max_ts
+                   FROM metrics WHERE lab_id = ?
+                   GROUP BY metric_type
+               ) latest ON m.lab_id = ? AND m.metric_type = latest.metric_type
+                       AND m.timestamp = latest.max_ts""",
+            (lab_id, lab_id),
         ).fetchall()
 
         result = {}
         for row in rows:
-            mtype = row["metric_type"]
-            latest = conn.execute(
-                """SELECT * FROM metrics
-                   WHERE lab_id = ? AND metric_type = ?
-                   ORDER BY timestamp DESC LIMIT 1""",
-                (lab_id, mtype),
-            ).fetchone()
-            if latest:
-                entry = dict(latest)
-                entry["data"] = json.loads(entry["data"])
-                result[mtype] = entry
+            entry = dict(row)
+            entry["data"] = json.loads(entry["data"])
+            result[entry["metric_type"]] = entry
 
         return result
     finally:
@@ -492,7 +516,7 @@ def get_recent_system_samples(lab_id: str, count: int = 2) -> list[dict]:
         conn.close()
 
 
-def get_metrics_history(lab_id: str, hours: int = 24) -> list[dict[str, Any]]:
+def get_metrics_history(lab_id: str, hours: int = 24, limit: int = 5000) -> list[dict[str, Any]]:
     """Get metrics history for a lab within the given time window."""
     cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
 
@@ -501,8 +525,8 @@ def get_metrics_history(lab_id: str, hours: int = 24) -> list[dict[str, Any]]:
         rows = conn.execute(
             """SELECT * FROM metrics
                WHERE lab_id = ? AND timestamp > ?
-               ORDER BY timestamp DESC""",
-            (lab_id, cutoff),
+               ORDER BY timestamp DESC LIMIT ?""",
+            (lab_id, cutoff, limit),
         ).fetchall()
 
         result = []
