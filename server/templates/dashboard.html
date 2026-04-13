@@ -1614,7 +1614,7 @@ function togglePin(e, labId) {
     {% if user_email %}
     var method = isPinned ? 'DELETE' : 'POST';
     fetch('/api/v1/my/pin/' + labId, { method: method })
-        .then(function(r) { return r.json(); })
+        .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function() {
             btn.classList.toggle('active');
             var card = btn.closest('.lab-card');
@@ -2099,7 +2099,7 @@ function dismissSuggestions() {
             if (!labId || labId.startsWith('demo-')) return; // skip demo cards
             ['cpu', 'memory', 'disk'].forEach(function(metric) {
                 fetch('/api/v1/widgets/sparkline/' + labId + '/' + metric)
-                    .then(function(r) { return r.json(); })
+                    .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
                     .then(function(points) {
                         if (!points || points.length < 2) return;
                         var row = card.querySelector('[data-spark="' + metric + '"]');
@@ -2298,7 +2298,7 @@ function dismissSuggestions() {
         fetch('/api/v1/widgets/uptime?hours=' + _uptimeHours, {
             headers: {% if user_email %}{}{% else %}{'x-admin-secret': {{ secret | tojson }}}{% endif %}
         })
-        .then(function(r) { return r.json(); })
+        .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(renderUptime)
         .catch(function() { if (uptimeEl) uptimeEl.innerHTML = '<span class="alert-feed-empty">failed to load</span>'; });
     }
@@ -2310,7 +2310,7 @@ function dismissSuggestions() {
         fetch('/api/v1/widgets/alerts?limit=15', {
             headers: {% if user_email %}{}{% else %}{'x-admin-secret': {{ secret | tojson }}}{% endif %}
         })
-        .then(function(r) { return r.json(); })
+        .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(renderAlerts)
         .catch(function() { if (alertEl) alertEl.innerHTML = '<span class="alert-feed-empty">failed to load</span>'; });
     }
