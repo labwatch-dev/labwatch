@@ -431,6 +431,29 @@ def _format_load_avg(load_avg) -> str:
     return "--"
 
 
+_SECRET_CONFIG_KEYS = {"token", "bot_token", "api_token", "user_key", "webhook_url", "url", "secret"}
+
+def _redact_channel_config(channel: dict) -> dict:
+    """Redact secrets from a notification channel config before returning to client."""
+    ch = dict(channel)
+    if "config" in ch and isinstance(ch["config"], (str, dict)):
+        import json as _json
+        cfg = ch["config"]
+        if isinstance(cfg, str):
+            try:
+                cfg = _json.loads(cfg)
+            except (ValueError, TypeError):
+                cfg = {}
+        redacted = {}
+        for k, v in cfg.items():
+            if k in _SECRET_CONFIG_KEYS and isinstance(v, str) and len(v) > 4:
+                redacted[k] = v[:4] + "..." + v[-2:]
+            else:
+                redacted[k] = v
+        ch["config"] = redacted
+    return ch
+
+
 def _extract_system_summary(metrics: dict[str, Any]) -> dict[str, Any]:
     """Pull top-level numbers from the latest system metrics for display."""
     system_entry = metrics.get("system", {})
@@ -1238,6 +1261,7 @@ def set_lab_thresholds(lab_id: str, request: Request, body: dict = None):
 @app.delete("/api/v1/my/thresholds/{lab_id}")
 def reset_lab_thresholds(lab_id: str, request: Request):
     email = _require_session(request)
+    _require_lab_access(email, lab_id)
     db.delete_alert_thresholds(email, lab_id)
     return {"status": "reset"}
 
@@ -1246,7 +1270,7 @@ def reset_lab_thresholds(lab_id: str, request: Request):
 def list_user_notifications(request: Request):
     """List notification channels owned by the current user."""
     email = _require_session(request)
-    channels = db.list_user_notification_channels(email)
+    channels = [_redact_channel_config(c) for c in db.list_user_notification_channels(email)]
     return {"channels": channels, "total": len(channels)}
 
 
@@ -3189,7 +3213,7 @@ def get_lab_digest(lab_id: str, _: str = Depends(_require_admin)):
 @app.get("/api/v1/admin/notifications")
 def list_notification_channels(_: str = Depends(_require_admin)):
     """List all notification channels."""
-    channels = db.list_notification_channels()
+    channels = [_redact_channel_config(c) for c in db.list_notification_channels()]
     return {"channels": channels, "total": len(channels)}
 
 
