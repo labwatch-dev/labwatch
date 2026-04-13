@@ -1,10 +1,6 @@
-version: "3.8"
-
 services:
   labwatch:
-    build:
-      context: .
-      dockerfile: server/Dockerfile
+    build: .
     container_name: labwatch
     ports:
       - "8097:8097"
