@@ -1,6 +1,6 @@
 """Intelligence digest generator for labwatch."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from database import get_metrics_summary, store_digest, list_labs
