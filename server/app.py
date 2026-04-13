@@ -3412,12 +3412,12 @@ async def _handle_stripe_event(event_type: str, event, logger):
     if event_type == "checkout.session.completed":
         session = event["data"]["object"]
         metadata = session.get("metadata") or {}
-        email = metadata.get("email") or session.get("customer_email") or session.get("client_reference_id")
+        email = (metadata.get("email") or session.get("customer_email") or session.get("client_reference_id") or "").strip().lower()
         plan = (metadata.get("plan") or "").lower()
         if not email:
             logger.warning(f"Stripe checkout.session.completed with no email: {session.get('id')}")
             return {"ok": True, "noop": "no email"}
-        if plan not in config.TIER_LIMITS or plan == config.DEFAULT_PLAN:
+        if plan not in config.STRIPE_PRICE_BY_PLAN or plan == config.DEFAULT_PLAN:
             logger.error(f"Stripe event with missing/invalid plan {plan!r} for {email} ({session.get('id')})")
             return {"ok": True, "noop": "invalid plan"}
         rows = db.set_plan_for_email(email, plan)
@@ -3434,7 +3434,7 @@ async def _handle_stripe_event(event_type: str, event, logger):
     if event_type == "customer.subscription.deleted":
         sub = event["data"]["object"]
         metadata = sub.get("metadata") or {}
-        email = metadata.get("email")
+        email = (metadata.get("email") or "").strip().lower()
         if not email:
             logger.warning(f"Stripe subscription.deleted with no email in metadata: {sub.get('id')}")
             return {"ok": True, "noop": "no email in metadata"}
