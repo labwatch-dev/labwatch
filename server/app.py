@@ -564,7 +564,11 @@ def compare_redirect():
 @app.get("/api/v1/health")
 def health():
     try:
-        db._connect().execute("SELECT 1").fetchone()
+        conn = db._connect()
+        try:
+            conn.execute("SELECT 1").fetchone()
+        finally:
+            conn.close()
     except Exception:
         return JSONResponse(
             content={"status": "unhealthy", "service": "labwatch", "detail": "database unreachable"},
