@@ -1177,7 +1177,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    fetch({% if is_demo %}'/demo/lab/{{ lab.id }}/history'{% elif user_email %}'/my/lab/{{ lab.id }}/history'{% else %}'/api/v1/labs/{{ lab.id }}/history?secret={{ secret }}'{% endif %})
+    fetch({% if is_demo %}'/demo/lab/{{ lab.id }}/history'{% elif user_email %}'/my/lab/{{ lab.id }}/history'{% else %}'/api/v1/labs/{{ lab.id }}/history?secret=' + encodeURIComponent({{ secret | tojson }}){% endif %})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (!data.timestamps || data.timestamps.length === 0) return;

@@ -2021,7 +2021,7 @@ function dismissSuggestions() {
                 + '</div></div>';
         }
 
-        var labUrl = {% if user_email %}'/my/lab/' + lab.id{% else %}(isDemo ? '/demo/lab/' + lab.id : '/dashboard/lab/' + lab.id + '?secret={{ secret }}'){% endif %};
+        var labUrl = {% if user_email %}'/my/lab/' + lab.id{% else %}(isDemo ? '/demo/lab/' + lab.id : '/dashboard/lab/' + lab.id + '?secret=' + encodeURIComponent({{ secret | tojson }})){% endif %};
         var lsPinned = JSON.parse(localStorage.getItem('labwatch_pinned') || '[]');
         var isPinned = lab.pinned || lsPinned.indexOf(lab.id) !== -1;
         var pinClass = isPinned ? 'pin-star active' : 'pin-star';
