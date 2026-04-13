@@ -401,6 +401,8 @@ def delete_account(email: str) -> None:
             conn.execute("DELETE FROM labs WHERE id = ?", (lid,))
         # Delete user preferences
         conn.execute("DELETE FROM user_preferences WHERE email = ?", (email,))
+        # Delete user notification channels
+        conn.execute("DELETE FROM notification_channels WHERE owner_email = ?", (email,))
         # Delete signup records
         conn.execute("DELETE FROM signups WHERE email = ?", (email,))
         conn.commit()

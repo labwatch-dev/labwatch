@@ -2882,8 +2882,9 @@ def query(question: str, email: Optional[str] = None, lang: str = "en") -> dict:
                 try:
                     result = handler["func"](question_lower, match)
                 except Exception as e:
+                    logging.getLogger("labwatch").exception(f"NLQ handler error: {e}")
                     result = _build_response(
-                        answer=f"Error processing query: {e}",
+                        answer="Something went wrong processing your query. Please try rephrasing.",
                         query_type="error",
                         confidence=0.0,
                         sources=[],

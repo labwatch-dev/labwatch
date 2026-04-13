@@ -13,7 +13,7 @@ def _build_narrative(hostname: str, data: dict, period_days: float) -> str:
     disk_cur = data.get("disk", {}).get("current", 0)
     load_avg = data.get("load", {}).get("avg", 0)
     alerts_total = data.get("alerts_total", 0)
-    alerts_active = alerts_total - data.get("alerts_resolved", 0)
+    alerts_active = max(0, alerts_total - data.get("alerts_resolved", 0))
     samples = data.get("sample_count", 0)
 
     period = f"last {period_days:.0f} days" if period_days >= 1 else f"last {period_days * 24:.0f} hours"
@@ -78,7 +78,7 @@ def generate_digest(lab_id: str, hostname: str, hours: int = 168) -> dict[str, A
     load = summary_data.get("load", {})
     alerts_total = summary_data.get("alerts_total", 0)
     alerts_resolved = summary_data.get("alerts_resolved", 0)
-    alerts_active = alerts_total - alerts_resolved
+    alerts_active = max(0, alerts_total - alerts_resolved)
 
     # Build narrative summary
     narrative = _build_narrative(hostname, summary_data, period_days)

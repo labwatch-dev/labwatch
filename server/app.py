@@ -1148,7 +1148,10 @@ def user_lab_detail(request: Request, lab_id: str):
     if not lab:
         raise HTTPException(status_code=404, detail="Lab not found")
 
-    history_hours = int(request.query_params.get("hours", "24"))
+    try:
+        history_hours = int(request.query_params.get("hours", "24"))
+    except (ValueError, TypeError):
+        history_hours = 24
     history_hours = max(1, min(history_hours, _tier_retention_hours(email)))
 
     metrics = db.get_latest_metrics(lab_id)
@@ -1295,6 +1298,8 @@ def create_user_notification(request: Request, body: dict = None):
         raise HTTPException(status_code=400, detail="name and channel_type are required")
     if channel_type not in ("webhook", "ntfy", "telegram", "discord", "slack", "gotify", "pushover", "apprise"):
         raise HTTPException(status_code=400, detail="Unsupported channel_type")
+    if min_severity not in ("info", "warning", "critical"):
+        raise HTTPException(status_code=400, detail="min_severity must be info, warning, or critical")
 
     channel_id = db.add_user_notification_channel(email, name, channel_type, cfg, min_severity)
     return {"id": channel_id, "status": "created", "channel": {"id": channel_id, "name": name, "channel_type": channel_type}}
@@ -1781,7 +1786,10 @@ def demo_lab_history(request: Request, lab_id: str):
         return {"timestamps": [], "cpu": [], "memory": [], "disk": [], "load": []}
 
     now = datetime.now(timezone.utc)
-    hours = int(request.query_params.get("hours", "24"))
+    try:
+        hours = int(request.query_params.get("hours", "24"))
+    except (ValueError, TypeError):
+        hours = 24
     hours = max(1, min(hours, 168))
     points = min(hours * 6, 144)  # ~10min intervals, max 144 points
 
@@ -1869,7 +1877,10 @@ def dashboard_lab_detail(request: Request, lab_id: str, x_admin_secret: Optional
     max_retention = max(
         (t.get("retention_hours") or 0) for t in config.TIER_LIMITS.values()
     )
-    history_hours = int(request.query_params.get("hours", "24"))
+    try:
+        history_hours = int(request.query_params.get("hours", "24"))
+    except (ValueError, TypeError):
+        history_hours = 24
     history_hours = max(1, min(history_hours, max_retention or config.RETENTION_HOURS))
 
     metrics = db.get_latest_metrics(lab_id)
