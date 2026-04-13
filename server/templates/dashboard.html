@@ -1801,9 +1801,10 @@ body.edit-mode .widget-block.drop-after {
         <p>{{ t.dashboard_no_labs_desc }}</p>
         {% if user_email and not is_demo %}
         <a href="/my/add-node" class="empty-cta">+ add your first node</a>
-        <span class="empty-cta-sep">— or paste this on any linux box —</span>
-        {% endif %}
+        <p style="font-size:13px;color:var(--text-muted);margin-top:8px;">The setup wizard gives you a one-command install with your credentials baked in.</p>
+        {% else %}
         <div class="install-cmd">curl -fsSL https://labwatch.dev/install.sh | bash</div>
+        {% endif %}
     </div>
     {% endif %}
     <div class="add-widget-picker" id="add-widget-picker">

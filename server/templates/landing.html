@@ -1005,6 +1005,7 @@
         <p class="install-note">
             {{ t.landing_install_note }} <a href="/download/labwatch-linux-amd64">amd64</a> / <a href="/download/labwatch-linux-arm64">arm64</a>.
             {{ t.landing_install_note2 if t and t.landing_install_note2 else 'Open source — AGPL-3.0 server, MIT agent.' }} <a href="https://github.com/labwatch-dev/labwatch" target="_blank" rel="noopener">{{ t.landing_install_github if t and t.landing_install_github else 'Source on GitHub' }}</a>.
+            <a href="https://github.com/labwatch-dev/labwatch/blob/main/install.sh" target="_blank" rel="noopener" style="color:var(--text-muted);font-size:12px;margin-left:4px;">(review the script first)</a>
         </p>
     </div>
 </section>
@@ -1047,6 +1048,7 @@
             </div>
             <h3>{{ t.landing_feat_nlq_title }}</h3>
             <p>{{ t.landing_feat_nlq_desc }}</p>
+            <span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.5px;color:var(--accent);border:1px solid var(--accent);opacity:0.85;">NO LLM — pure regex + rules</span>
         </div>
         <div class="feature-card">
             <div class="feature-icon" aria-hidden="true">
@@ -1238,7 +1240,7 @@
 <section class="nlq-demo">
     <div class="section-header">
         <h2>{{ t.landing_demo_title }}</h2>
-        <p>{{ t.landing_demo_sub }}</p>
+        <p>{{ t.landing_demo_sub }}<br><span style="font-size:13px;color:var(--text-muted);">No LLM, no API keys, no data leaves your server. 100% rule-based engine.</span></p>
     </div>
     <div class="demo-terminal">
         <div class="demo-bar">
@@ -1434,6 +1436,13 @@ function scheduleCycle() {
 document.addEventListener('DOMContentLoaded', function() {
     playDemo(0);
     scheduleCycle();
+
+    // Pause auto-cycle on hover so users can read the response
+    var terminal = document.querySelector('.demo-terminal');
+    if (terminal) {
+        terminal.addEventListener('mouseenter', function() { clearTimeout(cycleTimer); });
+        terminal.addEventListener('mouseleave', function() { scheduleCycle(); });
+    }
 });
 
 // === Easter egg: Konami code reveals ember mascot ===
