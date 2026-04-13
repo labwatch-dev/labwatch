@@ -881,7 +881,7 @@ X-Admin-Secret: your-secret-here</div>
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/widgets/sparkline/{lab_id}/{metric}</span>
                     <span class="endpoint-desc">Short-window time series</span>
-                    <span class="endpoint-auth">public</span>
+                    <span class="endpoint-auth">session or admin</span>
                     <span class="endpoint-chevron">&#9654;</span>
                 </div>
                 <div class="endpoint-body">
@@ -1418,9 +1418,9 @@ X-Admin-Secret: your-secret-here</div>
             <h3>Layout &amp; Pins</h3>
             <table class="param-table">
                 <tr><th>Method</th><th>Path</th><th>Description</th></tr>
-                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Get the saved widget layout</td></tr>
-                <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Save a new widget layout</td></tr>
-                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Reset layout to the default</td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Get the saved widget layout <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Save a new widget layout <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Reset layout to the default <em>(planned)</em></td></tr>
                 <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/pins</td><td>List pinned labs</td></tr>
                 <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/pin/{lab_id}</td><td>Pin a lab</td></tr>
                 <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/pin/{lab_id}</td><td>Unpin a lab</td></tr>
@@ -1440,13 +1440,13 @@ X-Admin-Secret: your-secret-here</div>
             <h3>Per-Lab Controls</h3>
             <table class="param-table">
                 <tr><th>Method</th><th>Path</th><th>Description</th></tr>
-                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Get the public status page config (token, enabled)</td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Enable a public status page (returns <code>/s/{public_id}</code>)</td></tr>
-                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Disable the public status page</td></tr>
-                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Check if the lab is in a maintenance window</td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Start a maintenance window (alerts suppressed)</td></tr>
-                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>End the active maintenance window</td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/display-name</td><td>Set a custom display name for a lab</td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Get the public status page config (token, enabled) <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Enable a public status page (returns <code>/s/{public_id}</code>) <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Disable the public status page <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Check if the lab is in a maintenance window <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Start a maintenance window (alerts suppressed) <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>End the active maintenance window <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/display-name</td><td>Set a custom display name for a lab <em>(planned)</em></td></tr>
             </table>
 
             <h3>Notifications</h3>
@@ -1454,11 +1454,11 @@ X-Admin-Secret: your-secret-here</div>
                 <tr><th>Method</th><th>Path</th><th>Description</th></tr>
                 <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/notification-prefs</td><td>Get personal notification preferences</td></tr>
                 <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/notification-prefs</td><td>Update preferences (quiet hours, severities)</td></tr>
-                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/notifications</td><td>List personal notification channels</td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications</td><td>Create a new channel</td></tr>
-                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}</td><td>Delete a channel</td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}/test</td><td>Send a test notification</td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/test-inline</td><td>Test a channel config without saving it</td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/notifications</td><td>List personal notification channels <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications</td><td>Create a new channel <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}</td><td>Delete a channel <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}/test</td><td>Send a test notification <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/test-inline</td><td>Test a channel config without saving it <em>(planned)</em></td></tr>
             </table>
         </section>
 

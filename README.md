@@ -16,7 +16,7 @@ labwatch collects system metrics, Docker container status, and service health fr
 - **Service discovery** — auto-detects Docker, SSH, HTTP, databases, Proxmox, Grafana, Prometheus
 - **GPU monitoring** — NVIDIA GPU stats via nvidia-smi
 - **Smart alerts** — deduplication, auto-resolution, severity levels (warning/critical)
-- **Push notifications** — webhook and ntfy channels for alert delivery
+- **Push notifications** — 8 channels: webhook, ntfy, Telegram, Discord, Slack, Gotify, Pushover, Apprise
 - **Intelligence digests** — narrative health reports with grades (A through C)
 - **Natural language queries** — ask "Why is my NAS slow?" and get answers from your metrics
 - **Dashboard widgets** — uptime timeline, alert feed, per-node sparklines
@@ -51,23 +51,10 @@ That's it. The agent auto-detects Docker, local services (SSH, HTTP, databases, 
 
 ### Multi-node rollout
 
-The agent can scan your LAN and show install commands for every SSH-capable host:
+Run the install script on each node, pointing it at your server:
 
 ```bash
-labwatch --discover
-```
-
-Output:
-```
-Found 5 SSH-capable hosts on the local network:
-
-  192.168.1.100  (hypervisor.local)
-  192.168.1.101  (docker-host.local)
-  192.168.1.102  (nas.local)
-  ...
-
-Install labwatch on each host:
-  ssh root@<IP> 'curl -fsSL http://YOUR_SERVER/install.sh | bash && labwatch --register ...'
+ssh root@<IP> 'curl -fsSL http://YOUR_SERVER/install.sh | bash'
 ```
 
 ### Server (manual, without Docker)

@@ -82,7 +82,7 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS notification_channels (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
-                channel_type TEXT NOT NULL CHECK(channel_type IN ('webhook', 'ntfy', 'telegram')),
+                channel_type TEXT NOT NULL CHECK(channel_type IN ('webhook', 'ntfy', 'telegram', 'discord', 'slack', 'gotify', 'pushover', 'apprise')),
                 config TEXT NOT NULL DEFAULT '{}',
                 enabled INTEGER NOT NULL DEFAULT 1,
                 min_severity TEXT NOT NULL DEFAULT 'warning' CHECK(min_severity IN ('info', 'warning', 'critical')),
@@ -110,15 +110,15 @@ def init_db() -> None:
         ).fetchone()
         if row:
             ddl = row[0] or ""
-            if "'telegram'" not in ddl and "notification_channels" in ddl:
-                logger.info("Migrating notification_channels table to add 'telegram' channel type")
+            if "'apprise'" not in ddl and "notification_channels" in ddl:
+                logger.info("Migrating notification_channels table to support all 8 channel types")
                 conn.executescript("""
                     ALTER TABLE notification_channels RENAME TO _notification_channels_old;
 
                     CREATE TABLE notification_channels (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT NOT NULL,
-                        channel_type TEXT NOT NULL CHECK(channel_type IN ('webhook', 'ntfy', 'telegram')),
+                        channel_type TEXT NOT NULL CHECK(channel_type IN ('webhook', 'ntfy', 'telegram', 'discord', 'slack', 'gotify', 'pushover', 'apprise')),
                         config TEXT NOT NULL DEFAULT '{}',
                         enabled INTEGER NOT NULL DEFAULT 1,
                         min_severity TEXT NOT NULL DEFAULT 'warning' CHECK(min_severity IN ('info', 'warning', 'critical')),
@@ -134,7 +134,7 @@ def init_db() -> None:
                     CREATE INDEX IF NOT EXISTS idx_notif_channels_type ON notification_channels(channel_type);
                 """)
                 conn.commit()
-                logger.info("Migration complete: notification_channels now supports 'telegram'")
+                logger.info("Migration complete: notification_channels now supports all 8 channel types")
 
         # Migrate signups table to add password_hash column if missing
         cols = [r[1] for r in conn.execute("PRAGMA table_info(signups)").fetchall()]
