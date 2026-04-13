@@ -302,7 +302,7 @@ def _lab_is_online(last_seen: Optional[str], threshold_minutes: int = 5) -> bool
         return False
     try:
         ts = datetime.fromisoformat(last_seen)
-        return (datetime.utcnow() - ts) < timedelta(minutes=threshold_minutes)
+        return (datetime.now(timezone.utc) - ts) < timedelta(minutes=threshold_minutes)
     except (ValueError, TypeError):
         return False
 
@@ -1016,6 +1016,7 @@ def set_notification_prefs(request: Request, body: dict = {}):
 @app.get("/my/lab/{lab_id}/history")
 def user_lab_history(request: Request, lab_id: str, hours: int = 24):
     """User's lab metrics history API."""
+    hours = max(1, min(hours, 8760))  # Clamp to 1h..1year
     email = _get_session_email(request)
     if not email:
         raise HTTPException(status_code=401, detail="Not logged in")
@@ -1237,6 +1238,7 @@ def widget_uptime(request: Request, hours: int = 24, x_admin_secret: Optional[st
 @app.get("/api/v1/widgets/alerts")
 def widget_alerts(request: Request, limit: int = 20, x_admin_secret: Optional[str] = Header(None)):
     """Recent alert feed for dashboard widget."""
+    limit = max(1, min(limit, 100))
     email = _get_session_email(request)
     is_admin = x_admin_secret and hmac.compare_digest(x_admin_secret, config.ADMIN_SECRET)
     if not email and not is_admin:
@@ -1277,24 +1279,24 @@ def demo_dashboard(request: Request):
          "container_count": 12, "os": "Debian 12", "arch": "x86_64",
          "net_rx_mbps": 99.2, "net_tx_mbps": 24.8,
          "alert_count": 1, "critical_count": 0,
-         "last_seen": datetime.utcnow().isoformat()},
+         "last_seen": datetime.now(timezone.utc).isoformat()},
         {"id": "demo-2", "name": "docker-host", "hostname": "docker-01", "online": True,
          "cpu_percent": 8.1, "memory_percent": 38.7, "disk_percent": 29.3, "load_1m": 0.45,
          "container_count": 22, "os": "Ubuntu 24.04", "arch": "x86_64",
          "net_rx_mbps": 45.6, "net_tx_mbps": 12.3,
          "alert_count": 0, "critical_count": 0,
-         "last_seen": datetime.utcnow().isoformat()},
+         "last_seen": datetime.now(timezone.utc).isoformat()},
         {"id": "demo-3", "name": "nas-storage", "hostname": "storage-01", "online": True,
          "cpu_percent": 4.2, "memory_percent": 72.8, "disk_percent": 78.1, "load_1m": 3.21,
          "container_count": 0, "os": "TrueNAS SCALE", "arch": "x86_64",
          "net_rx_mbps": 210.5, "net_tx_mbps": 185.2,
          "alert_count": 2, "critical_count": 1,
-         "last_seen": datetime.utcnow().isoformat()},
+         "last_seen": datetime.now(timezone.utc).isoformat()},
         {"id": "demo-4", "name": "gpu-server", "hostname": "gpu-01", "online": False,
          "cpu_percent": 0, "memory_percent": 0, "disk_percent": 55.3, "load_1m": 0,
          "container_count": 0, "os": "Arch Linux", "arch": "x86_64",
          "alert_count": 1, "critical_count": 1,
-         "last_seen": (datetime.utcnow() - timedelta(hours=3)).isoformat()},
+         "last_seen": (datetime.now(timezone.utc) - timedelta(hours=3)).isoformat()},
     ]
     return templates.TemplateResponse("dashboard.html", _tpl_context(
         request, labs=demo_labs, total=len(demo_labs), secret="demo", is_demo=True,
@@ -1381,7 +1383,7 @@ def demo_lab_detail(request: Request, lab_id: str):
     if not detail:
         raise HTTPException(status_code=404, detail="Demo lab not found")
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     lab = {k: v for k, v in detail.items() if not k.startswith("_")}
     lab["last_seen"] = now.isoformat() if detail["_online"] else (now - timedelta(hours=3)).isoformat()
 
@@ -1425,7 +1427,7 @@ def demo_lab_history(request: Request, lab_id: str):
     if not detail:
         return {"timestamps": [], "cpu": [], "memory": [], "disk": [], "load": []}
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     hours = int(request.query_params.get("hours", "24"))
     hours = max(1, min(hours, 168))
     points = min(hours * 6, 144)  # ~10min intervals, max 144 points
@@ -1714,7 +1716,7 @@ def _build_lab_export_response(lab_id: str, hours: int) -> JSONResponse:
                 "arch": lab["arch"],
                 "registered_at": lab["registered_at"],
             },
-            "exported_at": datetime.utcnow().isoformat(),
+            "exported_at": datetime.now(timezone.utc).isoformat(),
             "metrics_count": len(history),
             "alerts_count": len(alerts),
             "metrics": history,

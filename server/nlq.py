@@ -463,7 +463,7 @@ def _lab_is_online(last_seen: Optional[str], threshold_minutes: int = 5) -> bool
         return False
     try:
         ts = datetime.fromisoformat(last_seen)
-        return (datetime.utcnow() - ts) < timedelta(minutes=threshold_minutes)
+        return (datetime.now(timezone.utc) - ts) < timedelta(minutes=threshold_minutes)
     except (ValueError, TypeError):
         return False
 
@@ -518,7 +518,7 @@ def _extract_node_name(text: str) -> Optional[str]:
 
 def _parse_time_range(text: str) -> tuple[datetime, datetime]:
     """Parse time references from natural language."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     # "last night" / "overnight"
     if "last night" in text or "overnight" in text:
@@ -752,7 +752,7 @@ def _handle_status(question: str, match: re.Match) -> dict:
         if lab["last_seen"]:
             try:
                 ts = datetime.fromisoformat(lab["last_seen"])
-                ago = datetime.utcnow() - ts
+                ago = datetime.now(timezone.utc) - ts
                 hours = ago.total_seconds() / 3600
                 if hours < 1:
                     parts.append(
@@ -1514,7 +1514,7 @@ def _handle_alerts(question: str, match: re.Match) -> dict:
 
     if is_recent:
         # Show recent alerts including resolved ones (last 24h)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         start = (now - timedelta(hours=24)).isoformat()
         end = now.isoformat()
 

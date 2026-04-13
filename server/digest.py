@@ -148,7 +148,7 @@ def generate_digest(lab_id: str, hostname: str, hours: int = 168) -> dict[str, A
     full_summary = "\n\n".join(sections)
 
     # Store it
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     period_start = (now - timedelta(hours=hours)).isoformat()
     period_end = now.isoformat()
 
@@ -195,7 +195,7 @@ def generate_fleet_digest(hours: int = 168) -> dict[str, Any]:
         for c in fleet_concerns:
             fleet_summary += f"- {c}\n"
 
-    fleet_summary += f"\n---\n*Generated {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}*"
+    fleet_summary += f"\n---\n*Generated {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}*"
 
     return {
         "summary": fleet_summary,

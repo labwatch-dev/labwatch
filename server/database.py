@@ -168,7 +168,7 @@ def register_lab(hostname: str, os_name: str, arch: str, version: str) -> tuple[
     """Register a new lab agent. Returns (lab_id, token)."""
     lab_id = str(uuid4())
     token = secrets.token_hex(32)
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
 
     conn = _connect()
     try:
@@ -208,7 +208,7 @@ def signup_lab(email: str, hostname: str, ip_address: str = None, password: str 
 
     conn = _connect()
     try:
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         conn.execute(
             "INSERT INTO signups (email, password_hash, lab_id, plan, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)",
             (email, pw_hash, lab_id, "free", ip_address, now),
@@ -267,7 +267,7 @@ def check_signup_rate(ip_address: str, max_per_hour: int = 5) -> bool:
     """Returns True if the IP is under the signup rate limit."""
     conn = _connect()
     try:
-        cutoff = (datetime.utcnow() - timedelta(hours=1)).isoformat()
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
         row = conn.execute(
             "SELECT COUNT(*) FROM signups WHERE ip_address = ? AND created_at > ?",
             (ip_address, cutoff),
@@ -352,7 +352,7 @@ def list_labs() -> list[dict[str, Any]]:
 
 def store_metrics(lab_id: str, metric_type: str, data: Any) -> None:
     """Store a metrics snapshot."""
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     data_json = json.dumps(data) if not isinstance(data, str) else data
 
     conn = _connect()
@@ -412,7 +412,7 @@ def get_recent_system_samples(lab_id: str, count: int = 2) -> list[dict]:
 
 def get_metrics_history(lab_id: str, hours: int = 24) -> list[dict[str, Any]]:
     """Get metrics history for a lab within the given time window."""
-    cutoff = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
 
     conn = _connect()
     try:
@@ -435,7 +435,7 @@ def get_metrics_history(lab_id: str, hours: int = 24) -> list[dict[str, Any]]:
 
 def update_last_seen(lab_id: str) -> None:
     """Touch the last_seen timestamp for a lab."""
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     conn = _connect()
     try:
         conn.execute("UPDATE labs SET last_seen = ? WHERE id = ?", (now, lab_id))
@@ -467,7 +467,7 @@ def store_alert(
     When an existing unresolved alert of the same type exists, updates it
     and returns (existing_id, False). Otherwise inserts and returns (new_id, True).
     """
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     data_json = json.dumps(data or {})
 
     conn = _connect()
@@ -501,7 +501,7 @@ def store_alert(
 
 def resolve_alerts(lab_id: str, alert_types: list[str]) -> int:
     """Resolve alerts of given types for a lab. Returns count resolved."""
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     if not alert_types:
         return 0
     placeholders = ",".join("?" * len(alert_types))
@@ -624,7 +624,7 @@ def get_uptime_segments(hours: int = 24) -> dict[str, list[dict]]:
     Returns {lab_id: [{start, end, status}]} where status is 'online', 'stale', or 'offline'.
     Uses metrics timestamps to determine when nodes were reporting.
     """
-    cutoff = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
     conn = _connect()
     try:
         # Get all labs
@@ -655,7 +655,7 @@ def _build_uptime_segments(timestamps: list[str], window_hours: int) -> list[dic
 
     A gap > 3 minutes between reports = offline segment.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     window_start = now - timedelta(hours=window_hours)
     segments = []
     gap_threshold = timedelta(minutes=3)
@@ -698,7 +698,7 @@ def get_metric_sparkline(lab_id: str, metric_path: str, hours: int = 1, points: 
     metric_path: 'cpu', 'memory', or 'disk' — extracts from system metrics.
     Returns [{timestamp, value}] sampled to ~points entries.
     """
-    cutoff = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
     conn = _connect()
     try:
         rows = conn.execute(
@@ -739,7 +739,7 @@ def get_metric_sparkline(lab_id: str, metric_path: str, hours: int = 1, points: 
 
 def purge_old_metrics(hours: int = 24) -> int:
     """Remove metrics older than the given hours. Returns count deleted."""
-    cutoff = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
     conn = _connect()
     try:
         cursor = conn.execute(
@@ -786,7 +786,7 @@ def purge_metrics_per_tier(tier_limits: dict, default_plan: str = "free") -> int
     Labs with no associated signup (legacy/demo rows) fall back to the
     default plan's retention. Returns total rows deleted.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     default_hours = (
         tier_limits.get(default_plan, {}).get("retention_hours")
         or 24 * 30
@@ -828,7 +828,7 @@ def purge_metrics_per_tier(tier_limits: dict, default_plan: str = "free") -> int
 
 def purge_old_alerts(hours: int = 720) -> int:
     """Remove alerts older than the given hours. Returns count deleted."""
-    cutoff = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
     conn = _connect()
     try:
         cursor = conn.execute(
@@ -863,7 +863,7 @@ def get_lab_stats(lab_id: str) -> dict[str, Any]:
 
 def store_digest(lab_id: str, period_start: str, period_end: str, summary: str, data: Any = None) -> int:
     """Store a digest."""
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     data_json = json.dumps(data or {})
     conn = _connect()
     try:
@@ -897,7 +897,7 @@ def get_latest_digest(lab_id: str) -> Optional[dict[str, Any]]:
 
 def get_metrics_summary(lab_id: str, hours: int = 168) -> dict[str, Any]:
     """Get aggregated metrics stats for digest generation."""
-    cutoff = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
     conn = _connect()
     try:
         rows = conn.execute(
@@ -985,7 +985,7 @@ def add_notification_channel(
     min_severity: str = "warning",
 ) -> int:
     """Create a notification channel. Returns channel id."""
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     config_json = json.dumps(config or {})
 
     conn = _connect()
@@ -1111,7 +1111,7 @@ def get_enabled_channels(min_severity: str = "warning") -> list[dict[str, Any]]:
 
 def _set_pref(email: str, pref_type: str, lab_id: Optional[str], data: dict) -> None:
     """Upsert a user preference."""
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     conn = _connect()
     try:
         conn.execute("""

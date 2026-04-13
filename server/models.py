@@ -1,6 +1,6 @@
 """Pydantic models for the labwatch API."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
@@ -9,10 +9,10 @@ from pydantic import BaseModel, Field
 # --- Registration ---
 
 class RegisterRequest(BaseModel):
-    hostname: str
-    os: str = ""
-    arch: str = ""
-    agent_version: str = ""
+    hostname: str = Field(max_length=255)
+    os: str = Field("", max_length=64)
+    arch: str = Field("", max_length=32)
+    agent_version: str = Field("", max_length=32)
 
 
 class RegisterResponse(BaseModel):
@@ -31,7 +31,7 @@ class SignupRequest(BaseModel):
 
 class MetricPayload(BaseModel):
     lab_id: str
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     collectors: dict[str, Any] = Field(
         default_factory=dict,
         description="Collector data keyed by type: system, docker, services",
