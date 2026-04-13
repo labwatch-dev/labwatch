@@ -1,6 +1,7 @@
 """Rule-based metrics analysis engine for labwatch."""
 
 import logging
+import threading
 from typing import Any
 
 import database as db
@@ -282,17 +283,20 @@ def _fire(
     """Store an alert, dispatch notifications for new alerts, and return summary dict."""
     alert_id, is_new = store_alert(lab_id, alert_type, severity, message, data)
 
-    # Only send notifications for genuinely new alerts, not dedup updates
+    # Only send notifications for genuinely new alerts, not dedup updates.
+    # Dispatch in a background thread so notification HTTP calls don't block ingest.
     if is_new:
-        try:
-            lab = db.get_lab(lab_id)
-            if lab:
-                send_alert_notification(
-                    alert={"type": alert_type, "severity": severity, "message": message, "data": data},
-                    lab=lab,
-                )
-        except Exception as e:
-            logger.error(f"Failed to dispatch notifications for alert {alert_type} on lab {lab_id}: {e}")
+        def _dispatch():
+            try:
+                lab = db.get_lab(lab_id)
+                if lab:
+                    send_alert_notification(
+                        alert={"type": alert_type, "severity": severity, "message": message, "data": data},
+                        lab=lab,
+                    )
+            except Exception as e:
+                logger.error(f"Failed to dispatch notifications for alert {alert_type} on lab {lab_id}: {e}")
+        threading.Thread(target=_dispatch, daemon=True).start()
 
     return {
         "id": alert_id,

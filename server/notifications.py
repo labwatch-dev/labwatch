@@ -246,12 +246,16 @@ def _send_ntfy(channel: dict, alert: dict, lab: dict, config: dict) -> None:
 
 def _send_telegram(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     """Send alert via Telegram Bot API."""
-    bot_token = config.get("bot_token")
-    chat_id = config.get("chat_id")
+    bot_token = config.get("bot_token", "").strip()
+    chat_id = config.get("chat_id", "").strip()
     if not bot_token:
         raise ValueError("Telegram bot_token not configured")
     if not chat_id:
         raise ValueError("Telegram chat_id not configured")
+    # Validate token format (digits:alphanumeric) to prevent URL path traversal
+    import re
+    if not re.fullmatch(r"\d+:[A-Za-z0-9_-]+", bot_token):
+        raise ValueError("Invalid Telegram bot token format")
 
     # Map severity to emoji
     emoji_map = {
