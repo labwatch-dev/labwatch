@@ -2788,8 +2788,11 @@ function dismissSuggestions() {
         clearDropMarkers();
     }, true);
 
-    document.addEventListener('DOMContentLoaded', loadLayout);
-    if (document.readyState !== 'loading') loadLayout();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadLayout);
+    } else {
+        loadLayout();
+    }
 })();
 </script>
 {% endblock %}

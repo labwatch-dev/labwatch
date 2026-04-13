@@ -1453,8 +1453,8 @@ X-Admin-Secret: your-secret-here</div>
                 <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/thresholds/{lab_id}</td><td>Get thresholds for one lab</td></tr>
                 <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/thresholds/{lab_id}</td><td>Set thresholds for one lab</td></tr>
                 <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/thresholds/{lab_id}</td><td>Reset thresholds to the default</td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/alerts/generate</td><td>Ask the NLQ engine to suggest thresholds from recent metrics <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/alerts/apply</td><td>Apply a generated threshold set <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/alerts/generate</td><td>Ask the NLQ engine to suggest thresholds from recent metrics</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/alerts/apply</td><td>Apply a generated threshold set</td></tr>
             </table>
 
             <h3>Per-Lab Controls</h3>
@@ -1474,11 +1474,11 @@ X-Admin-Secret: your-secret-here</div>
                 <tr><th>Method</th><th>Path</th><th>Description</th></tr>
                 <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/notification-prefs</td><td>Get personal notification preferences</td></tr>
                 <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/notification-prefs</td><td>Update preferences (quiet hours, severities)</td></tr>
-                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/notifications</td><td>List personal notification channels <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications</td><td>Create a new channel <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}</td><td>Delete a channel <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}/test</td><td>Send a test notification <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/test-inline</td><td>Test a channel config without saving it <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/notifications</td><td>List personal notification channels</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications</td><td>Create a new channel</td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}</td><td>Delete a channel</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/{channel_id}/test</td><td>Send a test notification</td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/notifications/test-inline</td><td>Test a channel config without saving it</td></tr>
             </table>
         </section>
 

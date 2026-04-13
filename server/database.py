@@ -266,6 +266,9 @@ def signup_lab(email: str, hostname: str, ip_address: str = None, password: str 
     pw_hash = _hash_password(password) if password else None
     now = datetime.now(timezone.utc).isoformat()
 
+    # Inherit plan from existing account (so Pro users don't get downgraded on new nodes)
+    existing_plan = get_plan_for_email(email)
+
     conn = _connect()
     try:
         conn.execute(
@@ -275,7 +278,7 @@ def signup_lab(email: str, hostname: str, ip_address: str = None, password: str 
         )
         conn.execute(
             "INSERT INTO signups (email, password_hash, lab_id, plan, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (email, pw_hash, lab_id, "free", ip_address, now),
+            (email, pw_hash, lab_id, existing_plan, ip_address, now),
         )
         conn.commit()
     except Exception:

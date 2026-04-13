@@ -434,7 +434,7 @@ labwatch.example.com {
             <p>All state lives in a single SQLite file at <code>/app/data/labwatch.db</code> (mapped to the <code>labwatch-data</code> volume). Back it up the same way you back up anything else:</p>
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
 docker compose exec labwatch \
-  sqlite3 /app/data/labwatch.db ".backup /app/data/backup.db"
+  python -c "import sqlite3; sqlite3.connect('/app/data/labwatch.db').backup(sqlite3.connect('/app/data/backup.db'))"
 docker cp labwatch:/app/data/backup.db ./labwatch-$(date +%F).db</div>
             <p>Or just snapshot the Docker volume directly with <code>restic</code>, <code>borg</code>, or whatever you already use.</p>
         </section>
