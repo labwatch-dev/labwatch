@@ -1,4 +1,6 @@
 .git
+.github
+.claude
 **/__pycache__
 **/*.pyc
 server/data/
@@ -8,3 +10,5 @@ screenshots/
 .env.*
 launch/
 server/dist/
+SECURITY.md
+README.md
