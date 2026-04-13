@@ -77,6 +77,39 @@ app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")
 
 
 @app.middleware("http")
+async def csrf_origin_check(request: Request, call_next):
+    """Block cross-origin form POSTs to state-changing endpoints (CSRF protection).
+
+    Checks Origin/Referer header on POST requests to browser-facing routes.
+    API routes (Bearer/admin auth) are excluded — they're not vulnerable to CSRF.
+    """
+    if request.method == "POST":
+        path = request.url.path
+        # Only check browser-facing form endpoints (not API routes with header auth)
+        csrf_paths = {"/login", "/set-password"}
+        if path in csrf_paths:
+            origin = request.headers.get("origin") or ""
+            referer = request.headers.get("referer") or ""
+            expected_origin = config.BASE_URL.rstrip("/")
+            from urllib.parse import urlparse
+            expected_host = urlparse(expected_origin).netloc
+            origin_ok = (
+                not origin  # Some browsers omit Origin on same-origin
+                or urlparse(origin).netloc == expected_host
+            )
+            referer_ok = (
+                not referer
+                or urlparse(referer).netloc == expected_host
+            )
+            if not origin_ok and not referer_ok:
+                return JSONResponse(
+                    content={"detail": "Cross-origin request blocked"},
+                    status_code=403,
+                )
+    return await call_next(request)
+
+
+@app.middleware("http")
 async def security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"

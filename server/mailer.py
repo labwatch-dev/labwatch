@@ -8,6 +8,7 @@ response — Stripe would retry indefinitely. We log and swallow.
 
 from __future__ import annotations
 
+import html as _html
 import json
 import logging
 import urllib.error
@@ -122,7 +123,7 @@ def send_plan_upgrade_receipt(email: str, plan: str, session_id: str = "") -> Op
         "reply to this email.</p>"
     )
     if session_id:
-        footer_html += f'<p style="font-size: 11px; color: #444; margin: 16px 0 0 0;">ref: {session_id}</p>'
+        footer_html += f'<p style="font-size: 11px; color: #444; margin: 16px 0 0 0;">ref: {_html.escape(session_id)}</p>'
 
     html = _wrap_email(
         title=f"Welcome to labwatch {plan_display}",

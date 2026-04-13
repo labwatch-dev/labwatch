@@ -1115,20 +1115,7 @@
                     <td><span class="no">&#10005;</span></td>
                     <td><span class="partial">cloud only</span></td>
                 </tr>
-                <tr>
-                    <td>Text-to-alert <span style="color:var(--text-muted);font-size:11px">("alert me when CPU &gt; 85%")</span></td>
-                    <td class="cm-us"><span class="partial">soon</span></td>
-                    <td><span class="no">&#10005;</span></td>
-                    <td><span class="no">&#10005;</span></td>
-                    <td><span class="no">&#10005;</span></td>
-                </tr>
-                <tr>
-                    <td>MCP endpoint <span style="color:var(--text-muted);font-size:11px">(AI-readable metrics)</span></td>
-                    <td class="cm-us"><span class="partial">soon</span></td>
-                    <td><span class="no">&#10005;</span></td>
-                    <td><span class="no">&#10005;</span></td>
-                    <td><span class="partial">alpha</span></td>
-                </tr>
+                <!-- Text-to-alert and MCP: removed until shipped -->
                 <tr>
                     <td>Multi-host agents</td>
                     <td class="cm-us"><span class="yes">&#10003;</span></td>
@@ -1185,13 +1172,7 @@
                     <td><span class="num">docker</span></td>
                     <td><span class="num">1 command</span></td>
                 </tr>
-                <tr>
-                    <td>Public status page <span style="color:var(--text-muted);font-size:11px">(shareable, no login)</span></td>
-                    <td class="cm-us"><span class="partial">soon</span></td>
-                    <td><span class="no">&#10005;</span></td>
-                    <td><span class="yes">&#10003;</span></td>
-                    <td><span class="no">&#10005;</span></td>
-                </tr>
+                <!-- Public status page: removed until shipped -->
                 <tr>
                     <td>Docker container stats</td>
                     <td class="cm-us"><span class="yes">&#10003;</span></td>
@@ -1309,8 +1290,7 @@ processes waiting on I/O rather than computing.
                 <li><span class="check">+</span> {{ t.landing_price_alerts }}</li>
                 <li><span class="check">+</span> {{ t.landing_price_nlq }}</li>
                 <li><span class="check">+</span> {{ t.landing_price_weekly_digest }}</li>
-                <li><span class="check">+</span> {{ t.landing_price_public_status }} <span style="color:var(--text-muted);font-size:11px">(soon)</span></li>
-                <li><span class="check">+</span> {{ t.landing_price_mcp }} <span style="color:var(--text-muted);font-size:11px">(soon)</span></li>
+                <!-- public_status and mcp: removed until shipped -->
             </ul>
             <a href="/signup" class="btn btn-secondary">{{ t.landing_price_get_started }}</a>
         </div>
