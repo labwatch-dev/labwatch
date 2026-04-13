@@ -60,6 +60,11 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Warn about missing credentials
+	if cfg.LabID == "" || cfg.Token == "" {
+		log.Fatal("lab_id and token must be set in config. Run 'labwatch --register' first.")
+	}
+
 	// Create collectors
 	collectors := []collector.Collector{
 		collector.NewSystem(),

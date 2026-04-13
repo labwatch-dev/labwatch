@@ -58,7 +58,9 @@ func (s *Sender) Register() error {
 		return fmt.Errorf("marshaling registration body: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", s.cfg.APIEndpoint+"/register", bytes.NewReader(body))
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.APIEndpoint+"/register", bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
