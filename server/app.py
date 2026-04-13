@@ -1439,8 +1439,8 @@ def demo_lab_history(request: Request, lab_id: str):
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, x_admin_secret: Optional[str] = Header(None)):
-    # Also allow query param for browser access
-    secret = x_admin_secret or ""
+    # Allow query param for browser access (admin is the self-hoster who owns the server)
+    secret = x_admin_secret or request.query_params.get("secret") or ""
     if not hmac.compare_digest(secret, config.ADMIN_SECRET):
         return RedirectResponse("/demo", status_code=302)
 
@@ -1470,7 +1470,7 @@ def dashboard(request: Request, x_admin_secret: Optional[str] = Header(None)):
 
 @app.get("/dashboard/lab/{lab_id}", response_class=HTMLResponse)
 def dashboard_lab_detail(request: Request, lab_id: str, x_admin_secret: Optional[str] = Header(None)):
-    secret = x_admin_secret or ""
+    secret = x_admin_secret or request.query_params.get("secret") or ""
     if not hmac.compare_digest(secret, config.ADMIN_SECRET):
         return RedirectResponse("/demo", status_code=302)
 
@@ -1510,7 +1510,7 @@ def dashboard_lab_detail(request: Request, lab_id: str, x_admin_secret: Optional
 @app.get("/api/v1/labs/{lab_id}/history")
 def lab_metrics_history(request: Request, lab_id: str, hours: int = 24, x_admin_secret: Optional[str] = Header(None)):
     """Return time-series metrics data for charts."""
-    secret = x_admin_secret or ""
+    secret = x_admin_secret or request.query_params.get("secret") or ""
     if not hmac.compare_digest(secret, config.ADMIN_SECRET):
         raise HTTPException(status_code=403, detail="Forbidden")
 
