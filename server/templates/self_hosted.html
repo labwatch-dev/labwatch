@@ -406,6 +406,11 @@ docker compose up -d</div>
                         <td class="env-default">168</td>
                         <td>How long to keep metrics, alerts, and heartbeat data. Older rows are pruned on startup and every 24h. Bump this if you want longer history (at the cost of disk).</td>
                     </tr>
+                    <tr>
+                        <td class="env-name">SESSION_SECRET</td>
+                        <td class="env-default"><em>auto-generated</em></td>
+                        <td>Secret key for signing session cookies. If not set, a random key is generated on startup &mdash; meaning sessions are invalidated on every container restart. Set this to a fixed value (<code>openssl rand -hex 32</code>) if you want sessions to survive restarts.</td>
+                    </tr>
                 </tbody>
             </table>
             </div>

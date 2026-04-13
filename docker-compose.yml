@@ -6,9 +6,10 @@ services:
       - "8097:8097"
     environment:
       - ADMIN_SECRET=${ADMIN_SECRET:-change-me}
-      - SESSION_SECRET=${SESSION_SECRET:-}
+      - SESSION_SECRET=${SESSION_SECRET:-}  # Set to keep sessions across restarts
       - DATABASE_PATH=/app/data/labwatch.db
       - BASE_URL=${BASE_URL:-http://localhost:8097}
+      - RETENTION_HOURS=${RETENTION_HOURS:-168}  # 7 days default
       - PORT=8097
     volumes:
       - labwatch-data:/app/data
