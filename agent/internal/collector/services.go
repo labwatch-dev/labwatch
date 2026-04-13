@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"time"
@@ -99,6 +100,7 @@ func checkHTTP(svc config.ServiceConfig, timeout time.Duration, start time.Time)
 		return status
 	}
 	defer resp.Body.Close()
+	io.Copy(io.Discard, resp.Body)
 
 	status.StatusCode = resp.StatusCode
 	status.Healthy = resp.StatusCode >= 200 && resp.StatusCode < 400
