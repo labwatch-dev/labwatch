@@ -720,7 +720,7 @@ def get_alerts_in_range(
 
         where = " AND ".join(conditions) if conditions else "1=1"
         rows = conn.execute(
-            f"SELECT * FROM alerts WHERE {where} ORDER BY created_at DESC",
+            f"SELECT * FROM alerts WHERE {where} ORDER BY created_at DESC LIMIT 10000",
             params,
         ).fetchall()
 

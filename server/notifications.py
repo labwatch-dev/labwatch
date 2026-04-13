@@ -11,6 +11,23 @@ from urllib.parse import urlparse
 import database as db
 
 
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Block HTTP redirects to prevent SSRF via redirect to internal IPs."""
+
+    def redirect_request(self, req, fp, code, msg, hdrs, newurl):
+        raise urllib.error.HTTPError(
+            req.full_url, code, f"Redirect to {newurl} blocked (SSRF protection)", hdrs, fp
+        )
+
+
+_safe_opener = urllib.request.build_opener(_NoRedirectHandler)
+
+
+def _safe_urlopen(req, *, timeout=10):
+    """Open a URL without following redirects (SSRF protection)."""
+    return _safe_opener.open(req, timeout=timeout)
+
+
 def _validate_url(url: str) -> None:
     """Reject URLs with dangerous schemes, missing host, or private/internal IPs (SSRF)."""
     import ipaddress
@@ -200,7 +217,7 @@ def _send_webhook(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
 
-    with urllib.request.urlopen(req, timeout=10) as resp:
+    with _safe_urlopen(req, timeout=10) as resp:
         if resp.status >= 400:
             raise RuntimeError(f"Webhook returned HTTP {resp.status}")
 
@@ -239,7 +256,7 @@ def _send_ntfy(channel: dict, alert: dict, lab: dict, config: dict) -> None:
 
     req = urllib.request.Request(url, data=body.encode("utf-8"), headers=headers, method="POST")
 
-    with urllib.request.urlopen(req, timeout=10) as resp:
+    with _safe_urlopen(req, timeout=10) as resp:
         if resp.status >= 400:
             raise RuntimeError(f"ntfy returned HTTP {resp.status}")
 
@@ -326,7 +343,7 @@ def _send_discord(channel: dict, alert: dict, lab: dict, config: dict) -> None:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=10) as resp:
+    with _safe_urlopen(req, timeout=10) as resp:
         if resp.status >= 400:
             raise RuntimeError(f"Discord webhook returned HTTP {resp.status}")
 
@@ -365,7 +382,7 @@ def _send_slack(channel: dict, alert: dict, lab: dict, config: dict) -> None:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=10) as resp:
+    with _safe_urlopen(req, timeout=10) as resp:
         if resp.status >= 400:
             raise RuntimeError(f"Slack webhook returned HTTP {resp.status}")
 
@@ -398,7 +415,7 @@ def _send_gotify(channel: dict, alert: dict, lab: dict, config: dict) -> None:
         headers={"Content-Type": "application/json", "X-Gotify-Key": token},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=10) as resp:
+    with _safe_urlopen(req, timeout=10) as resp:
         if resp.status >= 400:
             raise RuntimeError(f"Gotify returned HTTP {resp.status}")
 
