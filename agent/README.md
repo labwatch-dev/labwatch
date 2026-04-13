@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/labwatch-dev/labwatch/releases"><img src="https://img.shields.io/github/v/release/labwatch-dev/labwatch?style=flat-square" alt="Release"></a>
-  <a href="https://github.com/labwatch-dev/labwatch/actions"><img src="https://img.shields.io/github/actions/workflow/status/labwatch-dev/labwatch/build.yml?style=flat-square" alt="Build"></a>
+  <a href="https://github.com/labwatch-dev/labwatch/actions"><img src="https://img.shields.io/github/actions/workflow/status/labwatch-dev/labwatch/ci.yml?style=flat-square" alt="Build"></a>
   <a href="https://goreportcard.com/report/github.com/labwatch-dev/labwatch"><img src="https://goreportcard.com/badge/github.com/labwatch-dev/labwatch?style=flat-square" alt="Go Report"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://labwatch.dev"><img src="https://img.shields.io/badge/docs-labwatch.dev-blue?style=flat-square" alt="Docs"></a>
