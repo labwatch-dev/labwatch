@@ -1,12 +1,23 @@
 """Alert notification dispatcher for labwatch."""
 
+import html
 import json
 import logging
 import urllib.request
 import urllib.error
 from typing import Any
+from urllib.parse import urlparse
 
 import database as db
+
+
+def _validate_url(url: str) -> None:
+    """Reject URLs with dangerous schemes (file://, ftp://) or missing host."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"URL scheme must be http or https, got '{parsed.scheme}'")
+    if not parsed.hostname:
+        raise ValueError("URL must include a hostname")
 
 logger = logging.getLogger("labwatch.notifications")
 
@@ -122,6 +133,7 @@ def _send_webhook(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     url = config.get("url")
     if not url:
         raise ValueError("Webhook URL not configured")
+    _validate_url(url)
 
     payload = {
         "event": "alert",
@@ -155,6 +167,7 @@ def _send_ntfy(channel: dict, alert: dict, lab: dict, config: dict) -> None:
         raise ValueError("ntfy topic not configured")
 
     url = f"{server.rstrip('/')}/{topic}"
+    _validate_url(url)
 
     # Map severity to ntfy priority
     priority_map = {"info": "low", "warning": "default", "critical": "urgent"}
@@ -208,9 +221,9 @@ def _send_telegram(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     text = (
         f"{emoji} <b>{severity_label} Alert</b>\n"
         f"\n"
-        f"<b>Host:</b> {hostname}\n"
-        f"<b>Type:</b> {alert['type']}\n"
-        f"<b>Message:</b> {alert['message']}"
+        f"<b>Host:</b> {html.escape(hostname)}\n"
+        f"<b>Type:</b> {html.escape(alert['type'])}\n"
+        f"<b>Message:</b> {html.escape(alert['message'])}"
     )
 
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -237,6 +250,7 @@ def _send_discord(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     webhook_url = config.get("webhook_url")
     if not webhook_url:
         raise ValueError("Discord webhook_url not configured")
+    _validate_url(webhook_url)
 
     color_map = {"info": 0x3498db, "warning": 0xf39c12, "critical": 0xe74c3c}
     color = color_map.get(alert["severity"], 0x95a5a6)
@@ -272,6 +286,7 @@ def _send_slack(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     webhook_url = config.get("webhook_url")
     if not webhook_url:
         raise ValueError("Slack webhook_url not configured")
+    _validate_url(webhook_url)
 
     color_map = {"info": "#3498db", "warning": "warning", "critical": "danger"}
     color = color_map.get(alert["severity"], "#95a5a6")
@@ -319,6 +334,7 @@ def _send_gotify(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     priority = priority_map.get(alert["severity"], 5)
     hostname = lab.get("hostname", "unknown")
 
+    _validate_url(server)
     url = f"{server.rstrip('/')}/message?token={token}"
     payload = {
         "title": f"[{alert['severity'].upper()}] {hostname}",

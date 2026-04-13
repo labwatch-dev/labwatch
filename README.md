@@ -13,7 +13,7 @@ labwatch collects system metrics, Docker container status, and service health fr
 **Features:**
 - **System metrics** — CPU, memory, disk, load average, network, uptime with inline sparklines
 - **Docker monitoring** — container health, restart loops, resource usage
-- **Service checks** — monitor HTTP and TCP endpoints, Docker detected automatically
+- **Service checks** — monitor HTTP and TCP endpoints via config
 - **GPU monitoring** — NVIDIA GPU stats via nvidia-smi
 - **Smart alerts** — deduplication, auto-resolution, severity levels (warning/critical)
 - **Push notifications** — 8 channels: webhook, ntfy, Telegram, Discord, Slack, Gotify, Pushover, Apprise
@@ -51,7 +51,7 @@ Edit `/etc/labwatch/config.yaml` with your server URL and API token, then:
 sudo systemctl enable --now labwatch
 ```
 
-The agent auto-detects Docker and GPU — no manual config needed for those. Add custom service checks (HTTP, TCP) in the config file. (Prefer to review the install script first? See the [self-hosted guide](https://labwatch.dev/self-hosted#agents).)
+Docker and GPU monitoring are enabled by default — the agent gracefully skips them if Docker or nvidia-smi isn't available. Add custom service checks (HTTP, TCP) in the config file. (Prefer to review the install script first? See the [self-hosted guide](https://labwatch.dev/self-hosted#agents).)
 
 ### Multi-node rollout
 
@@ -87,7 +87,7 @@ go build -o labwatch -ldflags="-s -w" ./cmd/labwatch/
   on each node        central host        persistent
 ```
 
-**Agent**: single static Go binary (~8MB, linux/amd64 and linux/arm64). No runtime dependencies. Sends metrics over HTTP every 60 seconds. Auto-detects Docker socket and NVIDIA GPUs. Configured via a simple YAML file at `/etc/labwatch/config.yaml`.
+**Agent**: single static Go binary (linux/amd64 and linux/arm64). No runtime dependencies. Sends metrics over HTTP every 60 seconds. Docker and GPU monitoring enabled by default. Configured via a simple YAML file at `/etc/labwatch/config.yaml`.
 
 **Server**: Python FastAPI with Jinja2 templates. SQLite in WAL mode. Runs rule-based analysis on every ingest cycle. Serves the dashboard, API, agent binaries, and install script from a single process.
 
