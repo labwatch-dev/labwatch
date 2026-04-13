@@ -1027,9 +1027,73 @@ def user_alerts_page(request: Request):
     email = _get_session_email(request)
     if not email:
         return RedirectResponse("/login", status_code=302)
+    thresholds = db.get_alert_thresholds(email)
     return templates.TemplateResponse("alerts.html", _tpl_context(
-        request, active_page="alerts",
+        request, active_page="alerts", current_thresholds=thresholds,
     ))
+
+
+_ALERT_PATTERNS = {
+    r"cpu.*?(\d+)": ("cpu_warning", "CPU warning"),
+    r"mem(?:ory)?.*?(\d+)": ("memory_warning", "Memory warning"),
+    r"disk.*?(\d+)": ("disk_warning", "Disk warning"),
+    r"load.*?(\d+)": ("load_warning", "Load warning"),
+    r"gpu.*?temp.*?(\d+)": ("gpu_temp_warning", "GPU temperature warning"),
+    r"gpu.*?mem.*?(\d+)": ("gpu_mem_warning", "GPU memory warning"),
+    r"gpu.*?util.*?(\d+)": ("gpu_util_warning", "GPU utilization warning"),
+}
+
+import re as _re
+
+
+@app.post("/api/v1/my/alerts/generate")
+def generate_alert_rule(request: Request, body: dict = None):
+    """Parse a natural language alert rule into threshold config."""
+    _require_session(request)
+    text = (body or {}).get("text", "").strip().lower()
+    if not text:
+        return {"ok": False, "error": "Please describe an alert rule."}
+
+    for pattern, (key, label) in _ALERT_PATTERNS.items():
+        m = _re.search(pattern, text)
+        if m:
+            value = int(m.group(1))
+            if value < 1 or value > 100 and "temp" not in key and "load" not in key:
+                return {"ok": False, "error": f"Threshold {value} is out of range."}
+            severity = "critical" if "critical" in text else "warning"
+            if severity == "critical":
+                key = key.replace("_warning", "_critical")
+                label = label.replace("warning", "critical")
+            return {
+                "ok": True,
+                "summary": f"Set {label.lower()} threshold to {value}{'°C' if 'temp' in key else '%' if 'load' not in key else ''}",
+                "rule": {
+                    "threshold_key": key,
+                    "value": value,
+                    "severity": severity,
+                    "metric_label": label,
+                },
+            }
+
+    return {"ok": False, "error": "Could not parse. Try: 'alert me when CPU exceeds 85%'"}
+
+
+@app.post("/api/v1/my/alerts/apply")
+def apply_alert_rule(request: Request, body: dict = None):
+    """Apply a natural language alert rule — parse + save threshold."""
+    email = _require_session(request)
+    result = generate_alert_rule(request, body)
+    if not result.get("ok"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Parse failed"))
+
+    rule = result["rule"]
+    current = db.get_alert_thresholds(email)
+    current[rule["threshold_key"]] = rule["value"]
+    db.set_alert_thresholds(email, None, current)
+    return {
+        "summary": result["summary"],
+        "thresholds": current,
+    }
 
 
 @app.get("/my/lab/{lab_id}", response_class=HTMLResponse)
