@@ -1260,7 +1260,10 @@ def list_notification_channels() -> list[dict[str, Any]]:
         result = []
         for r in rows:
             entry = dict(r)
-            entry["config"] = json.loads(entry["config"])
+            try:
+                entry["config"] = json.loads(entry["config"])
+            except (json.JSONDecodeError, TypeError):
+                entry["config"] = {}
             entry["enabled"] = bool(entry["enabled"])
             result.append(entry)
         return result
@@ -1279,7 +1282,10 @@ def list_user_notification_channels(email: str) -> list[dict[str, Any]]:
         result = []
         for r in rows:
             entry = dict(r)
-            entry["config"] = json.loads(entry["config"])
+            try:
+                entry["config"] = json.loads(entry["config"])
+            except (json.JSONDecodeError, TypeError):
+                entry["config"] = {}
             entry["enabled"] = bool(entry["enabled"])
             result.append(entry)
         return result
@@ -1328,7 +1334,10 @@ def get_notification_channel(channel_id: int) -> Optional[dict[str, Any]]:
         ).fetchone()
         if row:
             entry = dict(row)
-            entry["config"] = json.loads(entry["config"])
+            try:
+                entry["config"] = json.loads(entry["config"])
+            except (json.JSONDecodeError, TypeError):
+                entry["config"] = {}
             entry["enabled"] = bool(entry["enabled"])
             return entry
         return None
@@ -1395,7 +1404,10 @@ def get_enabled_channels(min_severity: str = "warning") -> list[dict[str, Any]]:
         result = []
         for r in rows:
             entry = dict(r)
-            entry["config"] = json.loads(entry["config"])
+            try:
+                entry["config"] = json.loads(entry["config"])
+            except (json.JSONDecodeError, TypeError):
+                entry["config"] = {}
             entry["enabled"] = bool(entry["enabled"])
             ch_severity = severity_order.get(entry["min_severity"], 1)
             if ch_severity <= threshold:

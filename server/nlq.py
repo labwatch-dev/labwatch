@@ -2861,6 +2861,14 @@ def query(question: str, email: Optional[str] = None, lang: str = "en") -> dict:
     """
     if lang not in TEMPLATES:
         lang = "en"
+    # Reject excessively long queries to prevent regex/processing abuse
+    if len(question) > 2000:
+        return _build_response(
+            answer="Query too long. Please keep your question under 2000 characters.",
+            query_type="error",
+            confidence=1.0,
+            sources=[],
+        )
     token = _scope_email.set(email)
     locale_token = _nlq_locale.set(lang)
     try:
