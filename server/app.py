@@ -8,6 +8,7 @@ import asyncio
 import collections
 import hmac
 import logging
+import re as _re
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -1043,7 +1044,6 @@ _ALERT_PATTERNS = {
     r"gpu.*?util.*?(\d+)": ("gpu_util_warning", "GPU utilization warning"),
 }
 
-import re as _re
 
 
 @app.post("/api/v1/my/alerts/generate")
@@ -2087,7 +2087,6 @@ def admin_delete_lab(lab_id: str, _: str = Depends(_require_admin)):
 # Demo NLQ — canned responses for the public demo page
 # ---------------------------------------------------------------------------
 
-import re as _re
 
 _DEMO_RESPONSES = [
     {
