@@ -429,10 +429,11 @@ X-Admin-Secret: your-secret-here</div>
   -d '{"email": "you@example.com", "hostname": "my-server"}'</code></div>
             <p>The response includes a <code>lab_id</code>, a bearer <code>token</code>, and a ready-to-run <code>install_command</code>.</p>
 
-            <h3>2. Run the install command</h3>
-            <p>Copy the <code>install_command</code> from the signup response and run it on the machine you want to monitor. It downloads the agent binary, writes <code>/etc/labwatch/config.yaml</code> with your credentials, and enables the systemd service:</p>
-            <div class="code-block"><code>curl -fsSL {{ base_url }}/install/i/&lt;one-time-token&gt; | sudo bash</code></div>
-            <p>The one-time token expires after 15 minutes. If you need a fresh link, call <code>/api/v1/my/add-node</code> from the dashboard or sign up again.</p>
+            <h3>2. Install the agent</h3>
+            <p>Copy the <code>install_command</code> from the signup response and run it on the machine you want to monitor:</p>
+            <div class="code-block"><code>curl -fsSL {{ base_url }}/install.sh | sudo bash</code></div>
+            <p>Then paste the <code>config_snippet</code> into <code>/etc/labwatch/config.yaml</code> and start the service:</p>
+            <div class="code-block"><code>sudo systemctl enable --now labwatch</code></div>
 
             <h3>3. That's it</h3>
             <p>Metrics start flowing within 60 seconds. Open your dashboard at <code>{{ base_url }}/my/dashboard</code> to see them.</p>
@@ -493,10 +494,12 @@ X-Admin-Secret: your-secret-here</div>
                     <div class="code-block"><code>{
   "lab_id": "31738bc8-df1e-46f9-9c83-d33f0b16eda9",
   "token": "6ddf02b7418585cb97b6829d368dfcd6aca04bcc...",
-  "install_command": "curl -fsSL https://your-server/install/i/&lt;signed&gt; | sudo bash",
+  "install_command": "curl -fsSL https://your-server/install.sh | sudo bash",
   "config_snippet": "api_endpoint: \"https://your-server/api/v1\"\ntoken: \"...\"\nlab_id: \"...\"\ninterval: 60s\ndocker:\n  enabled: true\n  socket: /var/run/docker.sock",
   "next_steps": [
-    "Run: curl -fsSL https://your-server/install/i/&lt;signed&gt; | sudo bash",
+    "Run: curl -fsSL https://your-server/install.sh | sudo bash",
+    "Save config to /etc/labwatch/config.yaml",
+    "Run: sudo systemctl enable --now labwatch",
     "View your dashboard at https://your-server/my/dashboard"
   ]
 }</code></div>
@@ -654,8 +657,11 @@ X-Admin-Secret: your-secret-here</div>
 
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
-  "status": "ok",
-  "alerts_triggered": 0
+  "status": "accepted",
+  "lab_id": "lab_proxmox-01_x7k2",
+  "stored_types": ["system", "docker"],
+  "alerts_generated": 0,
+  "alerts": []
 }</code></div>
                 </div>
             </div>
@@ -1036,7 +1042,7 @@ X-Admin-Secret: your-secret-here</div>
 
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
-  "message": "Lab deleted",
+  "status": "deleted",
   "lab_id": "lab_proxmox-01_x7k2"
 }</code></div>
                 </div>
@@ -1112,18 +1118,19 @@ X-Admin-Secret: your-secret-here</div>
                     <table class="param-table">
                         <tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr>
                         <tr>
-                            <td class="param-name">days</td>
+                            <td class="param-name">hours</td>
                             <td class="param-type">int</td>
-                            <td>7</td>
-                            <td>Number of days to analyze</td>
+                            <td>168</td>
+                            <td>Number of hours to analyze (default 7 days)</td>
                         </tr>
                     </table>
 
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
   "lab_id": "lab_proxmox-01_x7k2",
-  "period_days": 7,
+  "hostname": "proxmox-01",
   "grade": "B+",
+  "hours": 168,
   "summary": "proxmox-01 had moderate activity over the last 7 days...",
   "metrics": {
     "cpu_avg": 15.2,
@@ -1169,7 +1176,7 @@ X-Admin-Secret: your-secret-here</div>
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
   "fleet_size": 5,
-  "period_days": 7,
+  "hours": 168,
   "overall_grade": "B",
   "summary": "Your fleet of 5 nodes is generally healthy...",
   "nodes": [

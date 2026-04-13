@@ -10,9 +10,9 @@ from pydantic import BaseModel, Field
 
 class RegisterRequest(BaseModel):
     hostname: str
-    os: str
-    arch: str
-    agent_version: str
+    os: str = ""
+    arch: str = ""
+    agent_version: str = ""
 
 
 class RegisterResponse(BaseModel):
