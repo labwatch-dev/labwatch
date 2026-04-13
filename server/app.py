@@ -2714,8 +2714,8 @@ def create_notification_channel(
 
     if not name or not channel_type:
         raise HTTPException(status_code=400, detail="name and channel_type are required")
-    if channel_type not in ("webhook", "ntfy", "telegram"):
-        raise HTTPException(status_code=400, detail="channel_type must be 'webhook', 'ntfy', or 'telegram'")
+    if channel_type not in ("webhook", "ntfy", "telegram", "discord", "slack", "gotify", "pushover", "apprise"):
+        raise HTTPException(status_code=400, detail="Unsupported channel_type")
     if min_severity not in ("info", "warning", "critical"):
         raise HTTPException(status_code=400, detail="min_severity must be 'info', 'warning', or 'critical'")
 
