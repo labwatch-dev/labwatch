@@ -39,10 +39,11 @@ Two commands to go from zero to monitoring:
 ```bash
 git clone https://github.com/labwatch-dev/labwatch.git && cd labwatch
 echo "ADMIN_SECRET=$(openssl rand -hex 24)" >> .env
+echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env
 docker compose up -d
 ```
 
-Server is now live at `http://localhost:8097`. Your admin secret is saved in `.env`.
+Server is now live at `http://localhost:8097`. Your secrets are saved in `.env`.
 
 ### 2. Install the agent (on each node)
 
