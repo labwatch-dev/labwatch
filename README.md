@@ -45,13 +45,28 @@ docker compose up -d
 
 Server is now live at `http://localhost:8097`. Your secrets are saved in `.env`.
 
+> **Note:** The default port binding (`127.0.0.1:8097`) only accepts local connections.
+> To accept agents from other machines, change the port in `docker-compose.yml` to `"8097:8097"`
+> or put a reverse proxy (Caddy, nginx) in front.
+
 ### 2. Install the agent (on each node)
 
 ```bash
 curl -fsSL http://YOUR_SERVER:8097/install.sh | sudo bash
 ```
 
-Edit `/etc/labwatch/config.yaml` with your server URL and API token, then:
+> Prefer to inspect first? [View the install script](agent/install.sh) or download the binary directly from `/download/`.
+
+Register the agent and get a token:
+
+```bash
+curl -X POST http://YOUR_SERVER:8097/api/v1/register \
+  -H 'X-Admin-Secret: YOUR_ADMIN_SECRET' \
+  -H 'Content-Type: application/json' \
+  -d '{"hostname":"my-node"}'
+```
+
+Edit `/etc/labwatch/config.yaml` with your server URL, lab_id, and token from the response, then:
 
 ```bash
 sudo systemctl enable --now labwatch

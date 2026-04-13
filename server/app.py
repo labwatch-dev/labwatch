@@ -3093,7 +3093,7 @@ def natural_language_query(
     """
     secret = x_admin_secret or request_body.get("secret")
 
-    question = request_body.get("question", "").strip()
+    question = request_body.get("question", "").strip()[:500]  # cap length (DoS/ReDoS protection)
     if not question:
         raise HTTPException(status_code=400, detail="question is required")
 
