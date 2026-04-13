@@ -34,12 +34,20 @@ from models import MetricPayload, RegisterRequest, RegisterResponse, SignupReque
 # ---------------------------------------------------------------------------
 
 _login_attempts: dict[str, list[float]] = collections.defaultdict(list)
+_login_attempts_last_gc: float = 0.0
 
 def _check_login_rate(ip: str, max_attempts: int = 10, window: int = 300) -> bool:
     """Returns True if the IP is under the login rate limit (10 attempts per 5 min)."""
+    global _login_attempts_last_gc
     now = time.monotonic()
+    # Periodic full cleanup (every 10 min) to prevent unbounded growth
+    if now - _login_attempts_last_gc > 600:
+        stale = [k for k, v in _login_attempts.items() if not v or now - v[-1] > window]
+        for k in stale:
+            del _login_attempts[k]
+        _login_attempts_last_gc = now
     attempts = _login_attempts[ip]
-    # Prune old entries
+    # Prune old entries for this IP
     _login_attempts[ip] = [t for t in attempts if now - t < window]
     return len(_login_attempts[ip]) < max_attempts
 
@@ -471,7 +479,8 @@ def prometheus_metrics(
     for lab in labs:
         lab_id = lab["id"]
         hostname = lab.get("hostname", lab_id)
-        labels = f'lab_id="{lab_id}",hostname="{hostname}"'
+        _esc = lambda v: v.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+        labels = f'lab_id="{_esc(lab_id)}",hostname="{_esc(hostname)}"'
 
         metrics = db.get_latest_metrics(lab_id)
         summary = _extract_system_summary(metrics)
