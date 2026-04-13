@@ -155,6 +155,13 @@ def init_db() -> None:
                 conn.commit()
                 logger.info("Migration complete: notification_channels now supports all 8 channel types")
 
+        # Migrate notification_channels: add owner_email for per-user channels
+        notif_cols = [r[1] for r in conn.execute("PRAGMA table_info(notification_channels)").fetchall()]
+        if "owner_email" not in notif_cols:
+            logger.info("Migrating notification_channels: adding owner_email column")
+            conn.execute("ALTER TABLE notification_channels ADD COLUMN owner_email TEXT")
+            conn.commit()
+
         # Migrate signups table to add password_hash column if missing
         cols = [r[1] for r in conn.execute("PRAGMA table_info(signups)").fetchall()]
         if "password_hash" not in cols:
@@ -1210,6 +1217,57 @@ def list_notification_channels() -> list[dict[str, Any]]:
             entry["enabled"] = bool(entry["enabled"])
             result.append(entry)
         return result
+    finally:
+        conn.close()
+
+
+def list_user_notification_channels(email: str) -> list[dict[str, Any]]:
+    """Return notification channels owned by a specific user."""
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM notification_channels WHERE owner_email = ? ORDER BY created_at DESC",
+            (email,),
+        ).fetchall()
+        result = []
+        for r in rows:
+            entry = dict(r)
+            entry["config"] = json.loads(entry["config"])
+            entry["enabled"] = bool(entry["enabled"])
+            result.append(entry)
+        return result
+    finally:
+        conn.close()
+
+
+def add_user_notification_channel(
+    email: str, name: str, channel_type: str, config: dict, min_severity: str = "warning",
+) -> int:
+    """Create a notification channel owned by a user. Returns the new channel id."""
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            """INSERT INTO notification_channels (name, channel_type, config, min_severity, owner_email, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (name, channel_type, json.dumps(config), min_severity, email,
+             datetime.now(timezone.utc).isoformat()),
+        )
+        conn.commit()
+        return cursor.lastrowid
+    finally:
+        conn.close()
+
+
+def delete_user_notification_channel(email: str, channel_id: int) -> bool:
+    """Delete a user-owned notification channel. Returns True if deleted."""
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "DELETE FROM notification_channels WHERE id = ? AND owner_email = ?",
+            (channel_id, email),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
     finally:
         conn.close()
 

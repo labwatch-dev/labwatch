@@ -1010,6 +1010,28 @@ def user_dashboard(request: Request):
     ))
 
 
+@app.get("/my/notifications", response_class=HTMLResponse)
+def user_notifications_page(request: Request):
+    """User notification channels management page."""
+    email = _get_session_email(request)
+    if not email:
+        return RedirectResponse("/login", status_code=302)
+    return templates.TemplateResponse("notifications.html", _tpl_context(
+        request, active_page="notifications",
+    ))
+
+
+@app.get("/my/alerts", response_class=HTMLResponse)
+def user_alerts_page(request: Request):
+    """User alert rules management page."""
+    email = _get_session_email(request)
+    if not email:
+        return RedirectResponse("/login", status_code=302)
+    return templates.TemplateResponse("alerts.html", _tpl_context(
+        request, active_page="alerts",
+    ))
+
+
 @app.get("/my/lab/{lab_id}", response_class=HTMLResponse)
 def user_lab_detail(request: Request, lab_id: str):
     """User's lab detail page."""
@@ -1148,6 +1170,58 @@ def reset_lab_thresholds(lab_id: str, request: Request):
     email = _require_session(request)
     db.delete_alert_thresholds(email, lab_id)
     return {"status": "reset"}
+
+
+@app.get("/api/v1/my/notifications")
+def list_user_notifications(request: Request):
+    """List notification channels owned by the current user."""
+    email = _require_session(request)
+    channels = db.list_user_notification_channels(email)
+    return {"channels": channels, "total": len(channels)}
+
+
+@app.post("/api/v1/my/notifications")
+def create_user_notification(request: Request, body: dict = None):
+    """Create a user-owned notification channel."""
+    email = _require_session(request)
+    body = body or {}
+    name = body.get("name")
+    channel_type = body.get("channel_type")
+    cfg = body.get("config", {})
+    min_severity = body.get("min_severity", "warning")
+
+    if not name or not channel_type:
+        raise HTTPException(status_code=400, detail="name and channel_type are required")
+    if channel_type not in ("webhook", "ntfy", "telegram", "discord", "slack", "gotify", "pushover", "apprise"):
+        raise HTTPException(status_code=400, detail="Unsupported channel_type")
+
+    channel_id = db.add_user_notification_channel(email, name, channel_type, cfg, min_severity)
+    return {"id": channel_id, "status": "created", "channel": {"id": channel_id, "name": name, "channel_type": channel_type}}
+
+
+@app.delete("/api/v1/my/notifications/{channel_id}")
+def delete_user_notification(channel_id: int, request: Request):
+    """Delete a user-owned notification channel."""
+    email = _require_session(request)
+    deleted = db.delete_user_notification_channel(email, channel_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    return {"status": "deleted", "id": channel_id}
+
+
+@app.post("/api/v1/my/notifications/{channel_id}/test")
+def test_user_notification(channel_id: int, request: Request):
+    """Send a test notification to a user-owned channel."""
+    email = _require_session(request)
+    # Verify ownership
+    channels = db.list_user_notification_channels(email)
+    if not any(c["id"] == channel_id for c in channels):
+        raise HTTPException(status_code=404, detail="Channel not found")
+    from notifications import send_test_notification
+    result = send_test_notification(channel_id)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result.get("error", "Test failed"))
+    return result
 
 
 @app.get("/api/v1/my/notification-prefs")
