@@ -179,7 +179,7 @@ No LLM required — the engine uses pattern matching and template responses powe
 
 ## Notifications
 
-Push alerts to external services. Supported channels: **webhook** (Slack, Discord, custom) and **ntfy**.
+Push alerts to external services. Supported channels: **webhook**, **ntfy**, **Discord**, **Slack**, **Telegram**, **Gotify**, **Pushover**, and **Apprise**.
 
 ```bash
 curl -X POST http://localhost:8097/api/v1/admin/notifications \
