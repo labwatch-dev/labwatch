@@ -1621,6 +1621,7 @@ _DEMO_RESPONSES = [
             r"(?:fleet|overall|lab)\s+(?:status|health)",
             r"^(?:status|health)$",
             r"how(?:'s| is) (?:my |the |our )?(?:lab|fleet|cluster|everything|infra)",
+            r"how(?:'s| is|are) (?:my |the |our )?(?:nodes?|servers?|machines?|things?) doing",
             r"how(?:'s| is) everything",
             r"how many (?:nodes?|servers?|machines?)",
             r"(?:nodes?|servers?)\s+(?:online|up|running|active)",
@@ -1757,6 +1758,9 @@ _DEMO_RESPONSES = [
             r"(?:which|what)\s+(?:server|node|machine)?\s*(?:uses?|has)\s+(?:the\s+)?(?:most|highest|lowest|least)\s+(?:cpu|memory|mem|ram|disk|load)",
             r"(?:most|highest|lowest|least)\s+(?:cpu|memory|mem|disk|load)",
             r"(?:top|rank|compare|sort)\s+(?:by\s+)?(?:cpu|memory|mem|disk|load)",
+            r"(?:show|give|get)\s+(?:me\s+)?(?:cpu|memory|mem|ram)\s*(?:usage|stats|info)?",
+            r"^cpu\s*(?:usage|stats)?$",
+            r"^mem(?:ory)?\s*(?:usage|stats)?$",
         ],
         "response": {
             "answer": (
@@ -2501,9 +2505,17 @@ def _demo_nlq_response(question: str) -> dict:
     q_words = _re.sub(r'[^a-z0-9\s\u0400-\u04ff-]', '', q).split()
     q_meaningful = [w for w in q_words if w not in _DEMO_NOISE_WORDS]
 
+    # Also match partial/short names (e.g. "pve" → "pve-main", "nas" → "nas-storage")
+    _demo_aliases = {"pve": "pve-main", "nas": "nas-storage", "gpu": "gpu-server", "docker": "docker-host"}
     for node_name in _demo_node_names:
-        if node_name.lower() in q:
-            remaining = [w for w in q_meaningful if w != node_name.lower()]
+        matched = node_name.lower() in q
+        if not matched:
+            for alias, target in _demo_aliases.items():
+                if target == node_name and alias in q_words:
+                    matched = True
+                    break
+        if matched:
+            remaining = [w for w in q_meaningful if w not in (node_name.lower(), *_demo_aliases.keys())]
             if not remaining or all(w in _DEMO_NOISE_WORDS for w in remaining):
                 response = _DEMO_NODE_STATUS[node_name]
                 if lang != "en" and (node_name, lang) in _DEMO_RESPONSE_I18N:
