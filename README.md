@@ -266,7 +266,7 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 
 labwatch is designed to run entirely on your own hardware. No cloud dependencies, no telemetry, no external API calls. Your data stays on your network.
 
-The server runs comfortably on a Raspberry Pi or any small VM. The agent uses <64MB RAM per node.
+The server runs comfortably on a Raspberry Pi or any small VM. The agent uses ~45MB RAM per node.
 
 ## License
 

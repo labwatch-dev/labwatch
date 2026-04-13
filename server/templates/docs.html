@@ -372,8 +372,7 @@
         <a href="#notif-test">Test Channel</a>
 
         <h3>MCP (LLM Tools)</h3>
-        <a href="#mcp-token">Generate Token</a>
-        <a href="#mcp-endpoint">JSON-RPC Endpoint</a>
+        <a href="#mcp-token">Planned</a>
 
         <h3>Dashboard (Session)</h3>
         <a href="#my-api">User API reference</a>
@@ -413,8 +412,8 @@ X-Admin-Secret: your-secret-here</div>
             <h3>Session Cookie</h3>
             <p>Endpoints under <code>/api/v1/my/*</code> are used by the dashboard UI and authenticate with a signed session cookie set by <code>POST /login</code>. They are not intended for server-to-server use — prefer the admin-secret endpoints for integrations.</p>
 
-            <h3>MCP Token</h3>
-            <p>The <code>POST /api/mcp</code> endpoint accepts a bearer MCP token with the <code>lw_mcp_</code> prefix. Generate one from the dashboard or via <code>POST /api/v1/my/mcp/token</code> (session-authed). See the <a href="#mcp-token" style="color:var(--accent);">MCP section</a>.</p>
+            <h3>MCP Token (planned)</h3>
+            <p>MCP integration is on the roadmap. See the <a href="#mcp-token" style="color:var(--accent);">MCP section</a> for details.</p>
         </section>
 
         <!-- Quick Start -->
@@ -1398,113 +1397,10 @@ X-Admin-Secret: your-secret-here</div>
             </div>
         </section>
 
-        <!-- MCP -->
+        <!-- MCP (planned) -->
         <section class="docs-section" id="mcp-token">
-            <h2>MCP Tokens</h2>
-            <p>labwatch exposes a Model Context Protocol endpoint so LLM tools (Claude Desktop, Cursor, custom agents) can query your fleet directly. Authentication uses a bearer token with the <code>lw_mcp_</code> prefix — generate it from the dashboard or through the API below.</p>
-
-            <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span class="endpoint-method method-post">POST</span>
-                    <span class="endpoint-path">/api/v1/my/mcp/token</span>
-                    <span class="endpoint-desc">Generate a new MCP token</span>
-                    <span class="endpoint-auth">session</span>
-                    <span class="endpoint-chevron">&#9654;</span>
-                </div>
-                <div class="endpoint-body">
-                    <p>Creates a new MCP bearer token for the logged-in user. The plaintext token is returned <strong>once</strong> — only its hash is stored. Lose it and you'll have to generate a new one.</p>
-
-                    <h4>Response <span class="response-code code-2xx">200</span></h4>
-                    <div class="code-block"><code>{
-  "token": "lw_mcp_abc123...",
-  "endpoint": "https://your-server/api/mcp",
-  "expires": "never",
-  "warning": "Save this token now — it will not be shown again."
-}</code></div>
-                </div>
-            </div>
-
-            <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span class="endpoint-method method-delete">DELETE</span>
-                    <span class="endpoint-path">/api/v1/my/mcp/token</span>
-                    <span class="endpoint-desc">Revoke all MCP tokens</span>
-                    <span class="endpoint-auth">session</span>
-                    <span class="endpoint-chevron">&#9654;</span>
-                </div>
-                <div class="endpoint-body">
-                    <p>Revokes every MCP token for the logged-in user.</p>
-
-                    <h4>Response <span class="response-code code-2xx">200</span></h4>
-                    <div class="code-block"><code>{"revoked": true}</code></div>
-                </div>
-            </div>
-        </section>
-
-        <section class="docs-section" id="mcp-endpoint">
-            <h2>MCP JSON-RPC Endpoint</h2>
-
-            <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span class="endpoint-method method-post">POST</span>
-                    <span class="endpoint-path">/api/mcp</span>
-                    <span class="endpoint-desc">Model Context Protocol JSON-RPC 2.0</span>
-                    <span class="endpoint-auth">mcp token</span>
-                    <span class="endpoint-chevron">&#9654;</span>
-                </div>
-                <div class="endpoint-body">
-                    <p>JSON-RPC 2.0 endpoint implementing MCP protocol version <code>2024-11-05</code>. Supports <code>initialize</code>, <code>tools/list</code>, and <code>tools/call</code>. Authentication is a bearer <code>lw_mcp_</code> token in the <code>Authorization</code> header — tokens are scoped to the user who created them and only expose that user's labs.</p>
-
-                    <h4>Headers</h4>
-                    <table class="param-table">
-                        <tr><th>Header</th><th>Value</th></tr>
-                        <tr><td class="param-name">Authorization</td><td>Bearer lw_mcp_&lt;token&gt;</td></tr>
-                        <tr><td class="param-name">Content-Type</td><td>application/json</td></tr>
-                    </table>
-
-                    <h4>Initialize</h4>
-                    <div class="code-block"><code>curl -X POST https://your-server/api/mcp \
-  -H 'Authorization: Bearer lw_mcp_...' \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize"}'</code></div>
-
-                    <h4>List Tools</h4>
-                    <div class="code-block"><code>{"jsonrpc":"2.0","id":2,"method":"tools/list"}</code></div>
-                    <p>Returns the list of tools the user can call. Typical tools: <code>list_labs</code>, <code>get_lab</code>, <code>get_lab_history</code>, <code>list_alerts</code>, <code>query</code> (natural language), and <code>get_digest</code>.</p>
-
-                    <h4>Call a Tool</h4>
-                    <div class="code-block"><code>{
-  "jsonrpc": "2.0",
-  "id": 3,
-  "method": "tools/call",
-  "params": {
-    "name": "get_lab",
-    "arguments": {"lab_id": "lab_proxmox-01_x7k2"}
-  }
-}</code></div>
-
-                    <h4>Response <span class="response-code code-2xx">200</span></h4>
-                    <div class="code-block"><code>{
-  "jsonrpc": "2.0",
-  "id": 3,
-  "result": {
-    "content": [{"type": "text", "text": "{ ...lab json... }"}],
-    "isError": false
-  }
-}</code></div>
-
-                    <h4>Claude Desktop config</h4>
-                    <p>Drop this into <code>claude_desktop_config.json</code> to wire labwatch as an MCP server:</p>
-                    <div class="code-block"><code>{
-  "mcpServers": {
-    "labwatch": {
-      "url": "https://your-server/api/mcp",
-      "headers": {"Authorization": "Bearer lw_mcp_..."}
-    }
-  }
-}</code></div>
-                </div>
-            </div>
+            <h2>MCP Integration (planned)</h2>
+            <p>MCP (Model Context Protocol) support is on the roadmap. It will allow LLM tools like Claude Desktop to query your fleet metrics directly. This section will be updated when the feature ships.</p>
         </section>
 
         <!-- User API reference (session-scoped) -->

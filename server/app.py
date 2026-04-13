@@ -166,7 +166,7 @@ body {{ background: #0a0a0f; color: #e0e0e8; font-family: -apple-system, BlinkMa
 @app.exception_handler(500)
 def server_error_handler(request: Request, exc):
     """Custom 500 page."""
-    logging.getLogger("labwatch").error(f"Internal error on {request.url}: {exc}")
+    logging.getLogger("labwatch").error(f"Internal error on {request.url.path}: {exc}")
     accept = request.headers.get("accept", "")
     if "text/html" in accept:
         return HTMLResponse(
@@ -748,6 +748,9 @@ def set_language(lang_code: str, request: Request):
     if lang_code not in SUPPORTED_LANGUAGES:
         lang_code = "en"
     referer = request.headers.get("referer", "/")
+    # Validate referer to prevent open redirect
+    if not referer.startswith("/") and not referer.startswith(config.BASE_URL):
+        referer = "/"
     response = RedirectResponse(referer, status_code=302)
     response.set_cookie("labwatch_lang", lang_code, max_age=365 * 24 * 3600, samesite="lax")
     return response
@@ -1191,30 +1194,44 @@ def list_labs_api(_: str = Depends(_require_admin)):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/v1/widgets/uptime")
-def widget_uptime(request: Request, hours: int = 24):
+def widget_uptime(request: Request, hours: int = 24, x_admin_secret: Optional[str] = Header(None)):
     """Uptime timeline segments for all labs the user can see."""
     email = _get_session_email(request)
+    is_admin = x_admin_secret and hmac.compare_digest(x_admin_secret, config.ADMIN_SECRET)
+    if not email and not is_admin:
+        raise HTTPException(status_code=401, detail="Authentication required")
     segments = db.get_uptime_segments(hours=hours)
-    if email:
+    if email and not is_admin:
         user_lab_ids = {lab["id"] for lab in db.get_labs_for_email(email)}
         segments = {k: v for k, v in segments.items() if k in user_lab_ids}
     return segments
 
 
 @app.get("/api/v1/widgets/alerts")
-def widget_alerts(request: Request, limit: int = 20):
+def widget_alerts(request: Request, limit: int = 20, x_admin_secret: Optional[str] = Header(None)):
     """Recent alert feed for dashboard widget."""
     email = _get_session_email(request)
+    is_admin = x_admin_secret and hmac.compare_digest(x_admin_secret, config.ADMIN_SECRET)
+    if not email and not is_admin:
+        raise HTTPException(status_code=401, detail="Authentication required")
     alerts = db.get_recent_alerts_feed(limit=limit)
-    if email:
+    if email and not is_admin:
         user_lab_ids = {lab["id"] for lab in db.get_labs_for_email(email)}
         alerts = [a for a in alerts if a["lab_id"] in user_lab_ids]
     return alerts
 
 
 @app.get("/api/v1/widgets/sparkline/{lab_id}/{metric}")
-def widget_sparkline(lab_id: str, metric: str, hours: int = 1):
+def widget_sparkline(request: Request, lab_id: str, metric: str, hours: int = 1, x_admin_secret: Optional[str] = Header(None)):
     """Sparkline data for a specific lab metric."""
+    email = _get_session_email(request)
+    is_admin = x_admin_secret and hmac.compare_digest(x_admin_secret, config.ADMIN_SECRET)
+    if not email and not is_admin:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    if email and not is_admin:
+        user_lab_ids = {lab["id"] for lab in db.get_labs_for_email(email)}
+        if lab_id not in user_lab_ids:
+            raise HTTPException(status_code=403, detail="Access denied")
     if metric not in ("cpu", "memory", "disk"):
         raise HTTPException(status_code=400, detail="Invalid metric. Use: cpu, memory, disk")
     return db.get_metric_sparkline(lab_id, metric, hours=hours)
@@ -2698,7 +2715,7 @@ def natural_language_query(
 
     from nlq import query
 
-    if secret == config.ADMIN_SECRET:
+    if secret and hmac.compare_digest(secret, config.ADMIN_SECRET):
         return query(question, lang=lang)
 
     # Session-auth fallback: user dashboard widget sends an empty secret.
