@@ -258,7 +258,7 @@
   "support_faq_q1": "¿Cómo encuentro mi API token?",
   "support_faq_a1": "Tu API token está en /etc/labwatch/config.yaml en cualquier nodo donde el agente esté instalado. También puedes encontrarlo en tu panel bajo Administración.",
   "support_faq_q2": "El agente no envía métricas. ¿Qué hago?",
-  "support_faq_a2": "Verifica que el agente esté corriendo con 'systemctl status labwatch'. Asegúrate de que tu config.yaml tenga la server_url y el api_token correctos. Revisa que las reglas del firewall permitan HTTPS saliente.",
+  "support_faq_a2": "Verifica que el agente esté corriendo con 'systemctl status labwatch'. Asegúrate de que tu config.yaml tenga la api_endpoint y el token correctos. Revisa que las reglas del firewall permitan HTTPS saliente.",
   "support_faq_q3": "¿Puedo auto-alojar el servidor de labwatch?",
   "support_faq_a3": "¡Sí! El auto-alojamiento es una opción de primera clase. Consulta /self-hosted para la guía completa de docker-compose, variables de entorno y configuración del agente — el servidor es AGPL-3.0 y el agente MIT en GitHub.",
   "settings_title": "Configuración",

@@ -264,7 +264,7 @@
   "support_faq_q1": "How do I find my API token?",
   "support_faq_a1": "Your API token is in /etc/labwatch/config.yaml on any node where the agent is installed. You can also find it in your dashboard under Administration.",
   "support_faq_q2": "The agent isn't sending metrics. What do I do?",
-  "support_faq_a2": "Check that the agent is running with 'systemctl status labwatch'. Verify your config.yaml has the correct server_url and api_token. Check firewall rules allow outbound HTTPS.",
+  "support_faq_a2": "Check that the agent is running with 'systemctl status labwatch'. Verify your config.yaml has the correct api_endpoint and token. Check firewall rules allow outbound HTTPS.",
   "support_faq_q3": "Can I self-host the labwatch server?",
   "support_faq_a3": "Yes! Self-hosting is a first-class path. See /self-hosted for the full docker-compose quickstart, environment variables, and agent config — the server is AGPL-3.0 and the agent is MIT licensed on GitHub.",
   "footer_tagline": "homelab monitoring",

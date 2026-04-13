@@ -478,9 +478,9 @@ services:
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
 sudo labwatch --register
 sudo systemctl enable --now labwatch</div>
-            <p>After a successful register you can remove <code>admin_secret</code> from the config &mdash; the agent will have its own bearer token written to the config file.</p>
+            <p>After a successful register the agent prints your <code>lab_id</code> and <code>token</code> to stdout. Paste them into <code>/etc/labwatch/config.yaml</code>, then you can remove <code>admin_secret</code> from the config.</p>
             <div class="info-box">
-                <strong>Multiple nodes?</strong> Repeat the install + register on each node. Every agent gets its own <code>lab_id</code> and token automatically.
+                <strong>Multiple nodes?</strong> Repeat the install + register on each node. Each agent gets its own <code>lab_id</code> and token.
             </div>
         </section>
 

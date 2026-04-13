@@ -419,7 +419,7 @@ X-Admin-Secret: your-secret-here</div>
         <!-- Quick Start -->
         <section class="docs-section" id="quickstart">
             <h2>Quick Start</h2>
-            <p>Get monitoring running in under 2 minutes. The signup response includes a signed one-command install link that bakes your credentials into the agent config — you never have to touch <code>config.yaml</code> by hand.</p>
+            <p>Get monitoring running in under 2 minutes. The signup response includes your API token and a config snippet — paste them into <code>/etc/labwatch/config.yaml</code> and start the service.</p>
 
             <h3>1. Sign up for a free account</h3>
             <div class="code-block">
@@ -639,8 +639,8 @@ X-Admin-Secret: your-secret-here</div>
         "data": {
           "cpu": {"total_percent": 23.5, "count": 8},
           "memory": {"used_percent": 62.1, "total_bytes": 34359738368},
-          "disk": [{"mount": "/", "used_percent": 45.2}],
-          "load_average": {"1m": 1.2, "5m": 0.8, "15m": 0.6},
+          "disk": [{"mountpoint": "/", "used_percent": 45.2}],
+          "load_average": {"load1": 1.2, "load5": 0.8, "load15": 0.6},
           "uptime_seconds": 864000
         }
       },
@@ -867,12 +867,15 @@ X-Admin-Secret: your-secret-here</div>
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>[
   {
+    "id": 42,
     "lab_id": "lab_proxmox-01_x7k2",
     "hostname": "proxmox-01",
     "severity": "warning",
-    "kind": "disk_high",
+    "alert_type": "disk_high",
     "message": "/ is at 82%",
-    "triggered_at": "2026-03-19T22:11:04"
+    "data": {},
+    "created_at": "2026-03-19T22:11:04",
+    "resolved_at": null
   }
 ]</code></div>
                 </div>
@@ -1128,19 +1131,18 @@ X-Admin-Secret: your-secret-here</div>
 
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
-  "lab_id": "lab_proxmox-01_x7k2",
+  "id": 12,
   "hostname": "proxmox-01",
   "grade": "B+",
-  "hours": 168,
-  "summary": "proxmox-01 had moderate activity over the last 7 days...",
-  "metrics": {
-    "cpu_avg": 15.2,
-    "cpu_peak": 72.1,
-    "memory_avg": 62.0,
-    "disk_current": 78.3
-  },
+  "summary": "proxmox-01 has been running steadily over the last 7 days...",
   "concerns": ["Disk at 78% — approaching warning threshold"],
-  "generated_at": "2026-03-19T22:30:00"
+  "highlights": ["Zero alerts — ran clean the entire period"],
+  "data": {
+    "cpu": {"avg": 15.2, "max": 72.1, "min": 1.0, "current": 8.3},
+    "memory": {"avg": 62.0, "max": 68.5, "min": 55.2, "current": 63.1},
+    "disk": {"avg": 78.0, "max": 78.3, "min": 77.8, "current": 78.3},
+    "sample_count": 10080
+  }
 }</code></div>
                 </div>
             </div>
@@ -1176,17 +1178,13 @@ X-Admin-Secret: your-secret-here</div>
 
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
-  "fleet_size": 5,
-  "hours": 168,
-  "overall_grade": "B",
-  "summary": "Your fleet of 5 nodes is generally healthy...",
+  "summary": "# Fleet Intelligence Digest\n\n**5 nodes** monitored...",
   "nodes": [
-    {"lab_id": "...", "hostname": "proxmox-01", "grade": "A"},
-    {"lab_id": "...", "hostname": "pve-storage", "grade": "C"}
+    {"id": 12, "hostname": "proxmox-01", "grade": "A", "summary": "...", "concerns": [], "highlights": [...], "data": {...}},
+    {"id": 13, "hostname": "pve-storage", "grade": "C", "summary": "...", "concerns": [...], "highlights": [], "data": {...}}
   ],
-  "recommendations": [
-    "pve-storage disk usage trending upward — consider cleanup"
-  ]
+  "node_count": 5,
+  "concerns_count": 3
 }</code></div>
                 </div>
             </div>

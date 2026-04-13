@@ -997,9 +997,9 @@
             <a href="/signup" class="btn btn-primary">{{ t.landing_btn_install }}</a>
             <a href="/demo" class="btn btn-secondary">{{ t.landing_btn_demo }}</a>
         </div>
-        <div class="hero-terminal" onclick="copyToClipboard('curl -fsSL {{ base_url }}/install.sh | bash')" title="Click to copy" style="cursor: pointer;">
+        <div class="hero-terminal" onclick="copyToClipboard('curl -fsSL {{ base_url }}/install.sh | sudo bash')" title="Click to copy" style="cursor: pointer;">
             <span class="prompt">$</span>
-            <code>curl -fsSL {{ base_url }}/install.sh | bash</code>
+            <code>curl -fsSL {{ base_url }}/install.sh | sudo bash</code>
             <span class="hero-terminal-copy">copy</span>
         </div>
         <p class="install-note">
@@ -1158,7 +1158,7 @@
                     <td><span class="yes">&#10003;</span></td>
                 </tr>
                 <tr>
-                    <td>One-command install <span style="color:var(--text-muted);font-size:11px">(token baked in)</span></td>
+                    <td>One-command install</td>
                     <td class="cm-us"><span class="yes">&#10003;</span></td>
                     <td><span class="yes">&#10003;</span></td>
                     <td><span class="no">&#10005;</span></td>

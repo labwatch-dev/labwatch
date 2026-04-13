@@ -1664,8 +1664,9 @@ def admin_list_labs(_: str = Depends(_require_admin)):
     result = []
     for lab in labs:
         stats = db.get_lab_stats(lab["id"])
+        lab_safe = {k: v for k, v in lab.items() if k != "token"}
         result.append({
-            **lab,
+            **lab_safe,
             "online": _lab_is_online(lab["last_seen"]),
             **stats,
         })
@@ -1686,8 +1687,9 @@ def admin_dashboard_data(_: str = Depends(_require_admin)):
         _enrich_network_rate(system_summary, lab["id"])
         alerts = db.get_active_alerts(lab["id"])
         total_alerts += len(alerts)
+        lab_safe = {k: v for k, v in lab.items() if k != "token"}
         lab_data.append({
-            **lab,
+            **lab_safe,
             "online": _lab_is_online(lab["last_seen"]),
             **system_summary,
             **docker_summary,

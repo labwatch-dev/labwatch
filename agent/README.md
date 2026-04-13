@@ -29,7 +29,7 @@ It is designed for the self-hosted and homelab community: privacy-first, zero de
 | **Your data, your server** | Metrics go to a Labwatch instance you control. Nothing phones home. |
 | **Unprivileged** | Reads from `/proc` and `/sys`. Talks to Docker over its Unix socket. No root required at runtime. |
 | **Systemd-native** | Installs as a hardened systemd service with memory limits and filesystem protections. |
-| **721 lines of Go** | Small enough to audit in an afternoon. |
+| **~1,300 lines of Go** | Small enough to audit in an afternoon. |
 
 ## What it collects
 
@@ -185,7 +185,7 @@ To disable Docker monitoring entirely, set `docker.enabled: false`.
 
 ## Building from source
 
-Requirements: Go 1.25 or later.
+Requirements: Go 1.23 or later.
 
 ```bash
 git clone https://github.com/labwatch-dev/labwatch.git
@@ -238,7 +238,7 @@ The service enforces a 64 MB memory ceiling and applies systemd sandboxing: no p
 ## Architecture
 
 ```
-labwatch (721 lines of Go, 7 files)
+labwatch (~1,300 lines of Go, 9 files)
 |
 |-- cmd/labwatch/main.go          Entry point, collection loop, signal handling
 |
@@ -249,6 +249,8 @@ labwatch (721 lines of Go, 7 files)
 |   |   |-- system.go             CPU, memory, disk, network, load
 |   |   |-- docker.go             Docker container stats via API
 |   |   |-- services.go           HTTP and TCP health checks
+|   |   |-- gpu.go                NVIDIA GPU stats via nvidia-smi
+|   |   |-- smart.go              Disk SMART health via smartctl
 |   |-- transport/transport.go    HTTPS POST to server, registration
 ```
 
