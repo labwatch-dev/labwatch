@@ -198,8 +198,11 @@ func (s *SMART) queryDevice(ctx context.Context, name, devType string) DiskHealt
 		if t, ok := nvme["temperature"].(float64); ok && h.TemperatureC == 0 {
 			h.TemperatureC = t
 		}
+		// NVMe "media_errors" = uncorrectable media/data-integrity errors.
+		// Mapped to ReallocatedSector as the closest "bad sector" equivalent
+		// so the server dashboard can show one unified health indicator.
 		if mu, ok := nvme["media_errors"].(float64); ok {
-			h.ReallocatedSector = int64(mu) // NVMe equivalent exposure
+			h.ReallocatedSector = int64(mu)
 		}
 	}
 

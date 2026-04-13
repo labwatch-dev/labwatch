@@ -728,9 +728,14 @@ def install_script():
     if not script_path.exists():
         raise HTTPException(status_code=404, detail="Install script not found")
     script = script_path.read_text()
+    # Sanitise BASE_URL before inserting into shell script to prevent injection.
+    import re
+    safe_url = config.BASE_URL
+    if not re.fullmatch(r'https?://[A-Za-z0-9._:/-]+', safe_url):
+        safe_url = "https://labwatch.dev"
     script = script.replace(
         'BASE_URL="${LABWATCH_URL:-https://labwatch.dev}"',
-        f'BASE_URL="${{LABWATCH_URL:-{config.BASE_URL}}}"',
+        f'BASE_URL="${{LABWATCH_URL:-{safe_url}}}"',
     )
     return script
 
