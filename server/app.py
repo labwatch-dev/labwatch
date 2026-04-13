@@ -1209,6 +1209,19 @@ def delete_user_notification(channel_id: int, request: Request):
     return {"status": "deleted", "id": channel_id}
 
 
+@app.post("/api/v1/my/notifications/test-inline")
+def test_user_notification_inline(request: Request, body: dict = None):
+    """Send a test notification without saving the channel (UI preview)."""
+    _require_session(request)
+    body = body or {}
+    channel_type = body.get("type") or body.get("channel_type", "")
+    cfg = body.get("config", {})
+    if not channel_type:
+        raise HTTPException(status_code=400, detail="type is required")
+    from notifications import send_test_notification_inline
+    return send_test_notification_inline(channel_type, cfg)
+
+
 @app.post("/api/v1/my/notifications/{channel_id}/test")
 def test_user_notification(channel_id: int, request: Request):
     """Send a test notification to a user-owned channel."""

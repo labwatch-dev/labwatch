@@ -500,3 +500,24 @@ def send_test_notification(channel_id: int) -> dict:
         return {"success": True, "channel": ch["name"]}
     except Exception as e:
         return {"success": False, "error": str(e), "channel": ch["name"]}
+
+
+def send_test_notification_inline(channel_type: str, config: dict) -> dict:
+    """Send a test without saving the channel first (for UI preview)."""
+    test_alert = {
+        "type": "test",
+        "severity": "info",
+        "message": "This is a test notification from labwatch.",
+        "data": {},
+    }
+    test_lab = {"id": "test", "hostname": "labwatch-test"}
+    ch = {"name": "test", "channel_type": channel_type, "config": config, "enabled": True}
+
+    try:
+        sender = CHANNEL_SENDERS.get(channel_type)
+        if sender is None:
+            return {"success": False, "error": f"Unknown channel type: {channel_type}"}
+        sender(ch, test_alert, test_lab, config)
+        return {"success": True}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
