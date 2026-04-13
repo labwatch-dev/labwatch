@@ -1451,7 +1451,12 @@ def _get_pref(email: str, pref_type: str, lab_id: Optional[str] = None) -> Optio
                 "SELECT data FROM user_preferences WHERE email = ? AND pref_type = ? AND lab_id = ?",
                 (email, pref_type, lab_id),
             ).fetchone()
-        return json.loads(row["data"]) if row else None
+        if not row:
+            return None
+        try:
+            return json.loads(row["data"])
+        except (json.JSONDecodeError, TypeError):
+            return None
     finally:
         conn.close()
 

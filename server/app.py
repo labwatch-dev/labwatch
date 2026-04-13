@@ -3218,6 +3218,7 @@ _DEMO_DIGESTS = {
 @app.post("/api/v1/admin/digest/{lab_id}")
 def generate_lab_digest(lab_id: str, hours: int = 168, x_admin_secret: Optional[str] = Header(None)):
     """Generate an intelligence digest for a specific lab."""
+    hours = max(1, min(hours, 8760))  # cap to 1 year
     # Demo mode: return synthetic digest
     if x_admin_secret == "demo" and lab_id.startswith("demo-"):
         d = _DEMO_DIGESTS.get(lab_id)
@@ -3237,6 +3238,7 @@ def generate_lab_digest(lab_id: str, hours: int = 168, x_admin_secret: Optional[
 @app.post("/api/v1/admin/digest")
 def generate_fleet_digest_endpoint(hours: int = 168, _: str = Depends(_require_admin)):
     """Generate an intelligence digest for the entire fleet."""
+    hours = max(1, min(hours, 8760))  # cap to 1 year
     from digest import generate_fleet_digest
     return generate_fleet_digest(hours=hours)
 
