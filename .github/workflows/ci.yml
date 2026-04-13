@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  server:
+    name: Server (Python)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -c "import config; print('config OK')"
+      - run: python -c "import database; database.init_db(); print('database OK')"
+      - run: python -c "import nlq; print('nlq OK —', len(nlq.PATTERNS), 'patterns loaded')"
+      - run: python -m py_compile app.py && echo "app.py compiles OK"
+      - run: python -m py_compile database.py && echo "database.py compiles OK"
+      - run: python -m py_compile notifications.py && echo "notifications.py compiles OK"
+
+  agent:
+    name: Agent (Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - run: go build ./...
+      - run: go vet ./...
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t labwatch:ci .
