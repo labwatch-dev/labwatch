@@ -645,10 +645,7 @@
         <div class="lab-header-left">
             <h1 id="lab-title" style="display: inline-flex; align-items: center; gap: 10px;">
                 <span id="lab-display-name">{{ lab.display_name or lab.hostname }}</span>
-                {% if not is_demo %}
-                <button type="button" id="rename-btn" onclick="startRenameLab()" title="Rename"
-                    style="background: none; border: 1px solid var(--border); color: var(--text-dim); border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; font-family: var(--font-sans);">{{ t.lab_rename if t and t.lab_rename else "rename" }}</button>
-                {% endif %}
+                {# rename button — backend not yet implemented, hidden until display-name endpoint is built #}
             </h1>
             <div class="lab-meta-row">
                 {% if lab.display_name %}
@@ -1124,62 +1121,27 @@
     {% endif %}
 
     {% if not is_demo %}
-    <!-- Public Shareable Status Page -->
+    <!-- Public Shareable Status Page (coming soon) -->
     <div class="admin-section" id="public-status-section">
-        <h2>{{ t.lab_public_status if t and t.lab_public_status else "Public status page" }}</h2>
+        <h2>{{ t.lab_public_status if t and t.lab_public_status else "Public status page" }}
+            <span style="font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 8px; vertical-align: middle;">coming soon</span>
+        </h2>
         <p style="color: var(--text-dim); font-size: 13px; margin-top: -4px; margin-bottom: 18px;">
             {{ t.lab_public_status_desc if t and t.lab_public_status_desc else "Share a read-only status page for this node with a public URL. Shows uptime bar, current CPU/memory/disk, and online state. No token, no lab id, no alerts. Auto-refreshes every 60 seconds." }}
         </p>
-        <div id="public-status-toggle" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-            <button type="button" class="btn" id="public-status-btn" onclick="togglePublicStatus()">
-                Loading...
-            </button>
-            <div id="public-status-url-box" style="display: none; flex: 1; min-width: 280px;">
-                <div class="admin-field-value" style="align-items: center;">
-                    <code id="public-status-url" style="flex: 1; overflow-x: auto; white-space: nowrap;"></code>
-                    <button type="button" class="copy-btn" onclick="copyPublicUrl()">Copy</button>
-                    <a id="public-status-open" href="#" target="_blank" rel="noopener" class="copy-btn" style="text-decoration: none;">Open</a>
-                </div>
-            </div>
-        </div>
     </div>
 
     {% endif %}
 
     {% if not is_demo %}
-    <!-- Maintenance Mode -->
+    <!-- Maintenance Mode (coming soon) -->
     <div class="admin-section" id="maintenance-section">
-        <h2>{{ t.lab_maintenance_title if t and t.lab_maintenance_title else "Maintenance mode" }}</h2>
+        <h2>{{ t.lab_maintenance_title if t and t.lab_maintenance_title else "Maintenance mode" }}
+            <span style="font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 8px; vertical-align: middle;">coming soon</span>
+        </h2>
         <p style="color: var(--text-dim); font-size: 13px; margin-top: -4px; margin-bottom: 18px;">
             {{ t.lab_maintenance_desc if t and t.lab_maintenance_desc else "Silence all alerts for this lab during planned downtime. Agent metrics still flow in, but no new alerts are created." }}
         </p>
-        <div id="maintenance-inactive-view">
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <input type="text" id="maint-reason" placeholder="Reason (optional)  e.g. kernel upgrade" maxlength="200"
-                    style="flex: 1; min-width: 220px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
-                <select id="maint-duration" style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
-                    <option value="30">{{ t.lab_maintenance_30m if t and t.lab_maintenance_30m else "30 min" }}</option>
-                    <option value="60" selected>{{ t.lab_maintenance_1h if t and t.lab_maintenance_1h else "1 hour" }}</option>
-                    <option value="120">{{ t.lab_maintenance_2h if t and t.lab_maintenance_2h else "2 hours" }}</option>
-                    <option value="240">{{ t.lab_maintenance_4h if t and t.lab_maintenance_4h else "4 hours" }}</option>
-                    <option value="480">{{ t.lab_maintenance_8h if t and t.lab_maintenance_8h else "8 hours" }}</option>
-                    <option value="1440">{{ t.lab_maintenance_24h if t and t.lab_maintenance_24h else "24 hours" }}</option>
-                    <option value="">{{ t.lab_maintenance_unlimited if t and t.lab_maintenance_unlimited else "No limit" }}</option>
-                </select>
-                <button type="button" class="btn" id="maint-enable-btn" onclick="enableMaintenance()">{{ t.lab_maintenance_enter if t and t.lab_maintenance_enter else "Enter maintenance" }}</button>
-            </div>
-        </div>
-        <div id="maintenance-active-view" style="display: none;">
-            <div style="background: rgba(240, 160, 48, 0.08); border: 1px solid rgba(240, 160, 48, 0.35); border-radius: var(--radius); padding: 14px 16px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px rgba(240, 160, 48, 0.6);"></span>
-                    <strong style="color: var(--amber); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">{{ t.lab_maintenance_active if t and t.lab_maintenance_active else "Maintenance active" }}</strong>
-                    <span id="maint-time-remaining" style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); margin-left: auto;"></span>
-                </div>
-                <div id="maint-reason-display" style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;"></div>
-                <button type="button" class="btn" id="maint-disable-btn" onclick="disableMaintenance()">{{ t.lab_maintenance_end if t and t.lab_maintenance_end else "End maintenance" }}</button>
-            </div>
-        </div>
     </div>
 
     {% endif %}
@@ -1430,180 +1392,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     {% if not is_demo %}
-    // ---- Public status page ----
-    var _publicStatusState = { enabled: false, url: '' };
-    function renderPublicStatus() {
-        var btn = document.getElementById('public-status-btn');
-        var box = document.getElementById('public-status-url-box');
-        var urlEl = document.getElementById('public-status-url');
-        var openEl = document.getElementById('public-status-open');
-        if (_publicStatusState.enabled) {
-            btn.textContent = 'Disable public page';
-            btn.classList.add('btn-danger');
-            box.style.display = 'block';
-            urlEl.textContent = _publicStatusState.url;
-            openEl.href = _publicStatusState.url;
-        } else {
-            btn.textContent = 'Enable public page';
-            btn.classList.remove('btn-danger');
-            box.style.display = 'none';
-        }
-    }
-    function loadPublicStatus() {
-        fetch('/api/v1/my/lab/{{ lab.id }}/public-status')
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                _publicStatusState.enabled = !!d.enabled;
-                _publicStatusState.url = d.url || '';
-                renderPublicStatus();
-            })
-            .catch(function() {
-                var btn = document.getElementById('public-status-btn');
-                if (btn) btn.textContent = 'Enable public page';
-            });
-    }
-    function togglePublicStatus() {
-        var btn = document.getElementById('public-status-btn');
-        btn.disabled = true;
-        var method = _publicStatusState.enabled ? 'DELETE' : 'POST';
-        fetch('/api/v1/my/lab/{{ lab.id }}/public-status', { method: method })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                _publicStatusState.enabled = !!d.enabled;
-                _publicStatusState.url = d.url || _publicStatusState.url;
-                renderPublicStatus();
-                btn.disabled = false;
-                if (d.enabled && typeof showToast === 'function') {
-                    showToast('Public page enabled');
-                } else if (!d.enabled && typeof showToast === 'function') {
-                    showToast('Public page disabled');
-                }
-            })
-            .catch(function(err) {
-                btn.disabled = false;
-                if (typeof showToast === 'function') showToast('Failed: ' + err);
-            });
-    }
-    function copyPublicUrl() {
-        var url = _publicStatusState.url;
-        if (!url) return;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(url).then(function() {
-                if (typeof showToast === 'function') showToast('URL copied');
-            });
-        } else {
-            var ta = document.createElement('textarea');
-            ta.value = url;
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand('copy'); } catch (e) {}
-            document.body.removeChild(ta);
-            if (typeof showToast === 'function') showToast('URL copied');
-        }
-    }
-    loadPublicStatus();
+    // Public status page — coming soon (no backend yet)
     {% endif %}
 
     {% if not is_demo %}
-    // ---- Maintenance mode ----
-    var _maintState = { enabled: false, reason: '', until: null };
-    var _maintTicker = null;
-
-    function fmtRemaining(untilIso) {
-        if (!untilIso) return 'no limit';
-        var d = new Date(untilIso + (untilIso.indexOf('Z') < 0 && untilIso.indexOf('+') < 0 ? 'Z' : ''));
-        if (isNaN(d)) return '';
-        var s = Math.floor((d.getTime() - Date.now()) / 1000);
-        if (s <= 0) return 'expiring…';
-        if (s < 60) return s + 's left';
-        if (s < 3600) return Math.floor(s / 60) + 'm left';
-        if (s < 86400) {
-            var h = Math.floor(s / 3600);
-            var m = Math.floor((s % 3600) / 60);
-            return h + 'h ' + m + 'm left';
-        }
-        return Math.floor(s / 86400) + 'd left';
-    }
-
-    function renderMaintenance() {
-        var inactive = document.getElementById('maintenance-inactive-view');
-        var active = document.getElementById('maintenance-active-view');
-        if (!inactive || !active) return;
-        if (_maintState.enabled) {
-            inactive.style.display = 'none';
-            active.style.display = 'block';
-            var reasonEl = document.getElementById('maint-reason-display');
-            reasonEl.textContent = _maintState.reason ? ('Reason: ' + _maintState.reason) : 'No reason given.';
-            var timeEl = document.getElementById('maint-time-remaining');
-            timeEl.textContent = fmtRemaining(_maintState.until);
-            if (_maintTicker) clearInterval(_maintTicker);
-            _maintTicker = setInterval(function() {
-                timeEl.textContent = fmtRemaining(_maintState.until);
-            }, 15000);
-        } else {
-            inactive.style.display = 'block';
-            active.style.display = 'none';
-            if (_maintTicker) { clearInterval(_maintTicker); _maintTicker = null; }
-        }
-    }
-
-    function loadMaintenance() {
-        fetch('/api/v1/my/lab/{{ lab.id }}/maintenance')
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                _maintState.enabled = !!d.enabled;
-                _maintState.reason = d.reason || '';
-                _maintState.until = d.until || null;
-                renderMaintenance();
-            })
-            .catch(function() {});
-    }
-
-    function enableMaintenance() {
-        var btn = document.getElementById('maint-enable-btn');
-        btn.disabled = true;
-        var reason = (document.getElementById('maint-reason').value || '').trim();
-        var durSel = document.getElementById('maint-duration');
-        var durVal = durSel.value;
-        var body = { reason: reason };
-        if (durVal) body.duration_minutes = parseInt(durVal, 10);
-        fetch('/api/v1/my/lab/{{ lab.id }}/maintenance', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                _maintState.enabled = !!d.enabled;
-                _maintState.reason = d.reason || '';
-                _maintState.until = d.until || null;
-                renderMaintenance();
-                btn.disabled = false;
-                if (typeof showToast === 'function') showToast('Maintenance enabled — alerts silenced');
-            })
-            .catch(function(err) {
-                btn.disabled = false;
-                if (typeof showToast === 'function') showToast('Failed: ' + err);
-            });
-    }
-
-    function disableMaintenance() {
-        var btn = document.getElementById('maint-disable-btn');
-        btn.disabled = true;
-        fetch('/api/v1/my/lab/{{ lab.id }}/maintenance', { method: 'DELETE' })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                _maintState.enabled = !!d.enabled;
-                renderMaintenance();
-                btn.disabled = false;
-                if (typeof showToast === 'function') showToast('Maintenance ended');
-            })
-            .catch(function(err) {
-                btn.disabled = false;
-                if (typeof showToast === 'function') showToast('Failed: ' + err);
-            });
-    }
-    loadMaintenance();
+    // Maintenance mode — coming soon (no backend yet)
     {% endif %}
 
     {% if not is_demo %}
