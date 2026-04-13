@@ -107,8 +107,14 @@ func (d *DockerCollector) Collect(ctx context.Context) (interface{}, error) {
 						return
 					}
 					// CPU percent: delta usage / delta system * num CPUs * 100
-					cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage)
-					sysDelta := float64(stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage)
+					// Guard against unsigned underflow on counter reset
+					var cpuDelta, sysDelta float64
+					if stats.CPUStats.CPUUsage.TotalUsage >= stats.PreCPUStats.CPUUsage.TotalUsage {
+						cpuDelta = float64(stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage)
+					}
+					if stats.CPUStats.SystemUsage >= stats.PreCPUStats.SystemUsage {
+						sysDelta = float64(stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage)
+					}
 					if sysDelta > 0 && cpuDelta > 0 {
 						numCPUs := float64(stats.CPUStats.OnlineCPUs)
 						if numCPUs == 0 {
