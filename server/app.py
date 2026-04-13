@@ -376,7 +376,7 @@ def _enrich_network_rate(system_summary: dict, lab_id: str) -> None:
         system_summary["net_rx_mbps"] = min(round(rx_delta * 8 / delta_s / 1_000_000, 2), 1000)
         system_summary["net_tx_mbps"] = min(round(tx_delta * 8 / delta_s / 1_000_000, 2), 1000)
     except Exception:
-        pass
+        logging.getLogger("labwatch").debug("Network rate enrichment failed", exc_info=True)
 
 
 def _extract_gpu_summary(metrics: dict[str, Any]) -> dict[str, Any]:
@@ -1530,6 +1530,7 @@ def dashboard_lab_detail(request: Request, lab_id: str, x_admin_secret: Optional
 @app.get("/api/v1/labs/{lab_id}/history")
 def lab_metrics_history(request: Request, lab_id: str, hours: int = 24, x_admin_secret: Optional[str] = Header(None)):
     """Return time-series metrics data for charts."""
+    hours = max(1, min(hours, 8760))  # Clamp to 1h..1year
     secret = x_admin_secret or request.query_params.get("secret") or ""
     if not hmac.compare_digest(secret, config.ADMIN_SECRET):
         raise HTTPException(status_code=403, detail="Forbidden")

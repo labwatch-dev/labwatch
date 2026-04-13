@@ -201,19 +201,27 @@ def _verify_password(password: str, stored_hash: str) -> bool:
 
 
 def signup_lab(email: str, hostname: str, ip_address: str = None, password: str = None) -> tuple[str, str]:
-    """Self-service signup. Creates a lab + signup record. Returns (lab_id, token)."""
-    lab_id, token = register_lab(hostname, "linux", "amd64", "pending-install")
-
+    """Self-service signup. Creates a lab + signup record atomically. Returns (lab_id, token)."""
+    lab_id = str(uuid4())
+    token = secrets.token_hex(32)
     pw_hash = _hash_password(password) if password else None
+    now = datetime.now(timezone.utc).isoformat()
 
     conn = _connect()
     try:
-        now = datetime.now(timezone.utc).isoformat()
+        conn.execute(
+            """INSERT INTO labs (id, hostname, os, arch, agent_version, token, registered_at, last_seen)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (lab_id, hostname, "linux", "amd64", "pending-install", token, now, now),
+        )
         conn.execute(
             "INSERT INTO signups (email, password_hash, lab_id, plan, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)",
             (email, pw_hash, lab_id, "free", ip_address, now),
         )
         conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 
