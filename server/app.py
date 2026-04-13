@@ -1279,6 +1279,24 @@ def reset_lab_thresholds(lab_id: str, request: Request):
     return {"status": "reset"}
 
 
+_CHANNEL_REQUIRED_KEYS = {
+    "webhook": ["url"],
+    "ntfy": ["topic"],
+    "telegram": ["bot_token", "chat_id"],
+    "discord": ["webhook_url"],
+    "slack": ["webhook_url"],
+    "gotify": ["server", "token"],
+    "pushover": ["user_key", "api_token"],
+    "apprise": ["url"],
+}
+
+
+def _validate_channel_config(channel_type: str, config: dict) -> list[str]:
+    """Return list of missing required config keys, empty if valid."""
+    required = _CHANNEL_REQUIRED_KEYS.get(channel_type, [])
+    return [k for k in required if not config.get(k)]
+
+
 @app.get("/api/v1/my/notifications")
 def list_user_notifications(request: Request):
     """List notification channels owned by the current user."""
@@ -1303,6 +1321,11 @@ def create_user_notification(request: Request, body: dict = None):
         raise HTTPException(status_code=400, detail="Unsupported channel_type")
     if min_severity not in ("info", "warning", "critical"):
         raise HTTPException(status_code=400, detail="min_severity must be info, warning, or critical")
+
+    # Validate required config keys per channel type
+    missing = _validate_channel_config(channel_type, cfg)
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Missing required config: {', '.join(missing)}")
 
     channel_id = db.add_user_notification_channel(email, name, channel_type, cfg, min_severity)
     return {"id": channel_id, "status": "created", "channel": {"id": channel_id, "name": name, "channel_type": channel_type}}
@@ -3255,6 +3278,10 @@ def create_notification_channel(
         raise HTTPException(status_code=400, detail="Unsupported channel_type")
     if min_severity not in ("info", "warning", "critical"):
         raise HTTPException(status_code=400, detail="min_severity must be 'info', 'warning', or 'critical'")
+
+    missing = _validate_channel_config(channel_type, config)
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Missing required config: {', '.join(missing)}")
 
     channel_id = db.add_notification_channel(name, channel_type, config, min_severity)
     return {"id": channel_id, "status": "created"}
