@@ -222,12 +222,14 @@ async def _check_stale_nodes():
                         )
                         if is_new:
                             try:
-                                send_alert_notification(
+                                # Run sync HTTP dispatch in a thread to avoid blocking the event loop
+                                await asyncio.to_thread(
+                                    send_alert_notification,
                                     {"type": "node_offline", "severity": "critical", "message": msg},
                                     lab,
                                 )
                             except Exception:
-                                pass
+                                logger.exception("Failed to send node_offline notification")
                 else:
                     # Resolve node_offline alert if node is back
                     db.resolve_alerts(lab["id"], ["node_offline"])
