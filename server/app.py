@@ -1033,6 +1033,7 @@ def pin_node(lab_id: str, request: Request):
 @app.delete("/api/v1/my/pin/{lab_id}")
 def unpin_node(lab_id: str, request: Request):
     email = _require_session(request)
+    _require_lab_access(email, lab_id)
     db.unpin_node(email, lab_id)
     return {"status": "unpinned"}
 
@@ -1057,10 +1058,10 @@ def get_lab_thresholds(lab_id: str, request: Request):
 
 
 @app.put("/api/v1/my/thresholds/{lab_id}")
-def set_lab_thresholds(lab_id: str, request: Request, body: dict = {}):
+def set_lab_thresholds(lab_id: str, request: Request, body: dict = None):
     email = _require_session(request)
     _require_lab_access(email, lab_id)
-    db.set_alert_thresholds(email, lab_id, body)
+    db.set_alert_thresholds(email, lab_id, body or {})
     return {"status": "saved"}
 
 
@@ -1078,9 +1079,9 @@ def get_notification_prefs(request: Request):
 
 
 @app.put("/api/v1/my/notification-prefs")
-def set_notification_prefs(request: Request, body: dict = {}):
+def set_notification_prefs(request: Request, body: dict = None):
     email = _require_session(request)
-    db.set_notification_prefs(email, body)
+    db.set_notification_prefs(email, body or {})
     return {"status": "saved"}
 
 

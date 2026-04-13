@@ -397,7 +397,7 @@
   "alerts_chip_gpu": "alerte si la température GPU dépasse 80C",
   "alerts_chip_load": "notifie-moi quand le load average dépasse 10",
   "alerts_preview": "Aperçu de la règle",
-  "alerts_apply": "Appliquer la r��gle",
+  "alerts_apply": "Appliquer la règle",
   "alerts_current": "Seuils actuels",
   "alerts_hint": "Vert = personnalisé par toi. Appliquer une règle met à jour le seuil correspondant.",
   "notif_title": "Notifications",
