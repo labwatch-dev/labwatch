@@ -5,9 +5,11 @@ stores them in SQLite, provides REST endpoints and a simple dashboard.
 """
 
 import asyncio
+import collections
 import hmac
 import logging
 import sys
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
@@ -28,13 +30,31 @@ from i18n import detect_language, get_translations, SUPPORTED_LANGUAGES, LANGUAG
 from models import MetricPayload, RegisterRequest, RegisterResponse, SignupRequest
 
 # ---------------------------------------------------------------------------
+# In-memory rate limiter (login brute-force protection)
+# ---------------------------------------------------------------------------
+
+_login_attempts: dict[str, list[float]] = collections.defaultdict(list)
+
+def _check_login_rate(ip: str, max_attempts: int = 10, window: int = 300) -> bool:
+    """Returns True if the IP is under the login rate limit (10 attempts per 5 min)."""
+    now = time.monotonic()
+    attempts = _login_attempts[ip]
+    # Prune old entries
+    _login_attempts[ip] = [t for t in attempts if now - t < window]
+    return len(_login_attempts[ip]) < max_attempts
+
+def _record_login_attempt(ip: str):
+    _login_attempts[ip].append(time.monotonic())
+
+
+# ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="labwatch",
     description="Homelab Intelligence monitoring service",
-    version="0.1.0",
+    version="1.0.0",
     docs_url=None,
     redoc_url=None,
     openapi_url=None,
@@ -562,12 +582,17 @@ def login_page(request: Request):
 
 @app.post("/login")
 def login_submit(
+    request: Request,
     token: str = Form(""),
     email: str = Form(""),
     password: str = Form(""),
     method: str = Form("token"),
 ):
     """Authenticate user by token or email+password, set session cookie."""
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_login_rate(client_ip):
+        return RedirectResponse("/login?error=Too+many+attempts.+Try+again+in+a+few+minutes.", status_code=302)
+    _record_login_attempt(client_ip)
 
     if method == "email":
         # Email + password login
