@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Service — labwatch{% endblock %}
+
+{% block extra_styles %}
+.legal-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+}
+
+.legal-page h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.legal-page .updated {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 48px;
+}
+
+.legal-page h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 40px;
+    margin-bottom: 12px;
+    color: var(--text);
+}
+
+.legal-page p, .legal-page li {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+
+.legal-page ul {
+    padding-left: 20px;
+    margin-bottom: 16px;
+}
+
+.legal-page a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.legal-page a:hover {
+    text-decoration: underline;
+}
+{% endblock %}
+
+{% block content %}
+<div class="legal-page">
+    <h1>Terms of Service</h1>
+    <p class="updated">Last updated: April 13, 2026</p>
+
+    <h2>Service</h2>
+    <p>labwatch provides infrastructure monitoring for homelab environments. The service consists of a server component (hosted at labwatch.dev or self-hosted) and an agent binary that runs on your nodes.</p>
+
+    <h2>Accounts</h2>
+    <p>You are responsible for maintaining the security of your account credentials (API tokens and passwords). You must provide a valid email address for account creation. One person or organization per account.</p>
+
+    <h2>Free tier</h2>
+    <p>The free tier includes up to 3 monitored nodes with 30 days of metric retention. Free accounts are available for personal, non-commercial homelab use. We reserve the right to modify free tier limits with 30 days notice.</p>
+
+    <h2>Paid plans</h2>
+    <p>Paid plans are billed monthly via Stripe. You can cancel at any time — your plan remains active until the end of the billing period. No refunds for partial months. Plan changes take effect immediately.</p>
+
+    <h2>Data ownership</h2>
+    <p>You own your data. We store it on your behalf and you can export or delete it at any time. See our <a href="/privacy">Privacy Policy</a> for details on what we collect and how we handle it.</p>
+
+    <h2>Self-hosted</h2>
+    <p>The labwatch server and agent are open source (AGPL-3.0 and MIT respectively). You may self-host the entire stack without any account or payment. Self-hosted instances are not covered by these terms — you operate them under the applicable open source license.</p>
+
+    <h2>Acceptable use</h2>
+    <p>You agree not to:</p>
+    <ul>
+        <li>Use the service to monitor infrastructure you don't own or have authorization to monitor</li>
+        <li>Attempt to access other users' data or accounts</li>
+        <li>Abuse the API with excessive requests beyond normal monitoring use</li>
+        <li>Resell access to the managed service without permission</li>
+    </ul>
+
+    <h2>Availability</h2>
+    <p>We aim for high availability but do not guarantee a specific uptime SLA for the managed service. The agent is designed to buffer and retry — brief server downtime does not cause data loss. For mission-critical monitoring, we recommend self-hosting.</p>
+
+    <h2>Liability</h2>
+    <p>labwatch is provided "as is". We are not liable for damages resulting from service outages, data loss, missed alerts, or any other failure of the monitoring system. labwatch is a supplementary monitoring tool, not a replacement for proper infrastructure management practices.</p>
+
+    <h2>Changes</h2>
+    <p>We may update these terms. Material changes will be communicated via email to registered users at least 14 days before taking effect.</p>
+
+    <h2>Contact</h2>
+    <p>Questions? Email <a href="mailto:support@labwatch.dev">support@labwatch.dev</a>.</p>
+</div>
+{% endblock %}

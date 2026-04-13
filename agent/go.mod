@@ -1,6 +1,6 @@
 module github.com/labwatch-dev/labwatch
 
-go 1.23.0
+go 1.25.0
 
 require (
 	github.com/docker/docker v25.0.0+incompatible

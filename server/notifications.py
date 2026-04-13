@@ -12,12 +12,31 @@ import database as db
 
 
 def _validate_url(url: str) -> None:
-    """Reject URLs with dangerous schemes (file://, ftp://) or missing host."""
+    """Reject URLs with dangerous schemes, missing host, or private/internal IPs (SSRF)."""
+    import ipaddress
+    import socket
+
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https"):
         raise ValueError(f"URL scheme must be http or https, got '{parsed.scheme}'")
     if not parsed.hostname:
         raise ValueError("URL must include a hostname")
+
+    # Block private/internal IP ranges to prevent SSRF
+    try:
+        # Resolve hostname to check actual IP
+        addr = socket.getaddrinfo(parsed.hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
+        for family, _, _, _, sockaddr in addr:
+            ip = ipaddress.ip_address(sockaddr[0])
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                raise ValueError(f"URL resolves to private/internal address — not allowed")
+    except socket.gaierror:
+        raise ValueError(f"Cannot resolve hostname: {parsed.hostname}")
+    except ValueError as e:
+        if "not allowed" in str(e) or "Cannot resolve" in str(e):
+            raise
+        # ip_address() can raise ValueError for non-IP strings; allow those through
+        pass
 
 logger = logging.getLogger("labwatch.notifications")
 

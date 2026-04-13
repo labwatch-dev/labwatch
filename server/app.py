@@ -430,6 +430,16 @@ def self_hosted_page(request: Request):
     return templates.TemplateResponse("self_hosted.html", _tpl_context(request, active_page="self_hosted"))
 
 
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy_page(request: Request):
+    return templates.TemplateResponse("privacy.html", _tpl_context(request, active_page="privacy"))
+
+
+@app.get("/terms", response_class=HTMLResponse)
+def terms_page(request: Request):
+    return templates.TemplateResponse("terms.html", _tpl_context(request, active_page="terms"))
+
+
 @app.get("/pricing")
 def pricing_redirect():
     # Pricing lives as a section on the landing page. A canonical /pricing
@@ -546,7 +556,8 @@ def robots_txt():
 def sitemap_xml():
     urls = [
         "", "/demo", "/docs", "/about", "/support",
-        "/self-hosted", "/#pricing", "/#compare",
+        "/self-hosted", "/privacy", "/terms",
+        "/#pricing", "/#compare",
     ]
     entries = "\n".join(
         f"  <url><loc>https://labwatch.dev{u}</loc></url>" for u in urls

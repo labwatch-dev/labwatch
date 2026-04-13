@@ -1,0 +1,3 @@
+# Agent binaries are built by scripts/build-agent.sh
+# Don't check them into git — CI should build them
+labwatch-*
