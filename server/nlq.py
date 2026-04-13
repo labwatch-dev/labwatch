@@ -452,6 +452,32 @@ def _scoped_list_labs() -> list[dict]:
     return db.list_labs()
 
 
+def _scoped_lab_ids() -> set[str] | None:
+    """Return set of lab IDs visible to current user, or None for admin (all)."""
+    email = _scope_email.get()
+    if email is not None:
+        return {lab["id"] for lab in db.get_labs_for_email(email)}
+    return None
+
+
+def _scoped_all_active_alerts() -> list[dict]:
+    """get_all_active_alerts() filtered to user-visible labs."""
+    alerts = db.get_all_active_alerts()
+    allowed = _scoped_lab_ids()
+    if allowed is None:
+        return alerts
+    return [a for a in alerts if a.get("lab_id") in allowed]
+
+
+def _scoped_alerts_in_range(**kwargs) -> list[dict]:
+    """get_alerts_in_range() filtered to user-visible labs."""
+    alerts = db.get_alerts_in_range(**kwargs)
+    allowed = _scoped_lab_ids()
+    if allowed is None:
+        return alerts
+    return [a for a in alerts if a.get("lab_id") in allowed]
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -874,12 +900,11 @@ def _handle_time(question: str, match: re.Match) -> dict:
     else:
         period_name = f"the last {diff_hours / 24:.0f} days"
 
-    # Fetch alerts in range
-    alerts = db.get_alerts_in_range(
-        lab_id=lab_filter["id"] if lab_filter else None,
-        start=start_iso,
-        end=end_iso,
-    )
+    # Fetch alerts in range (scoped to user's labs when applicable)
+    if lab_filter:
+        alerts = db.get_alerts_in_range(lab_id=lab_filter["id"], start=start_iso, end=end_iso)
+    else:
+        alerts = _scoped_alerts_in_range(start=start_iso, end=end_iso)
 
     fired = len(alerts)
     resolved = sum(1 for a in alerts if a.get("resolved_at"))
@@ -1524,10 +1549,10 @@ def _handle_alerts(question: str, match: re.Match) -> dict:
                 alerts = db.get_alerts_in_range(lab_id=lab["id"], start=start, end=end)
                 scope = f"on {lab['hostname']}"
             else:
-                alerts = db.get_alerts_in_range(start=start, end=end)
+                alerts = _scoped_alerts_in_range(start=start, end=end)
                 scope = "across the fleet"
         else:
-            alerts = db.get_alerts_in_range(start=start, end=end)
+            alerts = _scoped_alerts_in_range(start=start, end=end)
             scope = "across the fleet"
 
         if not alerts:
@@ -1581,11 +1606,11 @@ def _handle_alerts(question: str, match: re.Match) -> dict:
                     {"type": "alerts", "count": len(alerts)},
                 ]
             else:
-                alerts = db.get_all_active_alerts()
+                alerts = _scoped_all_active_alerts()
                 scope = "across the fleet"
                 sources = [{"type": "alerts", "count": len(alerts)}]
         else:
-            alerts = db.get_all_active_alerts()
+            alerts = _scoped_all_active_alerts()
             scope = "across the fleet"
             sources = [{"type": "alerts", "count": len(alerts)}]
 

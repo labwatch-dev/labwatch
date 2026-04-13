@@ -105,7 +105,7 @@ async def csrf_origin_check(request: Request, call_next):
         path = request.url.path
         # Check all session-authenticated endpoints + browser forms
         # Skip API routes that use Bearer/admin auth (not CSRF-vulnerable)
-        csrf_paths = {"/login", "/set-password"}
+        csrf_paths = {"/login", "/signup", "/set-password"}
         is_session_api = path.startswith("/api/v1/my/") or path.startswith("/api/v1/billing/")
         if path in csrf_paths or is_session_api:
             origin = request.headers.get("origin") or ""
@@ -183,7 +183,10 @@ async def _periodic_purge():
     logger = logging.getLogger("labwatch")
     while True:
         await asyncio.sleep(6 * 3600)
-        _run_tier_purge(logger)
+        try:
+            _run_tier_purge(logger)
+        except Exception:
+            logger.exception("Periodic purge failed — will retry next cycle")
 
 
 @app.on_event("startup")
@@ -939,11 +942,24 @@ def user_dashboard(request: Request):
     # Sort pinned first
     lab_data.sort(key=lambda x: x.get("pinned", False), reverse=True)
 
+    restart_leaders = []
+    for ld in lab_data:
+        for c in ld.get("containers") or []:
+            rc = c.get("restart_count", 0)
+            if rc and rc > 0:
+                restart_leaders.append({
+                    "lab_id": ld["id"], "hostname": ld.get("hostname") or ld.get("name", ""),
+                    "container": c.get("name", "?"), "restart_count": rc,
+                })
+    restart_leaders.sort(key=lambda r: r["restart_count"], reverse=True)
+    restart_leaders = restart_leaders[:10]
+
     return templates.TemplateResponse("dashboard.html", _tpl_context(
         request, labs=lab_data, total=len(lab_data), active_page="dashboard",
         pinned_ids=pinned_ids,
         user_plan=db.get_plan_for_email(email, default=config.DEFAULT_PLAN),
         billing_enabled=config.BILLING_ENABLED,
+        restart_leaders=restart_leaders,
     ))
 
 
@@ -1585,8 +1601,22 @@ def dashboard(request: Request, x_admin_secret: Optional[str] = Header(None)):
             "critical_count": sum(1 for a in alerts if a.get("severity") == "critical"),
         })
 
+    # Build restart leaders from container data across all labs
+    restart_leaders = []
+    for ld in lab_data:
+        for c in ld.get("containers") or []:
+            rc = c.get("restart_count", 0)
+            if rc and rc > 0:
+                restart_leaders.append({
+                    "lab_id": ld["id"], "hostname": ld.get("hostname") or ld.get("name", ""),
+                    "container": c.get("name", "?"), "restart_count": rc,
+                })
+    restart_leaders.sort(key=lambda r: r["restart_count"], reverse=True)
+    restart_leaders = restart_leaders[:10]
+
     return templates.TemplateResponse("dashboard.html", _tpl_context(
         request, labs=lab_data, total=len(lab_data), secret=secret,
+        restart_leaders=restart_leaders,
     ))
 
 

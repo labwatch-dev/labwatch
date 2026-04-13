@@ -109,6 +109,17 @@ def init_db() -> None:
                 processed_at TEXT NOT NULL
             );
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS nlq_log (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                question    TEXT NOT NULL,
+                query_type  TEXT NOT NULL,
+                matched     INTEGER NOT NULL DEFAULT 0,
+                confidence  REAL NOT NULL DEFAULT 0.0,
+                email       TEXT,
+                created_at  TEXT NOT NULL
+            );
+        """)
         conn.commit()
 
         # Migrate notification_channels if the CHECK constraint is outdated
@@ -973,6 +984,53 @@ def purge_old_alerts(hours: int = 720) -> int:
         )
         conn.commit()
         return cursor.rowcount
+    finally:
+        conn.close()
+
+
+def log_nlq_query(
+    question: str,
+    query_type: str,
+    matched: bool,
+    confidence: float = 0.0,
+    email: str | None = None,
+) -> None:
+    """Log an NLQ query for analytics (non-fatal if table doesn't exist)."""
+    conn = _connect()
+    try:
+        conn.execute(
+            """INSERT INTO nlq_log (question, query_type, matched, confidence, email, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (question, query_type, matched, confidence, email,
+             datetime.now(timezone.utc).isoformat()),
+        )
+        conn.commit()
+    except Exception:
+        pass  # Table may not exist yet — non-critical
+    finally:
+        conn.close()
+
+
+def list_active_maintenance(lab_ids: list[str]) -> dict[str, dict]:
+    """Return {lab_id: maintenance_state} for labs currently in maintenance mode."""
+    if not lab_ids:
+        return {}
+    conn = _connect()
+    try:
+        placeholders = ",".join("?" for _ in lab_ids)
+        rows = conn.execute(
+            f"""SELECT lab_id, reason, started_at, ends_at FROM maintenance
+                WHERE lab_id IN ({placeholders})
+                  AND enabled = 1
+                  AND (ends_at IS NULL OR ends_at > ?)""",
+            (*lab_ids, datetime.now(timezone.utc).isoformat()),
+        ).fetchall()
+        return {
+            r["lab_id"]: {"reason": r["reason"], "started_at": r["started_at"], "ends_at": r["ends_at"]}
+            for r in rows
+        }
+    except Exception:
+        return {}  # Table may not exist yet — maintenance is a future feature
     finally:
         conn.close()
 

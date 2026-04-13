@@ -1120,30 +1120,6 @@
     </div>
     {% endif %}
 
-    {% if not is_demo %}
-    <!-- Public Shareable Status Page (coming soon) -->
-    <div class="admin-section" id="public-status-section">
-        <h2>{{ t.lab_public_status if t and t.lab_public_status else "Public status page" }}
-            <span style="font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 8px; vertical-align: middle;">coming soon</span>
-        </h2>
-        <p style="color: var(--text-dim); font-size: 13px; margin-top: -4px; margin-bottom: 18px;">
-            {{ t.lab_public_status_desc if t and t.lab_public_status_desc else "Share a read-only status page for this node with a public URL. Shows uptime bar, current CPU/memory/disk, and online state. No token, no lab id, no alerts. Auto-refreshes every 60 seconds." }}
-        </p>
-    </div>
-
-    {% endif %}
-
-    {% if not is_demo %}
-    <!-- Maintenance Mode (coming soon) -->
-    <div class="admin-section" id="maintenance-section">
-        <h2>{{ t.lab_maintenance_title if t and t.lab_maintenance_title else "Maintenance mode" }}
-            <span style="font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 8px; vertical-align: middle;">coming soon</span>
-        </h2>
-        <p style="color: var(--text-dim); font-size: 13px; margin-top: -4px; margin-bottom: 18px;">
-            {{ t.lab_maintenance_desc if t and t.lab_maintenance_desc else "Silence all alerts for this lab during planned downtime. Agent metrics still flow in, but no new alerts are created." }}
-        </p>
-    </div>
-
     {% endif %}
 
     {% if not is_demo %}
@@ -1378,7 +1354,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.disabled = true;
         fetch('/api/v1/admin/digest/{{ lab.id }}', {
             method: 'POST',
-            headers: { 'X-Admin-Secret': '{{ secret }}' }
+            headers: { 'X-Admin-Secret': {{ secret | tojson }} }
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -1390,14 +1366,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-
-    {% if not is_demo %}
-    // Public status page — coming soon (no backend yet)
-    {% endif %}
-
-    {% if not is_demo %}
-    // Maintenance mode — coming soon (no backend yet)
-    {% endif %}
 
     {% if not is_demo %}
     // ---- Inline rename ----
@@ -1479,7 +1447,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.textContent = '{{ t.deleting if t.deleting else "Deleting..." }}';
         fetch('/api/v1/admin/lab/{{ lab.id }}', {
             method: 'DELETE',
-            headers: { 'X-Admin-Secret': '{{ secret }}' }
+            headers: { 'X-Admin-Secret': {{ secret | tojson }} }
         })
         .then(function(res) {
             if (res.ok) {

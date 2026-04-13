@@ -1885,7 +1885,7 @@ function askQuery() {
     fetch('/api/v1/query', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({question: question, secret: '{{ secret }}'})
+        body: JSON.stringify({question: question, secret: {{ secret | tojson }}})
     })
     .then(function(resp) {
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -2123,7 +2123,7 @@ function dismissSuggestions() {
 
     function refreshLabs() {
         fetch({% if user_email %}'/api/v1/my/dashboard'{% else %}'/api/v1/admin/dashboard'{% endif %}, {
-            headers: {% if user_email %}{}{% else %}{'x-admin-secret': '{{ secret }}'}{% endif %}
+            headers: {% if user_email %}{}{% else %}{'x-admin-secret': {{ secret | tojson }}}{% endif %}
         })
             .then(function(res) { return res.json(); })
             .then(function(data) {
@@ -2532,7 +2532,7 @@ function dismissSuggestions() {
     function loadUptime() {
         if (uptimeEl) uptimeEl.innerHTML = '<span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span>';
         fetch('/api/v1/widgets/uptime?hours=' + _uptimeHours, {
-            headers: {% if user_email %}{}{% else %}{'x-admin-secret': '{{ secret }}'}{% endif %}
+            headers: {% if user_email %}{}{% else %}{'x-admin-secret': {{ secret | tojson }}}{% endif %}
         })
         .then(function(r) { return r.json(); })
         .then(renderUptime)
@@ -2544,7 +2544,7 @@ function dismissSuggestions() {
         loadUptime();
 
         fetch('/api/v1/widgets/alerts?limit=15', {
-            headers: {% if user_email %}{}{% else %}{'x-admin-secret': '{{ secret }}'}{% endif %}
+            headers: {% if user_email %}{}{% else %}{'x-admin-secret': {{ secret | tojson }}}{% endif %}
         })
         .then(function(r) { return r.json(); })
         .then(renderAlerts)
