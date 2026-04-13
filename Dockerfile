@@ -1,5 +1,5 @@
 # Stage 1: Build Go agent binaries
-FROM golang:1.22-alpine AS agent-builder
+FROM golang:1.25-alpine AS agent-builder
 
 WORKDIR /build
 COPY agent/ .
