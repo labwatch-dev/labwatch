@@ -361,7 +361,7 @@ BASE_URL=http://labwatch.lan:8097</div>
             <h3><span class="step-num">3</span>Start the stack</h3>
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
 docker compose up -d</div>
-            <p>This builds the image from source (takes ~60 seconds the first time) and starts labwatch on port <code>8097</code>. Logs: <code>docker compose logs -f labwatch</code>.</p>
+            <p>This builds the image from source (takes ~60 seconds the first time) and starts labwatch on port <code>8097</code>. By default it only listens on <code>127.0.0.1</code> &mdash; agents on other machines won't be able to reach it. Either change the port in <code>docker-compose.yml</code> to <code>"8097:8097"</code> or put a reverse proxy in front. Logs: <code>docker compose logs -f labwatch</code>.</p>
 
             <h3><span class="step-num">4</span>Log in</h3>
             <p>Open <code>http://your-host:8097</code>, click <strong>Log in</strong>, and paste the admin secret from your <code>.env</code>. You're in.</p>

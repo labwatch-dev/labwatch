@@ -66,7 +66,9 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_metrics_lab_id ON metrics(lab_id);
             CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp);
             CREATE INDEX IF NOT EXISTS idx_metrics_lab_type ON metrics(lab_id, metric_type);
+            CREATE INDEX IF NOT EXISTS idx_metrics_lab_type_ts ON metrics(lab_id, metric_type, timestamp DESC);
             CREATE INDEX IF NOT EXISTS idx_alerts_lab_id ON alerts(lab_id);
+            CREATE INDEX IF NOT EXISTS idx_alerts_lab_type ON alerts(lab_id, alert_type, resolved_at);
             CREATE INDEX IF NOT EXISTS idx_labs_token ON labs(token);
 
             CREATE TABLE IF NOT EXISTS digests (
@@ -590,11 +592,16 @@ def store_alert(
     severity: str,
     message: str,
     data: Any = None,
+    cooldown_minutes: int = 15,
 ) -> tuple[int, bool]:
     """Store an alert with deduplication. Returns (alert_id, is_new).
 
     When an existing unresolved alert of the same type exists, updates it
     and returns (existing_id, False). Otherwise inserts and returns (new_id, True).
+
+    To prevent notification spam from threshold oscillation, if an alert of the
+    same type was resolved within ``cooldown_minutes``, the alert is inserted
+    but ``is_new`` is returned as False (suppressing re-notification).
     """
     now = datetime.now(timezone.utc).isoformat()
     data_json = json.dumps(data or {})
@@ -618,13 +625,25 @@ def store_alert(
             conn.commit()
             return existing["id"], False
 
+        # Check if same alert type was recently resolved (oscillation guard)
+        cooldown_cutoff = (
+            datetime.now(timezone.utc) - timedelta(minutes=cooldown_minutes)
+        ).isoformat()
+        recently_resolved = conn.execute(
+            """SELECT id FROM alerts
+               WHERE lab_id = ? AND alert_type = ? AND resolved_at > ?
+               LIMIT 1""",
+            (lab_id, alert_type, cooldown_cutoff),
+        ).fetchone()
+
         cursor = conn.execute(
             """INSERT INTO alerts (lab_id, alert_type, severity, message, data, created_at)
                VALUES (?, ?, ?, ?, ?, ?)""",
             (lab_id, alert_type, severity, message, data_json, now),
         )
         conn.commit()
-        return cursor.lastrowid, True
+        # Suppress is_new if within cooldown — alert is stored but no notification fires
+        return cursor.lastrowid, (recently_resolved is None)
     except Exception:
         conn.rollback()
         raise

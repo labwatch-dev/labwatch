@@ -907,6 +907,11 @@ def set_password_submit(
     if not email:
         return RedirectResponse("/login?tab=token", status_code=302)
 
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_login_rate(client_ip):
+        return RedirectResponse("/set-password?error=Too+many+attempts.+Try+again+later.", status_code=302)
+    _record_login_attempt(client_ip)
+
     if len(password) < 8:
         return RedirectResponse("/set-password?error=Password+must+be+at+least+8+characters", status_code=302)
 
