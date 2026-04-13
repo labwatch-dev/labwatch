@@ -189,12 +189,55 @@ async def _periodic_purge():
             logger.exception("Periodic purge failed — will retry next cycle")
 
 
+_OFFLINE_THRESHOLD_MINUTES = 5
+
+
+async def _check_stale_nodes():
+    """Periodically check for nodes that stopped reporting and create/resolve alerts."""
+    logger = logging.getLogger("labwatch")
+    while True:
+        await asyncio.sleep(120)  # every 2 minutes
+        try:
+            labs = db.list_labs()
+            for lab in labs:
+                online = _lab_is_online(lab.get("last_seen"), _OFFLINE_THRESHOLD_MINUTES)
+                if not online:
+                    # Create node_offline alert if not already active
+                    existing = db.get_active_alerts(lab["id"])
+                    already_offline = any(a.get("alert_type") == "node_offline" for a in existing)
+                    if not already_offline:
+                        from notifications import send_alert_notification
+                        msg = f"No heartbeat from {lab.get('hostname', lab['id'])} for >{_OFFLINE_THRESHOLD_MINUTES} minutes"
+                        alert_id, is_new = db.store_alert(
+                            lab_id=lab["id"],
+                            alert_type="node_offline",
+                            severity="critical",
+                            message=msg,
+                            data={"last_seen": lab.get("last_seen")},
+                        )
+                        if is_new:
+                            try:
+                                send_alert_notification(
+                                    {"type": "node_offline", "severity": "critical", "message": msg},
+                                    lab,
+                                )
+                            except Exception:
+                                pass
+                else:
+                    # Resolve node_offline alert if node is back
+                    db.resolve_alerts(lab["id"], ["node_offline"])
+        except Exception:
+            logger.exception("Stale node check failed — will retry next cycle")
+
+
 @app.on_event("startup")
 def startup():
     global _purge_task
     db.init_db()
     _run_tier_purge(logging.getLogger("labwatch"))
-    _purge_task = asyncio.get_event_loop().create_task(_periodic_purge())
+    loop = asyncio.get_event_loop()
+    _purge_task = loop.create_task(_periodic_purge())
+    loop.create_task(_check_stale_nodes())
 
 
 def _tier_retention_hours(email: Optional[str]) -> int:

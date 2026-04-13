@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a bug in labwatch
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      placeholder: A clear description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: What you expected to happen.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Server version
+      description: Output of the server container image tag or commit hash
+      placeholder: e.g. latest, v0.4.2, abc1234
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Server (dashboard / API)
+        - Agent (Go binary)
+        - Docker setup
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        - OS: Ubuntu 24.04
+        - Browser: Firefox 128
+        - Agent arch: amd64 / arm64
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste any relevant log output (server or agent).
+      render: shell
