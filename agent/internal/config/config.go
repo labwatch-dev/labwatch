@@ -69,7 +69,10 @@ type ServiceConfig struct {
 
 // Defaults returns a config with sensible defaults.
 func Defaults() *Config {
-	hostname, _ := os.Hostname()
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "unknown"
+	}
 	return &Config{
 		APIEndpoint: "https://labwatch.dev/api/v1",
 		Interval:    60 * time.Second,

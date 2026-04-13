@@ -123,5 +123,7 @@ func (s *Sender) Send(ctx context.Context, payload Payload) error {
 		return fmt.Errorf("API returned HTTP %d: %s", resp.StatusCode, string(respBody))
 	}
 
+	// Drain response body to enable connection reuse
+	_, _ = io.Copy(io.Discard, resp.Body)
 	return nil
 }
