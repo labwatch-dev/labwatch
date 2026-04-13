@@ -47,7 +47,7 @@ sudo labwatch --register --server http://YOUR_SERVER:8097/api/v1 --admin-secret 
 sudo systemctl enable --now labwatch
 ```
 
-That's it. The agent auto-detects Docker, local services (SSH, HTTP, databases, Proxmox), and GPU — no manual config needed. Metrics start flowing immediately.
+That's it. The agent auto-detects Docker, local services (SSH, HTTP, databases, Proxmox), and GPU — no manual config needed. Metrics start flowing immediately. (Prefer to review the script first? See the [self-hosted guide](https://labwatch.dev/self-hosted#agents).)
 
 ### Multi-node rollout
 
@@ -96,7 +96,7 @@ go build -o labwatch -ldflags="-s -w" ./cmd/labwatch/
   on each node        central host        persistent
 ```
 
-**Agent**: single static Go binary (~8MB). No runtime dependencies. Sends metrics over HTTP every 60 seconds. Auto-detects Docker socket, local services (12 common ports), and NVIDIA GPUs during registration. Writes its own config — no YAML editing required.
+**Agent**: single static Go binary (~8MB, linux/amd64 and linux/arm64). No runtime dependencies. Sends metrics over HTTP every 60 seconds. Auto-detects Docker socket, local services (12 common ports), and NVIDIA GPUs during registration. Writes its own config — no YAML editing required.
 
 **Server**: Python FastAPI with Jinja2 templates. SQLite in WAL mode. Runs rule-based analysis on every ingest cycle. Serves the dashboard, API, agent binaries, and install script from a single process.
 
