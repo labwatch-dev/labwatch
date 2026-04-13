@@ -93,7 +93,7 @@ def init_db() -> None:
 
             CREATE TABLE IF NOT EXISTS signups (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                email       TEXT NOT NULL UNIQUE,
+                email       TEXT NOT NULL,
                 password_hash TEXT,
                 lab_id      TEXT REFERENCES labs(id) ON DELETE SET NULL,
                 plan        TEXT NOT NULL DEFAULT 'free',
@@ -144,6 +144,36 @@ def init_db() -> None:
             conn.execute("ALTER TABLE signups ADD COLUMN password_hash TEXT")
             conn.commit()
 
+        # Migrate signups: drop UNIQUE constraint on email (allows multi-node accounts)
+        row = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='signups'"
+        ).fetchone()
+        if row and "UNIQUE" in (row[0] or ""):
+            logger.info("Migrating signups table: removing UNIQUE constraint on email")
+            conn.executescript("""
+                ALTER TABLE signups RENAME TO _signups_old;
+
+                CREATE TABLE signups (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email       TEXT NOT NULL,
+                    password_hash TEXT,
+                    lab_id      TEXT REFERENCES labs(id) ON DELETE SET NULL,
+                    plan        TEXT NOT NULL DEFAULT 'free',
+                    ip_address  TEXT,
+                    created_at  TEXT NOT NULL
+                );
+
+                INSERT INTO signups (id, email, password_hash, lab_id, plan, ip_address, created_at)
+                    SELECT id, email, password_hash, lab_id, plan, ip_address, created_at
+                    FROM _signups_old;
+
+                DROP TABLE _signups_old;
+
+                CREATE INDEX IF NOT EXISTS idx_signups_email ON signups(email);
+            """)
+            conn.commit()
+            logger.info("Migration complete: signups.email no longer UNIQUE")
+
         # User preferences table (pins, thresholds, notification prefs)
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS user_preferences (
@@ -158,6 +188,8 @@ def init_db() -> None:
                 ON user_preferences(email, pref_type, COALESCE(lab_id, ''));
             CREATE INDEX IF NOT EXISTS idx_user_prefs_email
                 ON user_preferences(email);
+            CREATE INDEX IF NOT EXISTS idx_metrics_created_at ON metrics(created_at);
+            CREATE INDEX IF NOT EXISTS idx_alerts_created_at ON alerts(created_at);
         """)
         conn.commit()
     finally:

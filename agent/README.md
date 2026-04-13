@@ -157,8 +157,11 @@ services:
 | `lab_id` | string | `""` | Lab identifier from registration |
 | `interval` | duration | `60s` | Collection interval (minimum `10s`) |
 | `hostname` | string | system hostname | Override reported hostname |
+| `admin_secret` | string | `""` | Admin secret (used only during registration) |
 | `docker.enabled` | bool | `true` | Enable Docker container monitoring |
 | `docker.socket` | string | `/var/run/docker.sock` | Path to Docker socket |
+| `gpu.enabled` | bool | `true` | Enable NVIDIA GPU monitoring via `nvidia-smi` |
+| `smart.enabled` | bool | `true` | Enable S.M.A.R.T. disk health via `smartctl` |
 | `services` | list | `[]` | Service health checks (see above) |
 
 ### Service check types

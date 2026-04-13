@@ -147,7 +147,7 @@ def _send_webhook(channel: dict, alert: dict, lab: dict, config: dict) -> None:
 
     headers = {"Content-Type": "application/json"}
     # Support optional auth header
-    if config.get("auth_header"):
+    if config.get("auth_header") and ":" in config["auth_header"]:
         header_name, header_value = config["auth_header"].split(":", 1)
         headers[header_name.strip()] = header_value.strip()
 

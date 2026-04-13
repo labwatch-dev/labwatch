@@ -2697,7 +2697,7 @@ def _slash_maintenance(args: str) -> dict:
     # "enabled + within window" filter as db.get_active_maintenance_state.
     try:
         state_by_id = db.list_active_maintenance([lab["id"] for lab in labs])
-    except sqlite3.Error as e:
+    except Exception as e:
         logger.warning("maintenance bulk lookup failed: %s", e)
         state_by_id = {}
     in_maint = [(lab, state_by_id[lab["id"]]) for lab in labs if lab["id"] in state_by_id]
