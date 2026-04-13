@@ -13,7 +13,7 @@ labwatch collects system metrics, Docker container status, and service health fr
 **Features:**
 - **System metrics** — CPU, memory, disk, load average, network, uptime with inline sparklines
 - **Docker monitoring** — container health, restart loops, resource usage
-- **Service discovery** — auto-detects Docker, SSH, HTTP, databases, Proxmox, Grafana, Prometheus
+- **Service checks** — monitor HTTP and TCP endpoints, Docker detected automatically
 - **GPU monitoring** — NVIDIA GPU stats via nvidia-smi
 - **Smart alerts** — deduplication, auto-resolution, severity levels (warning/critical)
 - **Push notifications** — 8 channels: webhook, ntfy, Telegram, Discord, Slack, Gotify, Pushover, Apprise
@@ -43,11 +43,15 @@ Server is now live at `http://localhost:8097`. Save your admin secret.
 
 ```bash
 curl -fsSL http://YOUR_SERVER:8097/install.sh | sudo bash
-sudo labwatch --register --server http://YOUR_SERVER:8097/api/v1 --admin-secret YOUR_SECRET
+```
+
+Edit `/etc/labwatch/config.yaml` with your server URL and API token, then:
+
+```bash
 sudo systemctl enable --now labwatch
 ```
 
-That's it. The agent auto-detects Docker, local services (SSH, HTTP, databases, Proxmox), and GPU — no manual config needed. Metrics start flowing immediately. (Prefer to review the script first? See the [self-hosted guide](https://labwatch.dev/self-hosted#agents).)
+The agent auto-detects Docker and GPU — no manual config needed for those. Add custom service checks (HTTP, TCP) in the config file. (Prefer to review the install script first? See the [self-hosted guide](https://labwatch.dev/self-hosted#agents).)
 
 ### Multi-node rollout
 
@@ -83,7 +87,7 @@ go build -o labwatch -ldflags="-s -w" ./cmd/labwatch/
   on each node        central host        persistent
 ```
 
-**Agent**: single static Go binary (~8MB, linux/amd64 and linux/arm64). No runtime dependencies. Sends metrics over HTTP every 60 seconds. Auto-detects Docker socket, local services (12 common ports), and NVIDIA GPUs during registration. Writes its own config — no YAML editing required.
+**Agent**: single static Go binary (~8MB, linux/amd64 and linux/arm64). No runtime dependencies. Sends metrics over HTTP every 60 seconds. Auto-detects Docker socket and NVIDIA GPUs. Configured via a simple YAML file at `/etc/labwatch/config.yaml`.
 
 **Server**: Python FastAPI with Jinja2 templates. SQLite in WAL mode. Runs rule-based analysis on every ingest cycle. Serves the dashboard, API, agent binaries, and install script from a single process.
 

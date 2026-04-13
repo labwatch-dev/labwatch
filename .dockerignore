@@ -7,3 +7,6 @@ screenshots/
 agent/cmd/
 agent/internal/
 agent/go.*
+.env
+.env.*
+launch/
