@@ -103,6 +103,11 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_signups_email ON signups(email);
             CREATE INDEX IF NOT EXISTS idx_signups_lab_id ON signups(lab_id);
             CREATE INDEX IF NOT EXISTS idx_signups_ip ON signups(ip_address, created_at);
+
+            CREATE TABLE IF NOT EXISTS stripe_events (
+                event_id    TEXT PRIMARY KEY,
+                processed_at TEXT NOT NULL
+            );
         """)
         conn.commit()
 
@@ -883,6 +888,32 @@ def set_plan_for_email(email: str, plan: str) -> int:
         )
         conn.commit()
         return cursor.rowcount
+    finally:
+        conn.close()
+
+
+def is_stripe_event_processed(event_id: str) -> bool:
+    """Check if a Stripe event has already been processed (idempotency)."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT 1 FROM stripe_events WHERE event_id = ?", (event_id,)
+        ).fetchone()
+        return row is not None
+    finally:
+        conn.close()
+
+
+def mark_stripe_event_processed(event_id: str) -> None:
+    """Record a Stripe event as processed."""
+    now = datetime.now(timezone.utc).isoformat()
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT OR IGNORE INTO stripe_events (event_id, processed_at) VALUES (?, ?)",
+            (event_id, now),
+        )
+        conn.commit()
     finally:
         conn.close()
 

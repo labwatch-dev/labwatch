@@ -418,6 +418,13 @@ def _send_apprise(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     if not url:
         raise ValueError("Apprise URL not configured")
 
+    # Apprise supports many URL schemes (tgram://, discord://, etc.) which are
+    # safe because Apprise translates them to external API calls. However,
+    # raw http(s):// URLs could target internal services — validate those.
+    parsed = urlparse(url)
+    if parsed.scheme in ("http", "https"):
+        _validate_url(url)
+
     try:
         import apprise  # local import — only loaded when Apprise channel is used
     except ImportError:

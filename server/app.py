@@ -79,6 +79,21 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
 
 
+_MAX_BODY_BYTES = 2 * 1024 * 1024  # 2 MB — generous for metric ingest, blocks abuse
+
+
+@app.middleware("http")
+async def body_size_limit(request: Request, call_next):
+    """Reject requests with Content-Length exceeding the limit (DoS protection)."""
+    cl = request.headers.get("content-length")
+    if cl and cl.isdigit() and int(cl) > _MAX_BODY_BYTES:
+        return JSONResponse(
+            content={"detail": "Request body too large"},
+            status_code=413,
+        )
+    return await call_next(request)
+
+
 @app.middleware("http")
 async def csrf_origin_check(request: Request, call_next):
     """Block cross-origin form POSTs to state-changing endpoints (CSRF protection).
@@ -3055,6 +3070,7 @@ def billing_checkout(request_body: dict, request: Request):
             customer_email=email,
             client_reference_id=email,
             metadata={"email": email, "plan": plan},
+            subscription_data={"metadata": {"email": email, "plan": plan}},
             success_url=f"{config.BASE_URL}/billing/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{config.BASE_URL}/billing/cancel",
             allow_promotion_codes=True,
@@ -3092,6 +3108,28 @@ async def billing_webhook(request: Request):
         logger.warning(f"Stripe webhook signature rejected: {e}")
         raise HTTPException(status_code=400, detail="Invalid signature")
     event_type = event.get("type") if isinstance(event, dict) else event["type"]
+    event_id = event.get("id") if isinstance(event, dict) else event["id"]
+
+    # Idempotency: skip already-processed events (Stripe retries on timeout).
+    if db.is_stripe_event_processed(event_id):
+        logger.info(f"Stripe event {event_id} already processed, skipping")
+        return {"ok": True, "noop": "duplicate"}
+
+    try:
+        result = await _handle_stripe_event(event_type, event, logger)
+    except Exception:
+        # Return 200 on internal errors so Stripe doesn't retry endlessly.
+        # The loud log lets us investigate manually.
+        logger.exception(f"Stripe webhook handler failed for {event_type} ({event_id})")
+        result = {"ok": True, "error": "internal", "event": event_type}
+
+    db.mark_stripe_event_processed(event_id)
+    return result
+
+
+async def _handle_stripe_event(event_type: str, event, logger):
+    """Dispatch a verified Stripe event. Raises on unexpected failures so the
+    caller can log + still return 200 to Stripe."""
 
     if event_type == "checkout.session.completed":
         session = event["data"]["object"]
@@ -3101,20 +3139,14 @@ async def billing_webhook(request: Request):
         if not email:
             logger.warning(f"Stripe checkout.session.completed with no email: {session.get('id')}")
             return {"ok": True, "noop": "no email"}
-        if plan not in config.TIER_LIMITS:
-            # Missing/unknown metadata.plan means we'd guess — refuse to ship
-            # the wrong plan. 200 so Stripe doesn't retry, but loud log.
-            logger.error(f"Stripe event with missing/unknown plan {plan!r} for {email} ({session.get('id')})")
-            return {"ok": True, "noop": "unknown plan"}
+        if plan not in config.TIER_LIMITS or plan == config.DEFAULT_PLAN:
+            logger.error(f"Stripe event with missing/invalid plan {plan!r} for {email} ({session.get('id')})")
+            return {"ok": True, "noop": "invalid plan"}
         rows = db.set_plan_for_email(email, plan)
         if rows == 0:
-            # User paid but we couldn't find their row — worth paging on.
             logger.error(f"Stripe upgrade: {email} → {plan} matched 0 rows ({session.get('id')})")
         else:
             logger.info(f"Stripe upgrade: {email} → {plan} ({rows} rows updated)")
-        # Best-effort confirmation email. mailer catches and logs its own
-        # errors so a Resend outage never causes Stripe to retry. Offload to
-        # a thread so the ~10s Resend timeout can't starve the event loop.
         if rows > 0:
             await asyncio.to_thread(
                 mailer.send_plan_upgrade_receipt, email, plan, session.get("id", "")
@@ -3122,17 +3154,28 @@ async def billing_webhook(request: Request):
         return {"ok": True, "email": email, "plan": plan, "rows": rows}
 
     if event_type == "customer.subscription.deleted":
-        # Downgrade to free on cancellation. Stripe's `customer_email` isn't
-        # on subscription events, so we rely on metadata set at checkout time.
         sub = event["data"]["object"]
         metadata = sub.get("metadata") or {}
         email = metadata.get("email")
-        if email:
-            rows = db.set_plan_for_email(email, config.DEFAULT_PLAN)
-            logger.info(f"Stripe cancellation: {email} → {config.DEFAULT_PLAN} ({rows} rows)")
-            if rows > 0:
-                await asyncio.to_thread(mailer.send_plan_downgrade_notice, email)
-            return {"ok": True, "email": email, "plan": config.DEFAULT_PLAN, "rows": rows}
+        if not email:
+            logger.warning(f"Stripe subscription.deleted with no email in metadata: {sub.get('id')}")
+            return {"ok": True, "noop": "no email in metadata"}
+        rows = db.set_plan_for_email(email, config.DEFAULT_PLAN)
+        logger.info(f"Stripe cancellation: {email} → {config.DEFAULT_PLAN} ({rows} rows)")
+        if rows > 0:
+            await asyncio.to_thread(mailer.send_plan_downgrade_notice, email)
+        return {"ok": True, "email": email, "plan": config.DEFAULT_PLAN, "rows": rows}
+
+    if event_type == "invoice.payment_failed":
+        invoice = event["data"]["object"]
+        sub_id = invoice.get("subscription")
+        customer_email = invoice.get("customer_email")
+        attempt = invoice.get("attempt_count", 0)
+        logger.warning(f"Stripe payment failed: {customer_email} sub={sub_id} attempt={attempt}")
+        # After 3 failed attempts Stripe will cancel the subscription, which
+        # triggers customer.subscription.deleted.  We only log here to stay
+        # aware — the actual downgrade happens on deletion.
+        return {"ok": True, "event": event_type, "email": customer_email}
 
     # Unhandled event types are acknowledged with 200 so Stripe doesn't retry.
     return {"ok": True, "event": event_type}
