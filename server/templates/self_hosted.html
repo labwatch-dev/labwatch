@@ -304,6 +304,7 @@
 
         <h3>Operations</h3>
         <a href="#upgrade">Upgrading</a>
+        <a href="#license-faq">License FAQ</a>
         <a href="#troubleshooting">Troubleshooting</a>
     </aside>
 
@@ -487,6 +488,24 @@ cd labwatch
 git pull
 docker compose up -d --build</div>
             <p>Your database volume is preserved across rebuilds. Schema migrations run automatically on startup.</p>
+        </section>
+
+        <!-- AGPL FAQ -->
+        <section class="sh-section" id="license-faq">
+            <h2>License FAQ</h2>
+            <p>The server is <strong>AGPL-3.0</strong> and the agent is <strong>MIT</strong>. Here's what that means in practice:</p>
+
+            <h3>I run labwatch on my LAN for myself. Does AGPL affect me?</h3>
+            <p>No. AGPL's sharing requirement only triggers when you provide the software as a <em>network service to third parties</em>. Running it on your own LAN for your own use has zero obligations beyond the license grant you already received.</p>
+
+            <h3>Can I embed the agent in my own project?</h3>
+            <p>Yes. The agent is MIT &mdash; no restrictions. Embed it, fork it, ship it commercially, whatever you need.</p>
+
+            <h3>What if I modify the server and host it for my team?</h3>
+            <p>If you modify the server and let others access it over a network, AGPL requires you to make your modified source available to those users. The simplest way: push your fork to a public repo and link to it from the UI.</p>
+
+            <h3>Does the managed tier (labwatch.dev) use different code?</h3>
+            <p>Same codebase. The managed tier adds hosting, backups, and support &mdash; no proprietary code on top.</p>
         </section>
 
         <!-- Troubleshooting -->

@@ -157,10 +157,24 @@
     </div>
 
     <div class="about-section">
+        <h2>Built by</h2>
+        <p>labwatch is built by a solo developer in Switzerland. It started as a tool to monitor my own 5-node Proxmox cluster and grew into something worth sharing. I use it every day on my own homelab.</p>
+        <p>The project is fully open source on <a href="https://github.com/labwatch-dev/labwatch">GitHub</a> &mdash; you can read every line, fork it, or self-host it independently. If I disappeared tomorrow, your instance keeps running and the code is yours.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>Privacy &amp; data</h2>
+        <p><strong>Self-hosted:</strong> your data never leaves your network. Zero telemetry, zero external API calls, zero phone-home. The server makes no outbound connections whatsoever (except notification channels you explicitly configure).</p>
+        <p><strong>Managed (labwatch.dev):</strong> your metrics are stored on infrastructure in Switzerland. We don't sell data, don't share it, and don't use it for training. Metrics are retained for your plan's retention window and deleted when you cancel. The natural-language query engine runs locally on the server &mdash; no data is sent to any LLM provider.</p>
+        <p>No cookies beyond a session cookie for login. No analytics scripts. No third-party trackers on any page.</p>
+    </div>
+
+    <div class="about-section">
         <h2>{{ t.about_oss_title if t and t.about_oss_title else 'Open source' }}</h2>
         <p>{{ t.about_oss_p1 if t and t.about_oss_p1 else 'labwatch is open source. The server is licensed under AGPL-3.0 and the agent under MIT. You can self-host the entire stack or use the hosted version at labwatch.dev.' }}</p>
         <div class="about-cta">
-            <a href="/docs" class="btn-primary">{{ t.nav_docs if t else 'Docs' }}</a>
+            <a href="https://github.com/labwatch-dev/labwatch" class="btn-primary">GitHub</a>
+            <a href="/docs" class="btn-outline">{{ t.nav_docs if t else 'Docs' }}</a>
             <a href="/self-hosted" class="btn-outline">{{ t.footer_self_hosted if t else 'Self-Hosted' }}</a>
         </div>
     </div>
