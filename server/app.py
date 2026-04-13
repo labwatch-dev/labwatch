@@ -786,8 +786,11 @@ def signup(body: SignupRequest, request: Request):
         )
 
     # Validate password if provided
-    if body.password is not None and len(body.password) < 8:
-        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    if body.password is not None:
+        if len(body.password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+        if len(body.password) > 128:
+            raise HTTPException(status_code=400, detail="Password must be at most 128 characters")
 
     # Sanitize hostname
     hostname = re.sub(r"[^a-zA-Z0-9._-]", "", body.hostname)[:64] or "my-server"
@@ -855,6 +858,8 @@ def login_submit(
         email = email.strip().lower()
         if not email or not password:
             return RedirectResponse("/login?error=Please+enter+email+and+password&tab=email", status_code=302)
+        if len(password) > 128:
+            return RedirectResponse("/login?error=Invalid+email+or+password&tab=email", status_code=302)
 
         if not db.verify_login(email, password):
             return RedirectResponse("/login?error=Invalid+email+or+password&tab=email", status_code=302)
