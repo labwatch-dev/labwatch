@@ -360,7 +360,7 @@
 
         <h3>Intelligence</h3>
         <a href="#query">Natural Language Query</a>
-        <a href="#nlq-stats">NLQ Stats</a>
+        <a href="#nlq-stats">NLQ Stats <span style="font-size:0.7em;color:#e67e22">(planned)</span></a>
         <a href="#digest-lab">Lab Digest</a>
         <a href="#digest-fleet">Fleet Digest</a>
 
@@ -951,17 +951,17 @@ X-Admin-Secret: your-secret-here</div>
 
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <div class="code-block"><code>{
-  "lab_id": "lab_proxmox-01_x7k2",
-  "hours": 24,
-  "metrics": [
-    {
-      "timestamp": "2026-03-19T21:00:00",
-      "cpu_percent": 23.5,
-      "memory_percent": 62.1,
-      "disk_percent": 45.2,
-      "load_1m": 1.2
-    }
-  ]
+  "timestamps": ["2026-03-19T20:00:00", "2026-03-19T21:00:00"],
+  "cpu": [23.5, 18.2],
+  "memory": [62.1, 58.7],
+  "disk": [45.2, 45.2],
+  "load": [1.2, 0.8],
+  "net_rx": [12.5, 8.3],
+  "net_tx": [4.2, 2.1],
+  "gpu_timestamps": ["..."],
+  "gpu_utilization": ["..."],
+  "gpu_memory": ["..."],
+  "gpu_temperature": ["..."]
 }</code></div>
                 </div>
             </div>
@@ -1184,15 +1184,16 @@ X-Admin-Secret: your-secret-here</div>
             </div>
         </section>
 
-        <!-- NLQ Stats -->
+        <!-- NLQ Stats (planned) -->
         <section class="docs-section" id="nlq-stats">
-            <h2>NLQ Stats &amp; Misses</h2>
+            <h2>NLQ Stats &amp; Misses <span style="color: #e67e22; font-size: 0.7em;">(planned)</span></h2>
+            <p style="color: #e67e22; margin-bottom: 1rem;">These endpoints are planned for a future release and not yet implemented.</p>
 
             <div class="endpoint">
                 <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/nlq/stats</span>
-                    <span class="endpoint-desc">Intent hit counts + fallback rate</span>
+                    <span class="endpoint-desc">Intent hit counts + fallback rate <em>(planned)</em></span>
                     <span class="endpoint-auth">admin</span>
                     <span class="endpoint-chevron">&#9654;</span>
                 </div>
@@ -1227,7 +1228,7 @@ X-Admin-Secret: your-secret-here</div>
                 <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/nlq/misses</span>
-                    <span class="endpoint-desc">Recent unmatched queries</span>
+                    <span class="endpoint-desc">Recent unmatched queries <em>(planned)</em></span>
                     <span class="endpoint-auth">admin</span>
                     <span class="endpoint-chevron">&#9654;</span>
                 </div>

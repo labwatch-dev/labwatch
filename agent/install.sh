@@ -82,8 +82,28 @@ chmod +x "${INSTALL_DIR}/labwatch"
 # Create config directory
 mkdir -p "$CONFIG_DIR"
 
-# Skip config creation — --register will auto-generate it
-info "Config directory ready at ${CONFIG_DIR}"
+# Write default config if it doesn't exist
+if [ ! -f "${CONFIG_DIR}/config.yaml" ]; then
+cat > "${CONFIG_DIR}/config.yaml" << CONF
+# labwatch agent config — edit these values after registration
+api_endpoint: "${BASE_URL}/api/v1"
+token: ""
+lab_id: ""
+# admin_secret: ""  # Only needed for registration
+interval: 60s
+hostname: "$(hostname)"
+docker:
+  enabled: true
+  socket: /var/run/docker.sock
+gpu:
+  enabled: true
+smart:
+  enabled: true
+CONF
+    info "Default config written to ${CONFIG_DIR}/config.yaml"
+else
+    info "Existing config preserved at ${CONFIG_DIR}/config.yaml"
+fi
 
 # Create systemd service
 cat > /etc/systemd/system/labwatch.service << EOF
@@ -115,12 +135,13 @@ systemctl daemon-reload
 info "Installation complete!"
 echo ""
 echo "Next steps:"
-echo "  1. Register:  labwatch --register --server ${BASE_URL}/api/v1 --admin-secret YOUR_SECRET"
-echo "     (auto-detects Docker, services, and writes config)"
-echo "  2. Start:     sudo systemctl enable --now labwatch"
+echo "  1. Edit config:  sudo nano ${CONFIG_DIR}/config.yaml"
+echo "     Set admin_secret, then run:  labwatch --register"
+echo "     Copy the returned lab_id and token into your config."
+echo "  2. Start:        sudo systemctl enable --now labwatch"
 echo ""
-echo "  Status:       systemctl status labwatch"
-echo "  Logs:         journalctl -u labwatch -f"
+echo "  Status:          systemctl status labwatch"
+echo "  Logs:            journalctl -u labwatch -f"
 echo ""
 info "Documentation: ${BASE_URL}/docs"
 

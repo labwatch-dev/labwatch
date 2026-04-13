@@ -93,7 +93,7 @@ def init_db() -> None:
 
             CREATE TABLE IF NOT EXISTS signups (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                email       TEXT NOT NULL,
+                email       TEXT NOT NULL UNIQUE,
                 password_hash TEXT,
                 lab_id      TEXT REFERENCES labs(id) ON DELETE SET NULL,
                 plan        TEXT NOT NULL DEFAULT 'free',

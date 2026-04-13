@@ -79,12 +79,19 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
     return response
 
 
 def _md_bold(text: str) -> str:
-    """Convert markdown **bold** and ### headings to HTML."""
+    """Convert markdown **bold** and ### headings to HTML.
+
+    HTML-escapes the input first to prevent XSS from metric data
+    (e.g. crafted hostnames), then applies safe markdown formatting.
+    """
     import re
+    from markupsafe import escape
+    text = str(escape(text))
     text = re.sub(r'^### (.+)$', r'<strong>\1</strong>', text, flags=re.MULTILINE)
     text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
     text = re.sub(r'^- ', r'&bull; ', text, flags=re.MULTILINE)
@@ -757,9 +764,16 @@ def set_language(lang_code: str, request: Request):
     if lang_code not in SUPPORTED_LANGUAGES:
         lang_code = "en"
     referer = request.headers.get("referer", "/")
-    # Validate referer to prevent open redirect
-    if not referer.startswith("/") and not referer.startswith(config.BASE_URL):
+    # Validate referer to prevent open redirect — extract path only
+    from urllib.parse import urlparse
+    parsed = urlparse(referer)
+    # Only allow same-origin redirects: either relative path or matching host
+    if parsed.netloc and parsed.netloc != urlparse(config.BASE_URL).netloc:
         referer = "/"
+    elif parsed.scheme and parsed.scheme not in ("http", "https"):
+        referer = "/"
+    else:
+        referer = parsed.path or "/"
     response = RedirectResponse(referer, status_code=302)
     response.set_cookie("labwatch_lang", lang_code, max_age=365 * 24 * 3600, samesite="lax")
     return response
