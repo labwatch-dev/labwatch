@@ -144,6 +144,33 @@ def send_alert_notification(alert: dict, lab: dict) -> list[dict]:
                         f"'{uch.get('name')}' ({owner_email}): {e}"
                     )
 
+            # Also fire table-backed user channels (from /my/notifications UI)
+            try:
+                for ch in db.list_user_notification_channels(owner_email):
+                    if not ch.get("enabled"):
+                        continue
+                    if not should_notify(ch.get("min_severity", "warning"), alert["severity"]):
+                        continue
+                    config = ch.get("config", {})
+                    if isinstance(config, str):
+                        config = json.loads(config)
+                    try:
+                        sender = CHANNEL_SENDERS.get(ch["channel_type"])
+                        if sender is None:
+                            raise ValueError(f"Unknown channel type: {ch['channel_type']}")
+                        sender(ch, alert, lab, config)
+                        results.append({
+                            "channel_id": ch["id"], "channel_name": ch["name"],
+                            "success": True, "scope": "user",
+                        })
+                    except Exception as e:
+                        results.append({
+                            "channel_id": ch["id"], "channel_name": ch["name"],
+                            "success": False, "error": str(e), "scope": "user",
+                        })
+            except Exception:
+                pass  # DB may not have migrated yet
+
     return results
 
 

@@ -1204,11 +1204,11 @@ def add_notification_channel(
 
 
 def list_notification_channels() -> list[dict[str, Any]]:
-    """Return all notification channels."""
+    """Return global (admin) notification channels (owner_email IS NULL)."""
     conn = _connect()
     try:
         rows = conn.execute(
-            "SELECT * FROM notification_channels ORDER BY created_at DESC"
+            "SELECT * FROM notification_channels WHERE owner_email IS NULL ORDER BY created_at DESC"
         ).fetchall()
         result = []
         for r in rows:
