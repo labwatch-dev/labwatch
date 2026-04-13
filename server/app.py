@@ -696,7 +696,7 @@ def robots_txt():
         "Disallow: /login\n"
         "Disallow: /signup\n"
         "\n"
-        "Sitemap: https://labwatch.dev/sitemap.xml\n"
+        f"Sitemap: {config.BASE_URL}/sitemap.xml\n"
     )
 
 
@@ -705,10 +705,9 @@ def sitemap_xml():
     urls = [
         "", "/demo", "/docs", "/about", "/support",
         "/self-hosted", "/privacy", "/terms",
-        "/#pricing", "/#compare",
     ]
     entries = "\n".join(
-        f"  <url><loc>https://labwatch.dev{u}</loc></url>" for u in urls
+        f"  <url><loc>{config.BASE_URL}{u}</loc></url>" for u in urls
     )
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -746,7 +745,7 @@ def download_binary(filename: str):
     from fastapi.responses import FileResponse
     dist_dir = Path(__file__).parent / "dist"
     file_path = (dist_dir / filename).resolve()
-    if not str(file_path).startswith(str(dist_dir.resolve())):
+    if not str(file_path).startswith(str(dist_dir.resolve()) + "/"):
         raise HTTPException(status_code=400, detail="Invalid filename")
     if not file_path.exists() or not file_path.is_file():
         raise HTTPException(status_code=404, detail="Binary not found")
@@ -963,7 +962,7 @@ def set_language(lang_code: str, request: Request):
     else:
         referer = parsed.path or "/"
     response = RedirectResponse(referer, status_code=302)
-    response.set_cookie("labwatch_lang", lang_code, max_age=365 * 24 * 3600, samesite="lax")
+    response.set_cookie("labwatch_lang", lang_code, max_age=365 * 24 * 3600, path="/", samesite="lax")
     return response
 
 
