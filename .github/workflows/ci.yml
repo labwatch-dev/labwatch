@@ -23,7 +23,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -c "import config; print('config OK')"
       - run: python -c "import database; database.init_db(); print('database OK')"
-      - run: python -c "import nlq; print('nlq OK —', len(nlq.PATTERNS), 'patterns loaded')"
+      - run: python -c "import nlq; print('nlq OK —', len(nlq.HANDLERS), 'handlers loaded')"
       - run: python -m py_compile app.py && echo "app.py compiles OK"
       - run: python -m py_compile database.py && echo "database.py compiles OK"
       - run: python -m py_compile notifications.py && echo "notifications.py compiles OK"
