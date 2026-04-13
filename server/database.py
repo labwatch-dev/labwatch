@@ -260,6 +260,8 @@ def signup_lab(email: str, hostname: str, ip_address: str = None, password: str 
     return lab_id, token
 
 
+_DUMMY_HASH = _hash_password("dummy-timing-normalization")
+
 def verify_login(email: str, password: str) -> bool:
     """Verify email + password login. Returns True if credentials match."""
     conn = _connect()
@@ -269,6 +271,8 @@ def verify_login(email: str, password: str) -> bool:
             (email,),
         ).fetchone()
         if not row or not row["password_hash"]:
+            # Normalize timing to prevent email enumeration
+            _verify_password(password, _DUMMY_HASH)
             return False
         return _verify_password(password, row["password_hash"])
     finally:
@@ -338,6 +342,44 @@ def get_email_for_lab(lab_id: str) -> Optional[str]:
             "SELECT email FROM signups WHERE lab_id = ?", (lab_id,)
         ).fetchone()
         return row[0] if row else None
+    finally:
+        conn.close()
+
+
+def email_owns_lab(email: str, lab_id: str) -> bool:
+    """Check if a lab belongs to the given email."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT 1 FROM signups WHERE email = ? AND lab_id = ?", (email, lab_id)
+        ).fetchone()
+        return row is not None
+    finally:
+        conn.close()
+
+
+def delete_account(email: str) -> None:
+    """Delete a user account and all associated data (GDPR right to erasure)."""
+    conn = _connect()
+    try:
+        # Get all lab IDs for this email
+        lab_ids = [r[0] for r in conn.execute(
+            "SELECT lab_id FROM signups WHERE email = ?", (email,)
+        ).fetchall()]
+        # Delete metrics, alerts, digests for all labs
+        for lid in lab_ids:
+            conn.execute("DELETE FROM metrics WHERE lab_id = ?", (lid,))
+            conn.execute("DELETE FROM alerts WHERE lab_id = ?", (lid,))
+            conn.execute("DELETE FROM digests WHERE lab_id = ?", (lid,))
+            conn.execute("DELETE FROM labs WHERE id = ?", (lid,))
+        # Delete user preferences
+        conn.execute("DELETE FROM user_preferences WHERE email = ?", (email,))
+        # Delete signup records
+        conn.execute("DELETE FROM signups WHERE email = ?", (email,))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 

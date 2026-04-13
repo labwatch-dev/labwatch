@@ -83,11 +83,13 @@ async def csrf_origin_check(request: Request, call_next):
     Checks Origin/Referer header on POST requests to browser-facing routes.
     API routes (Bearer/admin auth) are excluded — they're not vulnerable to CSRF.
     """
-    if request.method == "POST":
+    if request.method in ("POST", "PUT", "DELETE"):
         path = request.url.path
-        # Only check browser-facing form endpoints (not API routes with header auth)
+        # Check all session-authenticated endpoints + browser forms
+        # Skip API routes that use Bearer/admin auth (not CSRF-vulnerable)
         csrf_paths = {"/login", "/set-password"}
-        if path in csrf_paths:
+        is_session_api = path.startswith("/api/v1/my/") or path.startswith("/api/v1/billing/")
+        if path in csrf_paths or is_session_api:
             origin = request.headers.get("origin") or ""
             referer = request.headers.get("referer") or ""
             expected_origin = config.BASE_URL.rstrip("/")
@@ -489,6 +491,13 @@ def compare_redirect():
 @app.get("/health")
 @app.get("/api/v1/health")
 def health():
+    try:
+        db._connect().execute("SELECT 1").fetchone()
+    except Exception:
+        return JSONResponse(
+            content={"status": "unhealthy", "service": "labwatch", "detail": "database unreachable"},
+            status_code=503,
+        )
     return {"status": "ok", "service": "labwatch", "version": "1.0.0"}
 
 
@@ -646,6 +655,10 @@ def signup(body: SignupRequest, request: Request):
     """Self-service signup for free tier. No admin secret required."""
     import re
 
+    # Require terms acceptance
+    if not body.accept_terms:
+        raise HTTPException(status_code=400, detail="You must accept the Terms of Service and Privacy Policy")
+
     # Validate email format
     if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", body.email):
         raise HTTPException(status_code=400, detail="Invalid email address")
@@ -790,6 +803,9 @@ def set_password_submit(
 
     if len(password) < 8:
         return RedirectResponse("/set-password?error=Password+must+be+at+least+8+characters", status_code=302)
+
+    if len(password) > 128:
+        return RedirectResponse("/set-password?error=Password+must+be+at+most+128+characters", status_code=302)
 
     if password != password_confirm:
         return RedirectResponse("/set-password?error=Passwords+do+not+match", status_code=302)
@@ -1055,6 +1071,27 @@ def set_notification_prefs(request: Request, body: dict = {}):
     email = _require_session(request)
     db.set_notification_prefs(email, body)
     return {"status": "saved"}
+
+
+@app.delete("/api/v1/my/lab/{lab_id}")
+def user_delete_lab(request: Request, lab_id: str):
+    """Delete a node belonging to the authenticated user."""
+    email = _require_session(request)
+    # Verify the lab belongs to this user
+    if not db.email_owns_lab(email, lab_id):
+        raise HTTPException(status_code=404, detail="Lab not found")
+    db.delete_lab(lab_id)
+    return {"status": "deleted", "lab_id": lab_id}
+
+
+@app.delete("/api/v1/my/account")
+def user_delete_account(request: Request):
+    """Delete the authenticated user's account and all associated data (GDPR right to erasure)."""
+    email = _require_session(request)
+    db.delete_account(email)
+    response = JSONResponse(content={"status": "deleted"})
+    response.delete_cookie(_SESSION_COOKIE)
+    return response
 
 
 @app.get("/my/lab/{lab_id}/history")

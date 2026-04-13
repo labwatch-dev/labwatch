@@ -96,8 +96,12 @@ func (d *DockerCollector) Collect(ctx context.Context) (interface{}, error) {
 			// Get detailed stats for running containers
 			statsResp, err := d.client.ContainerStatsOneShot(ctx, c.ID)
 			if err == nil {
-				var stats types.StatsJSON
-				if decErr := json.NewDecoder(statsResp.Body).Decode(&stats); decErr == nil {
+				func() {
+					defer statsResp.Body.Close()
+					var stats types.StatsJSON
+					if decErr := json.NewDecoder(statsResp.Body).Decode(&stats); decErr != nil {
+						return
+					}
 					// CPU percent: delta usage / delta system * num CPUs * 100
 					cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage)
 					sysDelta := float64(stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage)
@@ -132,8 +136,7 @@ func (d *DockerCollector) Collect(ctx context.Context) (interface{}, error) {
 					if cm.MemoryLimit > 0 {
 						cm.MemoryPercent = float64(cm.MemoryUsage) / float64(cm.MemoryLimit) * 100.0
 					}
-				}
-				statsResp.Body.Close()
+				}()
 			}
 		} else {
 			metrics.Stopped++

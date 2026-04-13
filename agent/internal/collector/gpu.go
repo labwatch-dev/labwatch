@@ -160,6 +160,9 @@ func parseFloat(s string) float64 {
 
 // mibToBytes converts MiB (mebibytes) to bytes.
 func mibToBytes(mib float64) uint64 {
+	if mib <= 0 {
+		return 0
+	}
 	return uint64(mib * 1024 * 1024)
 }
 

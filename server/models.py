@@ -25,6 +25,7 @@ class SignupRequest(BaseModel):
     email: str = Field(..., max_length=254)
     hostname: str = Field("my-server", max_length=64)
     password: Optional[str] = Field(None, max_length=128)
+    accept_terms: bool = Field(False)
 
 
 # --- Metrics ---
