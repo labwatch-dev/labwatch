@@ -383,7 +383,7 @@
         <section class="docs-section" id="overview">
             <h2>Overview</h2>
             <p>The labwatch API is organized around REST. All endpoints accept and return JSON (except where noted). The base URL for all API requests is your labwatch server instance.</p>
-            <p>Rate limits: agents can ingest once per minute per node. API queries are limited to 60 requests per minute per admin key.</p>
+            <p>Rate limits: the signup endpoint is limited to 5 requests per hour per IP. Agent ingest frequency is configured in the agent (default: 60 seconds).</p>
 
             <div class="alert-box">
                 <strong>Alpha notice:</strong> This API is in active development. Endpoints are stable but response shapes may gain new fields. We won't remove fields without a major version bump.

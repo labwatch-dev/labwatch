@@ -48,3 +48,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+launch/
+launch/
+
+# Internal launch planning
+launch/

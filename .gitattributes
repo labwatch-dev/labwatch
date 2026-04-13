@@ -1,0 +1,3 @@
+# Fix GitHub language detection — templates are not the project's primary language
+server/templates/*.html linguist-vendored
+server/translations/*.json linguist-vendored

@@ -401,12 +401,13 @@ def pricing_redirect():
 @app.get("/compare")
 def compare_redirect():
     # Compare lives as a section on the landing page.
-    return RedirectResponse("/#compare", status_code=301)
+    return RedirectResponse("/#compare", status_code=302)
 
 
 @app.get("/health")
+@app.get("/api/v1/health")
 def health():
-    return {"status": "ok", "service": "labwatch", "version": "0.1.0"}
+    return {"status": "ok", "service": "labwatch", "version": "1.0.0"}
 
 
 @app.get("/favicon.ico")
@@ -1809,12 +1810,12 @@ _DEMO_RESPONSES = [
         "response": {
             "answer": (
                 "Network usage across all nodes:\n"
-                "  proxmox-01: 12.4 Mbps rx / 8.2 Mbps tx\n"
-                "  docker-01: 45.8 Mbps rx / 32.1 Mbps tx\n"
-                "  storage-01: 2.1 Mbps rx / 1.8 Mbps tx\n"
-                "  gpu-01: OFFLINE\n"
+                "  docker-host: 45.8 Mbps rx / 32.1 Mbps tx\n"
+                "  pve-main: 12.4 Mbps rx / 8.2 Mbps tx\n"
+                "  nas-storage: 2.1 Mbps rx / 1.8 Mbps tx\n"
+                "  gpu-server: OFFLINE\n"
                 "\n"
-                "docker-01 has the highest throughput — likely serving container traffic."
+                "docker-host has the highest throughput — likely serving container traffic."
             ),
             "query_type": "network",
             "confidence": 0.90,

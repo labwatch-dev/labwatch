@@ -24,9 +24,9 @@ go build -o labwatch ./cmd/labwatch/
 ## What to work on
 
 - Check [open issues](https://github.com/labwatch-dev/labwatch/issues) for bugs and feature requests
-- NLQ patterns: add new query types in `server/app.py` (`_NLQ_PATTERNS`)
+- NLQ patterns: add new query types in `server/nlq.py` and response templates in `server/nlq_templates.py`
 - Translations: add or improve translations in `server/translations/`
-- Agent collectors: add new metric sources in `agent/internal/collectors/`
+- Agent collectors: add new metric sources in `agent/internal/collector/`
 
 ## Pull requests
 

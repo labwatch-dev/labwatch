@@ -47,7 +47,7 @@ SESSION_SECRET: str = os.getenv("SESSION_SECRET", secrets.token_hex(32))  # for 
 DATABASE_PATH: str = os.getenv("DATABASE_PATH", "./data/labwatch.db")
 HOST: str = os.getenv("HOST", "0.0.0.0")
 PORT: int = int(os.getenv("PORT", "8097"))
-BASE_URL: str = os.getenv("BASE_URL", "https://labwatch.dev")
+BASE_URL: str = os.getenv("BASE_URL", "http://localhost:8097")
 
 # Legacy fallback retention used by admin-only routes that aren't scoped to a
 # specific user. Tier-aware enforcement (the common path) uses TIER_LIMITS below.
