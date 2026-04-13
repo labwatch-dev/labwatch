@@ -2,8 +2,9 @@
 FROM golang:1.25-alpine AS agent-builder
 
 WORKDIR /build
-COPY agent/ .
+COPY agent/go.mod agent/go.sum ./
 RUN go mod download
+COPY agent/ .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags="-s -w" -trimpath -o /out/labwatch-linux-amd64 ./cmd/labwatch/ \

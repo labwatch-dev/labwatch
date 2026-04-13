@@ -1377,7 +1377,7 @@ _FLEET_PATTERN = re.compile(
     # Bare 'show me the fleet / my cluster / etc.' — no status keyword needed
     r"|(?:show|get|display)\s+(?:me\s+)?(?:the|my|our)?\s*(?:fleet|cluster|infra(?:structure)?|setup|environment)"
     # 'memory usage' / 'cpu usage' / 'disk usage' with no target = fleet pulse
-    r"|^(?:cpu|memory|memry|disk|network|load)\s+(?:usage|use|utilization|util)$"
+    r"|^(?:cpu|memory|disk|network|load)\s+(?:usage|use|utilization|util)$"
 )
 
 

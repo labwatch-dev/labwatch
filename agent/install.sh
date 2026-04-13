@@ -73,11 +73,15 @@ fi
 # Download latest release
 LATEST_URL="${BASE_URL}/download/labwatch-${OS}-${ARCH}"
 info "Downloading from ${LATEST_URL}..."
-if ! curl -fsSL -o "${INSTALL_DIR}/labwatch" "$LATEST_URL"; then
+TMP_BIN=$(mktemp)
+trap 'rm -f "$TMP_BIN"' EXIT
+if ! curl -fsSL -o "$TMP_BIN" "$LATEST_URL"; then
     error "Download failed. Check your internet connection."
     exit 1
 fi
-chmod +x "${INSTALL_DIR}/labwatch"
+chmod +x "$TMP_BIN"
+mv "$TMP_BIN" "${INSTALL_DIR}/labwatch"
+trap - EXIT
 
 # Create config directory
 mkdir -p "$CONFIG_DIR"
@@ -100,6 +104,7 @@ gpu:
 smart:
   enabled: true
 CONF
+    chmod 600 "${CONFIG_DIR}/config.yaml"
     info "Default config written to ${CONFIG_DIR}/config.yaml"
 else
     info "Existing config preserved at ${CONFIG_DIR}/config.yaml"

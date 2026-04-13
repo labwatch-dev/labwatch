@@ -49,6 +49,10 @@ def analyze_metrics(lab_id: str, metrics_data: dict[str, Any]) -> list[dict]:
     mem_crit = thresholds.get("memory_critical", 95)
     disk_warn = thresholds.get("disk_warning", 80)
     disk_crit = thresholds.get("disk_critical", 90)
+    gpu_util_warn = thresholds.get("gpu_util_warning", 90)
+    gpu_mem_warn = thresholds.get("gpu_mem_warning", 90)
+    gpu_temp_warn = thresholds.get("gpu_temp_warning", 85)
+    gpu_temp_crit = thresholds.get("gpu_temp_critical", 95)
 
     # --- CPU (nested: system.cpu.total_percent) ---
     cpu = system.get("cpu", {})
@@ -86,26 +90,36 @@ def analyze_metrics(lab_id: str, metrics_data: dict[str, Any]) -> list[dict]:
             )
             alerts.append(alert)
 
-    # --- Disk (nested: system.disk[0].used_percent) ---
+    # --- Disk (nested: system.disk[] — check all partitions) ---
     disks = system.get("disk", [])
-    disk_percent = disks[0].get("used_percent") if isinstance(disks, list) and disks else None
-    if disk_percent is not None:
-        if disk_percent > disk_crit:
+    if isinstance(disks, list):
+        worst_disk_pct = 0.0
+        worst_disk_mount = ""
+        for disk_entry in disks:
+            if not isinstance(disk_entry, dict):
+                continue
+            dp = disk_entry.get("used_percent")
+            if dp is not None and dp > worst_disk_pct:
+                worst_disk_pct = dp
+                worst_disk_mount = disk_entry.get("mountpoint", disk_entry.get("device", ""))
+        if worst_disk_pct > disk_crit:
+            label = f" ({worst_disk_mount})" if worst_disk_mount else ""
             alert = _fire(
                 lab_id,
                 alert_type="disk_critical",
                 severity="critical",
-                message=f"Disk usage at {disk_percent:.1f}% (threshold: {disk_crit}%)",
-                data={"disk_percent": disk_percent},
+                message=f"Disk usage at {worst_disk_pct:.1f}%{label} (threshold: {disk_crit}%)",
+                data={"disk_percent": worst_disk_pct, "mountpoint": worst_disk_mount},
             )
             alerts.append(alert)
-        elif disk_percent > disk_warn:
+        elif worst_disk_pct > disk_warn:
+            label = f" ({worst_disk_mount})" if worst_disk_mount else ""
             alert = _fire(
                 lab_id,
                 alert_type="disk_high",
                 severity="warning",
-                message=f"Disk usage at {disk_percent:.1f}% (threshold: {disk_warn}%)",
-                data={"disk_percent": disk_percent},
+                message=f"Disk usage at {worst_disk_pct:.1f}%{label} (threshold: {disk_warn}%)",
+                data={"disk_percent": worst_disk_pct, "mountpoint": worst_disk_mount},
             )
             alerts.append(alert)
 
@@ -173,35 +187,35 @@ def analyze_metrics(lab_id: str, metrics_data: dict[str, Any]) -> list[dict]:
         gpu_idx = device.get("index", 0)
 
         gpu_util = device.get("utilization_percent")
-        if gpu_util is not None and gpu_util > 90:
+        if gpu_util is not None and gpu_util > gpu_util_warn:
             alert = _fire(
                 lab_id,
                 alert_type="gpu_high",
                 severity="warning",
-                message=f"{gpu_name} (GPU {gpu_idx}) utilization at {gpu_util:.1f}% (threshold: 90%)",
+                message=f"{gpu_name} (GPU {gpu_idx}) utilization at {gpu_util:.1f}% (threshold: {gpu_util_warn}%)",
                 data={"gpu_index": gpu_idx, "gpu_name": gpu_name, "utilization_percent": gpu_util},
             )
             alerts.append(alert)
 
         gpu_mem = device.get("memory", {})
         gpu_mem_pct = gpu_mem.get("used_percent") if isinstance(gpu_mem, dict) else None
-        if gpu_mem_pct is not None and gpu_mem_pct > 90:
+        if gpu_mem_pct is not None and gpu_mem_pct > gpu_mem_warn:
             alert = _fire(
                 lab_id,
                 alert_type="gpu_memory_high",
                 severity="warning",
-                message=f"{gpu_name} (GPU {gpu_idx}) memory at {gpu_mem_pct:.1f}% (threshold: 90%)",
+                message=f"{gpu_name} (GPU {gpu_idx}) memory at {gpu_mem_pct:.1f}% (threshold: {gpu_mem_warn}%)",
                 data={"gpu_index": gpu_idx, "gpu_name": gpu_name, "memory_percent": gpu_mem_pct},
             )
             alerts.append(alert)
 
         gpu_temp = device.get("temperature_celsius")
-        if gpu_temp is not None and gpu_temp > 85:
+        if gpu_temp is not None and gpu_temp > gpu_temp_warn:
             alert = _fire(
                 lab_id,
                 alert_type="gpu_temp_high",
-                severity="critical" if gpu_temp > 95 else "warning",
-                message=f"{gpu_name} (GPU {gpu_idx}) temperature at {gpu_temp:.0f}°C (threshold: 85°C)",
+                severity="critical" if gpu_temp > gpu_temp_crit else "warning",
+                message=f"{gpu_name} (GPU {gpu_idx}) temperature at {gpu_temp:.0f}°C (threshold: {gpu_temp_warn}°C)",
                 data={"gpu_index": gpu_idx, "gpu_name": gpu_name, "temperature": gpu_temp},
             )
             alerts.append(alert)

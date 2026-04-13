@@ -350,12 +350,13 @@
 git clone https://github.com/labwatch-dev/labwatch.git
 cd labwatch</div>
 
-            <h3><span class="step-num">2</span>Set your admin secret</h3>
+            <h3><span class="step-num">2</span>Set your secrets</h3>
             <p>Create a <code>.env</code> file next to <code>docker-compose.yml</code>:</p>
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
 ADMIN_SECRET=paste-a-random-string-here
+SESSION_SECRET=paste-a-different-random-string-here
 BASE_URL=http://labwatch.lan:8097</div>
-            <p>Generate a secret with <code>openssl rand -hex 24</code> and paste it as the value. You'll need it to log in and to register agents.</p>
+            <p>Generate secrets with <code>openssl rand -hex 24</code> and paste them as values. The admin secret is used to log in and register agents. The session secret signs user cookies (must be stable across restarts).</p>
 
             <h3><span class="step-num">3</span>Start the stack</h3>
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>

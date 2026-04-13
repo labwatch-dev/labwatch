@@ -35,11 +35,14 @@ type GPUMemory struct {
 }
 
 // GPUCollector gathers NVIDIA GPU metrics via nvidia-smi.
-type GPUCollector struct{}
+type GPUCollector struct {
+	smiPath string // cached path to nvidia-smi binary
+}
 
 // NewGPU creates a new GPU metrics collector.
 func NewGPU() *GPUCollector {
-	return &GPUCollector{}
+	smiPath, _ := exec.LookPath("nvidia-smi")
+	return &GPUCollector{smiPath: smiPath}
 }
 
 func (g *GPUCollector) Name() string { return "gpu" }
@@ -47,14 +50,13 @@ func (g *GPUCollector) Name() string { return "gpu" }
 func (g *GPUCollector) Collect(ctx context.Context) (interface{}, error) {
 	metrics := GPUMetrics{}
 
-	// Check if nvidia-smi is available
-	smiPath, err := exec.LookPath("nvidia-smi")
-	if err != nil {
+	// Check if nvidia-smi is available (path cached at init)
+	if g.smiPath == "" {
 		// No NVIDIA driver/GPU — graceful degradation
 		return metrics, nil
 	}
 
-	cmd := exec.CommandContext(ctx, smiPath,
+	cmd := exec.CommandContext(ctx, g.smiPath,
 		"--query-gpu=index,name,utilization.gpu,memory.total,memory.used,memory.free,temperature.gpu,power.draw,power.limit,fan.speed",
 		"--format=csv,noheader,nounits",
 	)

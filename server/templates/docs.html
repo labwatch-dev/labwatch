@@ -483,6 +483,12 @@ X-Admin-Secret: your-secret-here</div>
                             <td><span class="param-optional">optional</span></td>
                             <td>Set a password to enable web login (min 8 chars). Without it you can still query via the token.</td>
                         </tr>
+                        <tr>
+                            <td class="param-name">accept_terms</td>
+                            <td class="param-type">boolean</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Must be <code>true</code> to accept the terms of service.</td>
+                        </tr>
                     </table>
 
                     <h4>Example</h4>
@@ -547,19 +553,19 @@ X-Admin-Secret: your-secret-here</div>
                         <tr>
                             <td class="param-name">os</td>
                             <td class="param-type">string</td>
-                            <td><span class="param-required">required</span></td>
+                            <td>optional</td>
                             <td>Operating system (e.g., "linux")</td>
                         </tr>
                         <tr>
                             <td class="param-name">arch</td>
                             <td class="param-type">string</td>
-                            <td><span class="param-required">required</span></td>
+                            <td>optional</td>
                             <td>Architecture (e.g., "amd64", "arm64")</td>
                         </tr>
                         <tr>
                             <td class="param-name">agent_version</td>
                             <td class="param-type">string</td>
-                            <td><span class="param-required">required</span></td>
+                            <td>optional</td>
                             <td>Agent version string</td>
                         </tr>
                     </table>

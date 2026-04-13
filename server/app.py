@@ -107,7 +107,11 @@ async def csrf_origin_check(request: Request, call_next):
         # Check all session-authenticated endpoints + browser forms
         # Skip API routes that use Bearer/admin auth (not CSRF-vulnerable)
         csrf_paths = {"/login", "/signup", "/set-password"}
-        is_session_api = path.startswith("/api/v1/my/") or path.startswith("/api/v1/billing/")
+        # Stripe webhook has its own signature verification — exempt from CSRF
+        is_session_api = (
+            path.startswith("/api/v1/my/")
+            or (path.startswith("/api/v1/billing/") and path != "/api/v1/billing/webhook")
+        )
         if path in csrf_paths or is_session_api:
             origin = request.headers.get("origin") or ""
             referer = request.headers.get("referer") or ""
@@ -977,8 +981,9 @@ def user_dashboard(request: Request):
         gpu_summary = _extract_gpu_summary(metrics)
         _enrich_network_rate(system_summary, lab["id"])
         alerts = db.get_active_alerts(lab["id"])
+        lab_safe = {k: v for k, v in lab.items() if k != "token"}
         lab_data.append({
-            **lab,
+            **lab_safe,
             "online": _lab_is_online(lab["last_seen"]),
             "pinned": lab["id"] in pinned_ids,
             **system_summary,
@@ -1153,8 +1158,9 @@ def user_dashboard_api(request: Request):
         _enrich_network_rate(system_summary, lab["id"])
         alerts = db.get_active_alerts(lab["id"])
         total_alerts += len(alerts)
+        lab_safe = {k: v for k, v in lab.items() if k != "token"}
         lab_data.append({
-            **lab,
+            **lab_safe,
             "online": _lab_is_online(lab["last_seen"]),
             "pinned": lab["id"] in pinned_ids,
             **system_summary,
@@ -3337,8 +3343,9 @@ async def billing_webhook(request: Request):
     event_type = event.get("type") if isinstance(event, dict) else event["type"]
     event_id = event.get("id") if isinstance(event, dict) else event["id"]
 
-    # Idempotency: skip already-processed events (Stripe retries on timeout).
-    if db.is_stripe_event_processed(event_id):
+    # Atomic idempotency: claim the event so only one handler processes it.
+    # Prevents TOCTOU race when Stripe retries or delivers concurrently.
+    if not db.claim_stripe_event(event_id):
         logger.info(f"Stripe event {event_id} already processed, skipping")
         return {"ok": True, "noop": "duplicate"}
 
@@ -3350,7 +3357,6 @@ async def billing_webhook(request: Request):
         logger.exception(f"Stripe webhook handler failed for {event_type} ({event_id})")
         result = {"ok": True, "error": "internal", "event": event_type}
 
-    db.mark_stripe_event_processed(event_id)
     return result
 
 

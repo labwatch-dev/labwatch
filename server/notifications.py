@@ -381,7 +381,7 @@ def _send_gotify(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     hostname = lab.get("hostname", "unknown")
 
     _validate_url(server)
-    url = f"{server.rstrip('/')}/message?token={token}"
+    url = f"{server.rstrip('/')}/message"
     payload = {
         "title": f"[{alert['severity'].upper()}] {hostname}",
         "message": alert["message"],
@@ -391,7 +391,7 @@ def _send_gotify(channel: dict, alert: dict, lab: dict, config: dict) -> None:
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url, data=data,
-        headers={"Content-Type": "application/json"},
+        headers={"Content-Type": "application/json", "X-Gotify-Key": token},
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=10) as resp:

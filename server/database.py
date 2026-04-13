@@ -601,7 +601,8 @@ def store_alert(
 
     conn = _connect()
     try:
-        # Check if same alert_type already exists unresolved for this lab
+        # BEGIN IMMEDIATE to hold write lock across read+conditional-write (prevents TOCTOU race)
+        conn.execute("BEGIN IMMEDIATE")
         existing = conn.execute(
             """SELECT id FROM alerts
                WHERE lab_id = ? AND alert_type = ? AND resolved_at IS NULL
@@ -624,6 +625,9 @@ def store_alert(
         )
         conn.commit()
         return cursor.lastrowid, True
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 
@@ -922,8 +926,27 @@ def is_stripe_event_processed(event_id: str) -> bool:
         conn.close()
 
 
+def claim_stripe_event(event_id: str) -> bool:
+    """Atomically claim a Stripe event for processing.
+
+    Returns True if this call won the claim (proceed with processing),
+    False if the event was already processed (skip).
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "INSERT OR IGNORE INTO stripe_events (event_id, processed_at) VALUES (?, ?)",
+            (event_id, now),
+        )
+        conn.commit()
+        return cursor.rowcount == 1
+    finally:
+        conn.close()
+
+
 def mark_stripe_event_processed(event_id: str) -> None:
-    """Record a Stripe event as processed."""
+    """Record a Stripe event as processed (legacy — prefer claim_stripe_event)."""
     now = datetime.now(timezone.utc).isoformat()
     conn = _connect()
     try:

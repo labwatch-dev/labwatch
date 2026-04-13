@@ -3,6 +3,8 @@ services:
     build: .
     container_name: labwatch
     ports:
+      # Use a reverse proxy (Caddy, nginx) for TLS in production.
+      # Change to "8097:8097" if agents on other machines need direct access.
       - "127.0.0.1:8097:8097"
     environment:
       - ADMIN_SECRET=${ADMIN_SECRET:?Set ADMIN_SECRET in .env or environment}
@@ -24,6 +26,7 @@ services:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8097/api/v1/health')"]
       interval: 30s
       timeout: 5s
+      start_period: 10s
       retries: 3
 
 volumes:
