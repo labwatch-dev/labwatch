@@ -349,6 +349,7 @@
         <a href="#list-labs">List Labs</a>
         <a href="#lab-history">Lab History</a>
         <a href="#lab-export">Export Data</a>
+        <a href="#prometheus">Prometheus Export</a>
         <a href="#delete-lab">Delete Lab</a>
         <a href="#admin-dashboard">Admin Dashboard</a>
 
@@ -984,6 +985,37 @@ X-Admin-Secret: your-secret-here</div>
 
                     <h4>Response <span class="response-code code-2xx">200</span></h4>
                     <p>Returns a JSON file download with all metrics, alerts, and configuration for the specified lab.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prometheus Metrics -->
+        <section class="docs-section" id="prometheus">
+            <h2>Prometheus Export</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/v1/metrics</span>
+                    <span class="endpoint-desc">Prometheus exposition format</span>
+                    <span class="endpoint-auth">admin</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Returns all lab metrics in <a href="https://prometheus.io/docs/instrumenting/exposition_formats/" target="_blank">Prometheus text format</a>. Point your Prometheus scraper at this endpoint to visualize labwatch data in Grafana.</p>
+                    <p>Accepts authentication via <code>X-Admin-Secret</code> header or standard <code>Authorization: Bearer &lt;secret&gt;</code> (for Prometheus scraper compatibility).</p>
+                    <h4>Exported Metrics</h4>
+                    <ul>
+                        <li><code>labwatch_cpu_percent</code> — CPU usage per node</li>
+                        <li><code>labwatch_memory_percent</code> — memory usage per node</li>
+                        <li><code>labwatch_disk_percent</code> — disk usage per node</li>
+                        <li><code>labwatch_uptime_seconds</code> — node uptime</li>
+                        <li><code>labwatch_containers_total</code> — total containers per node</li>
+                        <li><code>labwatch_containers_running</code> — running containers per node</li>
+                        <li><code>labwatch_alerts_active</code> — active alert count per node</li>
+                        <li><code>labwatch_node_online</code> — 1 if online, 0 if offline</li>
+                    </ul>
+                    <p>All metrics are labeled with <code>lab_id</code> and <code>hostname</code>.</p>
                 </div>
             </div>
         </section>

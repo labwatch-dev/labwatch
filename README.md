@@ -190,6 +190,26 @@ curl -X POST http://localhost:8097/api/v1/admin/notifications \
 
 Notifications fire on **new** alerts only — deduplication prevents spam.
 
+## Prometheus export
+
+labwatch exposes a `/metrics` endpoint in Prometheus exposition format. Point your Prometheus scraper at it and visualize labwatch data in Grafana.
+
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: labwatch
+    scrape_interval: 60s
+    static_configs:
+      - targets: ['your-labwatch-server:8097']
+    authorization:
+      type: Bearer
+      credentials: your-admin-secret
+    metrics_path: /api/v1/metrics
+    scheme: http
+```
+
+Exported metrics: `labwatch_cpu_percent`, `labwatch_memory_percent`, `labwatch_disk_percent`, `labwatch_uptime_seconds`, `labwatch_containers_total`, `labwatch_containers_running`, `labwatch_alerts_active`, `labwatch_node_online`. All labeled with `lab_id` and `hostname`.
+
 ## Alert rules
 
 | Alert | Severity | Condition | Auto-resolves |
@@ -229,6 +249,7 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 | `/api/v1/admin/digest/{id}` | GET/POST | Admin | Node intelligence digest |
 | `/api/v1/admin/digest` | POST | Admin | Fleet digest |
 | `/api/v1/admin/notifications` | GET/POST | Admin | Notification channels |
+| `/api/v1/metrics` | GET | Admin | Prometheus exposition format |
 | `/api/v1/my/pin/{id}` | POST/DELETE | User | Pin/unpin nodes |
 | `/api/v1/my/thresholds/{id}` | GET/PUT/DELETE | User | Custom alert thresholds |
 

@@ -430,6 +430,76 @@ def health():
     return {"status": "ok", "service": "labwatch", "version": "1.0.0"}
 
 
+@app.get("/metrics")
+@app.get("/api/v1/metrics")
+def prometheus_metrics(
+    request: Request,
+    x_admin_secret: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None),
+):
+    """Export all lab metrics in Prometheus exposition format.
+
+    Accepts admin secret via X-Admin-Secret header or standard
+    Authorization: Bearer <secret> (for Prometheus scraper compatibility).
+    """
+    secret = x_admin_secret
+    if not secret and authorization and authorization.startswith("Bearer "):
+        secret = authorization[7:]
+    if not secret or not hmac.compare_digest(secret, config.ADMIN_SECRET):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    labs = db.list_labs()
+    lines = [
+        "# HELP labwatch_cpu_percent Current CPU usage percentage per node.",
+        "# TYPE labwatch_cpu_percent gauge",
+        "# HELP labwatch_memory_percent Current memory usage percentage per node.",
+        "# TYPE labwatch_memory_percent gauge",
+        "# HELP labwatch_disk_percent Current disk usage percentage per node.",
+        "# TYPE labwatch_disk_percent gauge",
+        "# HELP labwatch_uptime_seconds Node uptime in seconds.",
+        "# TYPE labwatch_uptime_seconds gauge",
+        "# HELP labwatch_containers_total Total number of containers per node.",
+        "# TYPE labwatch_containers_total gauge",
+        "# HELP labwatch_containers_running Running containers per node.",
+        "# TYPE labwatch_containers_running gauge",
+        "# HELP labwatch_alerts_active Active alerts per node.",
+        "# TYPE labwatch_alerts_active gauge",
+        "# HELP labwatch_node_online Whether the node is online (1) or offline (0).",
+        "# TYPE labwatch_node_online gauge",
+    ]
+
+    for lab in labs:
+        lab_id = lab["id"]
+        hostname = lab.get("hostname", lab_id)
+        labels = f'lab_id="{lab_id}",hostname="{hostname}"'
+
+        metrics = db.get_latest_metrics(lab_id)
+        summary = _extract_system_summary(metrics)
+
+        online = 1 if lab.get("online") else 0
+        lines.append(f"labwatch_node_online{{{labels}}} {online}")
+        lines.append(f'labwatch_cpu_percent{{{labels}}} {summary.get("cpu_percent", 0)}')
+        lines.append(f'labwatch_memory_percent{{{labels}}} {summary.get("memory_percent", 0)}')
+        lines.append(f'labwatch_disk_percent{{{labels}}} {summary.get("disk_percent", 0)}')
+        lines.append(f'labwatch_uptime_seconds{{{labels}}} {summary.get("uptime_seconds", 0)}')
+
+        # Container stats from docker metrics
+        docker_entry = metrics.get("docker", {})
+        docker_data = docker_entry.get("data", {}) if isinstance(docker_entry, dict) else {}
+        containers = docker_data.get("containers", [])
+        total = len(containers)
+        running = sum(1 for c in containers if c.get("state") == "running")
+        lines.append(f"labwatch_containers_total{{{labels}}} {total}")
+        lines.append(f"labwatch_containers_running{{{labels}}} {running}")
+
+        # Active alerts
+        alerts = db.get_active_alerts(lab_id)
+        lines.append(f"labwatch_alerts_active{{{labels}}} {len(alerts)}")
+
+    lines.append("")  # trailing newline
+    return PlainTextResponse("\n".join(lines), media_type="text/plain; version=0.0.4; charset=utf-8")
+
+
 @app.get("/favicon.ico")
 def favicon():
     svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='#f0a030'/></svg>"
