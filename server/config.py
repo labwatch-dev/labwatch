@@ -1,6 +1,7 @@
 """Configuration for Homelab Intelligence (labwatch) server."""
 
 import os
+import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -42,7 +43,7 @@ def _read_kv_file(path: str) -> dict[str, str]:
 
 
 ADMIN_SECRET: str = _require_env("ADMIN_SECRET")
-SESSION_SECRET: str = os.getenv("SESSION_SECRET", ADMIN_SECRET)  # for signing cookies
+SESSION_SECRET: str = os.getenv("SESSION_SECRET", secrets.token_hex(32))  # for signing cookies; auto-generated if not set
 DATABASE_PATH: str = os.getenv("DATABASE_PATH", "./data/labwatch.db")
 HOST: str = os.getenv("HOST", "0.0.0.0")
 PORT: int = int(os.getenv("PORT", "8097"))
