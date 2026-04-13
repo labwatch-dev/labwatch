@@ -1,10 +1,14 @@
 # labwatch
 
-Smart monitoring for homelabs. A lightweight Go agent and intelligence server that understands your infrastructure.
+[![License: AGPL-3.0](https://img.shields.io/badge/server-AGPL--3.0-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/agent-MIT-green.svg)](agent/LICENSE)
 
-**[Live demo](https://labwatch.dev/demo)** | **[Website](https://labwatch.dev)** | **[Docs](https://labwatch.dev/docs)**
+Know what's happening across every node in your homelab — without Grafana, without Prometheus, without YAML hell. A single Go binary per node, a single Docker container for the server, and a dashboard that speaks English.
+
+**[Live demo](https://labwatch.dev/demo)** | **[Docs](https://labwatch.dev/docs)**
 
 ![labwatch dashboard](screenshots/dashboard.png)
+![labwatch node detail](screenshots/detail.png)
 
 ## What it does
 
@@ -34,10 +38,11 @@ Two commands to go from zero to monitoring:
 
 ```bash
 git clone https://github.com/labwatch-dev/labwatch.git && cd labwatch
-ADMIN_SECRET=$(openssl rand -hex 24) docker compose up -d
+echo "ADMIN_SECRET=$(openssl rand -hex 24)" >> .env
+docker compose up -d
 ```
 
-Server is now live at `http://localhost:8097`. Save your admin secret.
+Server is now live at `http://localhost:8097`. Your admin secret is saved in `.env`.
 
 ### 2. Install the agent (on each node)
 

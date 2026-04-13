@@ -14,6 +14,17 @@ services:
     volumes:
       - labwatch-data:/app/data
     restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8097/api/v1/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   labwatch-data:

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -77,8 +78,12 @@ func (d *DockerCollector) Collect(ctx context.Context) (interface{}, error) {
 			name = strings.TrimPrefix(c.Names[0], "/")
 		}
 
+		id := c.ID
+		if len(id) > 12 {
+			id = id[:12]
+		}
 		cm := ContainerMetric{
-			ID:    c.ID[:12],
+			ID:    id,
 			Name:  name,
 			Image: c.Image,
 			State: c.State,
@@ -101,6 +106,9 @@ func (d *DockerCollector) Collect(ctx context.Context) (interface{}, error) {
 						if numCPUs == 0 {
 							numCPUs = float64(len(stats.CPUStats.CPUUsage.PercpuUsage))
 						}
+						if numCPUs == 0 {
+							numCPUs = float64(runtime.NumCPU())
+						}
 						if numCPUs > 0 {
 							cm.CPUPercent = (cpuDelta / sysDelta) * numCPUs * 100.0
 						}
@@ -109,9 +117,17 @@ func (d *DockerCollector) Collect(ctx context.Context) (interface{}, error) {
 					// Memory (subtract cache for actual usage)
 					cache := uint64(0)
 					if stats.MemoryStats.Stats != nil {
-						cache = stats.MemoryStats.Stats["cache"]
+						if c, ok := stats.MemoryStats.Stats["cache"]; ok {
+							cache = c
+						} else if c, ok := stats.MemoryStats.Stats["inactive_file"]; ok {
+							cache = c // cgroup v2
+						}
 					}
-					cm.MemoryUsage = stats.MemoryStats.Usage - cache
+					if cache <= stats.MemoryStats.Usage {
+						cm.MemoryUsage = stats.MemoryStats.Usage - cache
+					} else {
+						cm.MemoryUsage = stats.MemoryStats.Usage
+					}
 					cm.MemoryLimit = stats.MemoryStats.Limit
 					if cm.MemoryLimit > 0 {
 						cm.MemoryPercent = float64(cm.MemoryUsage) / float64(cm.MemoryLimit) * 100.0
