@@ -1087,27 +1087,27 @@
         <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 16px;">{{ t.lab_alert_thresholds_desc if t and t.lab_alert_thresholds_desc else "Customize when alerts trigger for this node. Values are percentages." }}. Leave blank to use defaults.</p>
         <div class="admin-grid" id="threshold-controls" style="gap: 12px;">
             <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_cpu_warn if t and t.lab_threshold_cpu_warn else "CPU warning" }}</label>
+                <label for="th-cpu_warning" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_cpu_warn if t and t.lab_threshold_cpu_warn else "CPU warning" }}</label>
                 <input type="number" id="th-cpu_warning" min="1" max="100" placeholder="90" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
                 <span style="font-size: 12px; color: var(--text-muted);">%</span>
             </div>
             <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_mem_warn if t and t.lab_threshold_mem_warn else "Memory warning" }}</label>
+                <label for="th-memory_warning" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_mem_warn if t and t.lab_threshold_mem_warn else "Memory warning" }}</label>
                 <input type="number" id="th-memory_warning" min="1" max="100" placeholder="85" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
                 <span style="font-size: 12px; color: var(--text-muted);">%</span>
             </div>
             <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_mem_crit if t and t.lab_threshold_mem_crit else "Memory critical" }}</label>
+                <label for="th-memory_critical" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_mem_crit if t and t.lab_threshold_mem_crit else "Memory critical" }}</label>
                 <input type="number" id="th-memory_critical" min="1" max="100" placeholder="95" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
                 <span style="font-size: 12px; color: var(--text-muted);">%</span>
             </div>
             <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_disk_warn if t and t.lab_threshold_disk_warn else "Disk warning" }}</label>
+                <label for="th-disk_warning" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_disk_warn if t and t.lab_threshold_disk_warn else "Disk warning" }}</label>
                 <input type="number" id="th-disk_warning" min="1" max="100" placeholder="80" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
                 <span style="font-size: 12px; color: var(--text-muted);">%</span>
             </div>
             <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_disk_crit if t and t.lab_threshold_disk_crit else "Disk critical" }}</label>
+                <label for="th-disk_critical" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_disk_crit if t and t.lab_threshold_disk_crit else "Disk critical" }}</label>
                 <input type="number" id="th-disk_critical" min="1" max="100" placeholder="90" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
                 <span style="font-size: 12px; color: var(--text-muted);">%</span>
             </div>

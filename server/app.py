@@ -765,6 +765,9 @@ def signup(body: SignupRequest, request: Request):
     if not body.accept_terms:
         raise HTTPException(status_code=400, detail="You must accept the Terms of Service and Privacy Policy")
 
+    # Normalize email to lowercase to prevent case-based duplicates
+    body.email = body.email.strip().lower()
+
     # Validate email format
     if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", body.email):
         raise HTTPException(status_code=400, detail="Invalid email address")
@@ -849,7 +852,7 @@ def login_submit(
 
     if method == "email":
         # Email + password login
-        email = email.strip()
+        email = email.strip().lower()
         if not email or not password:
             return RedirectResponse("/login?error=Please+enter+email+and+password&tab=email", status_code=302)
 
@@ -1093,7 +1096,7 @@ def generate_alert_rule(request: Request, body: dict = None):
         m = _re.search(pattern, text)
         if m:
             value = int(m.group(1))
-            if value < 1 or value > 100 and "temp" not in key and "load" not in key:
+            if value < 1 or (value > 100 and "temp" not in key and "load" not in key):
                 return {"ok": False, "error": f"Threshold {value} is out of range."}
             severity = "critical" if "critical" in text else "warning"
             if severity == "critical":

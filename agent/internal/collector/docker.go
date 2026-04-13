@@ -57,6 +57,7 @@ func NewDocker(socketPath string) (*DockerCollector, error) {
 	pingCtx, pingCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer pingCancel()
 	if _, err := cli.Ping(pingCtx); err != nil {
+		cli.Close()
 		return nil, fmt.Errorf("connecting to docker: %w", err)
 	}
 

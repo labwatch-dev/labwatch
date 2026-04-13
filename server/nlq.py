@@ -556,22 +556,22 @@ def _parse_time_range(text: str) -> tuple[datetime, datetime]:
             end = now
         return start, end
 
-    # "last X hours"
+    # "last X hours" (cap at 1 year)
     hours_match = re.search(r'last\s+(\d+)\s+hours?', text)
     if hours_match:
-        hours = int(hours_match.group(1))
+        hours = min(int(hours_match.group(1)), 8760)
         return now - timedelta(hours=hours), now
 
-    # "last X minutes"
+    # "last X minutes" (cap at 1 year)
     mins_match = re.search(r'last\s+(\d+)\s+min(?:utes?)?', text)
     if mins_match:
-        mins = int(mins_match.group(1))
+        mins = min(int(mins_match.group(1)), 525600)
         return now - timedelta(minutes=mins), now
 
-    # "last X days"
+    # "last X days" (cap at 1 year)
     days_match = re.search(r'last\s+(\d+)\s+days?', text)
     if days_match:
-        days = int(days_match.group(1))
+        days = min(int(days_match.group(1)), 365)
         return now - timedelta(days=days), now
 
     # "this week"
