@@ -52,6 +52,18 @@ a:hover { text-decoration: underline; }
     width: 200px;
     height: 240px;
     margin: 0 auto 32px auto;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: filter 0.15s;
+}
+.ember-stage.dragging {
+    cursor: grabbing;
+    position: fixed;
+    z-index: 9999;
+    margin: 0;
+    filter: drop-shadow(0 8px 32px rgba(255, 122, 24, 0.6));
+    transition: none;
 }
 .ember-stage svg {
     width: 100%;
@@ -350,6 +362,44 @@ function claim(e) {
     });
     return false;
 }
+
+/* Draggable ember mascot */
+(function() {
+    var stage = document.querySelector('.ember-stage');
+    var offsetX, offsetY, isDragging = false;
+
+    function startDrag(x, y) {
+        var rect = stage.getBoundingClientRect();
+        offsetX = x - rect.left;
+        offsetY = y - rect.top;
+        stage.classList.add('dragging');
+        stage.style.left = rect.left + 'px';
+        stage.style.top = rect.top + 'px';
+        isDragging = true;
+    }
+
+    function moveDrag(x, y) {
+        if (!isDragging) return;
+        stage.style.left = (x - offsetX) + 'px';
+        stage.style.top = (y - offsetY) + 'px';
+    }
+
+    function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        stage.classList.remove('dragging');
+        stage.style.left = '';
+        stage.style.top = '';
+    }
+
+    stage.addEventListener('mousedown', function(e) { e.preventDefault(); startDrag(e.clientX, e.clientY); });
+    document.addEventListener('mousemove', function(e) { moveDrag(e.clientX, e.clientY); });
+    document.addEventListener('mouseup', endDrag);
+
+    stage.addEventListener('touchstart', function(e) { e.preventDefault(); var t = e.touches[0]; startDrag(t.clientX, t.clientY); }, {passive: false});
+    document.addEventListener('touchmove', function(e) { if (isDragging) { var t = e.touches[0]; moveDrag(t.clientX, t.clientY); } }, {passive: true});
+    document.addEventListener('touchend', endDrag);
+})();
 </script>
 </body>
 </html>
