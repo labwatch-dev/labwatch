@@ -82,6 +82,15 @@ app.add_middleware(GzipMiddleware, minimum_size=1000)
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
 
+# Starlette 1.0 changed TemplateResponse(name, ctx) → TemplateResponse(request, name, ctx).
+import starlette as _starlette_mod
+_STARLETTE_NEW_TPL = int(_starlette_mod.__version__.split(".")[0]) >= 1
+
+def _render(name: str, ctx: dict, **kwargs):
+    if _STARLETTE_NEW_TPL:
+        return templates.TemplateResponse(ctx["request"], name, ctx, **kwargs)
+    return templates.TemplateResponse(name, ctx, **kwargs)
+
 
 _MAX_BODY_BYTES = 2 * 1024 * 1024  # 2 MB — generous for metric ingest, blocks abuse
 
@@ -547,37 +556,37 @@ def _extract_docker_summary(metrics: dict[str, Any]) -> dict[str, Any]:
 
 @app.get("/", response_class=HTMLResponse)
 def landing(request: Request):
-    return templates.TemplateResponse("landing.html", _tpl_context(request))
+    return _render("landing.html", _tpl_context(request))
 
 
 @app.get("/docs", response_class=HTMLResponse)
 def api_docs(request: Request):
-    return templates.TemplateResponse("docs.html", _tpl_context(request, active_page="docs"))
+    return _render("docs.html", _tpl_context(request, active_page="docs"))
 
 
 @app.get("/about", response_class=HTMLResponse)
 def about_page(request: Request):
-    return templates.TemplateResponse("about.html", _tpl_context(request, active_page="about"))
+    return _render("about.html", _tpl_context(request, active_page="about"))
 
 
 @app.get("/support", response_class=HTMLResponse)
 def support_page(request: Request):
-    return templates.TemplateResponse("support.html", _tpl_context(request, active_page="support"))
+    return _render("support.html", _tpl_context(request, active_page="support"))
 
 
 @app.get("/self-hosted", response_class=HTMLResponse)
 def self_hosted_page(request: Request):
-    return templates.TemplateResponse("self_hosted.html", _tpl_context(request, active_page="self_hosted"))
+    return _render("self_hosted.html", _tpl_context(request, active_page="self_hosted"))
 
 
 @app.get("/privacy", response_class=HTMLResponse)
 def privacy_page(request: Request):
-    return templates.TemplateResponse("privacy.html", _tpl_context(request, active_page="privacy"))
+    return _render("privacy.html", _tpl_context(request, active_page="privacy"))
 
 
 @app.get("/terms", response_class=HTMLResponse)
 def terms_page(request: Request):
-    return templates.TemplateResponse("terms.html", _tpl_context(request, active_page="terms"))
+    return _render("terms.html", _tpl_context(request, active_page="terms"))
 
 
 @app.get("/pricing")
@@ -829,7 +838,7 @@ def signup(body: SignupRequest, request: Request):
 @app.get("/signup", response_class=HTMLResponse)
 def signup_page(request: Request):
     """Self-service signup page."""
-    return templates.TemplateResponse("signup.html", _tpl_context(request))
+    return _render("signup.html", _tpl_context(request))
 
 
 # ---------------------------------------------------------------------------
@@ -843,7 +852,7 @@ def login_page(request: Request):
     if email:
         return RedirectResponse("/my/dashboard", status_code=302)
     error = request.query_params.get("error")
-    return templates.TemplateResponse("login.html", _tpl_context(request, error=error, active_page="login"))
+    return _render("login.html", _tpl_context(request, error=error, active_page="login"))
 
 
 @app.post("/login")
@@ -906,7 +915,7 @@ def set_password_page(request: Request):
         return RedirectResponse("/login?error=Please+log+in+first+%28use+API+token%29&tab=token", status_code=302)
     msg = request.query_params.get("msg")
     error = request.query_params.get("error")
-    return templates.TemplateResponse("set_password.html", _tpl_context(
+    return _render("set_password.html", _tpl_context(
         request, email=email, msg=msg, error=error, active_page="settings",
     ))
 
@@ -975,7 +984,7 @@ def add_node_page(request: Request):
     email = _get_session_email(request)
     if not email:
         return RedirectResponse("/login", status_code=302)
-    return templates.TemplateResponse("add_node.html", _tpl_context(request, active_page="dashboard"))
+    return _render("add_node.html", _tpl_context(request, active_page="dashboard"))
 
 
 @app.post("/api/v1/my/add-node")
@@ -1052,7 +1061,7 @@ def user_dashboard(request: Request):
     restart_leaders.sort(key=lambda r: r["restart_count"], reverse=True)
     restart_leaders = restart_leaders[:10]
 
-    return templates.TemplateResponse("dashboard.html", _tpl_context(
+    return _render("dashboard.html", _tpl_context(
         request, labs=lab_data, total=len(lab_data), active_page="dashboard",
         pinned_ids=pinned_ids,
         user_plan=db.get_plan_for_email(email, default=config.DEFAULT_PLAN),
@@ -1067,7 +1076,7 @@ def user_notifications_page(request: Request):
     email = _get_session_email(request)
     if not email:
         return RedirectResponse("/login", status_code=302)
-    return templates.TemplateResponse("notifications.html", _tpl_context(
+    return _render("notifications.html", _tpl_context(
         request, active_page="notifications",
     ))
 
@@ -1079,7 +1088,7 @@ def user_alerts_page(request: Request):
     if not email:
         return RedirectResponse("/login", status_code=302)
     thresholds = db.get_alert_thresholds(email)
-    return templates.TemplateResponse("alerts.html", _tpl_context(
+    return _render("alerts.html", _tpl_context(
         request, active_page="alerts", current_thresholds=thresholds,
     ))
 
@@ -1179,7 +1188,7 @@ def user_lab_detail(request: Request, lab_id: str):
     gpu_summary = _extract_gpu_summary(metrics)
     digest = db.get_latest_digest(lab_id)
 
-    return templates.TemplateResponse("lab_detail.html", _tpl_context(
+    return _render("lab_detail.html", _tpl_context(
         request, lab=lab, online=_lab_is_online(lab["last_seen"]),
         gpu=gpu_summary, system=system_summary, docker=docker_summary,
         metrics=metrics, history_count=len(history), alerts=alerts,
@@ -1694,7 +1703,7 @@ def demo_dashboard(request: Request):
          "alert_count": 1, "critical_count": 1,
          "last_seen": (datetime.now(timezone.utc) - timedelta(hours=3)).isoformat()},
     ]
-    return templates.TemplateResponse("dashboard.html", _tpl_context(
+    return _render("dashboard.html", _tpl_context(
         request, labs=demo_labs, total=len(demo_labs), secret="demo", is_demo=True,
     ))
 
@@ -1804,7 +1813,7 @@ def demo_lab_detail(request: Request, lab_id: str):
         "services": {"data": {"services": detail.get("_services", [])}},
     }
 
-    return templates.TemplateResponse("lab_detail.html", _tpl_context(
+    return _render("lab_detail.html", _tpl_context(
         request, lab=lab, online=detail["_online"],
         gpu={}, system=system, docker=docker,
         metrics=demo_metrics, history_count=24, alerts=detail["_alerts"],
@@ -1895,7 +1904,7 @@ def dashboard(request: Request, x_admin_secret: Optional[str] = Header(None)):
     restart_leaders.sort(key=lambda r: r["restart_count"], reverse=True)
     restart_leaders = restart_leaders[:10]
 
-    return templates.TemplateResponse("dashboard.html", _tpl_context(
+    return _render("dashboard.html", _tpl_context(
         request, labs=lab_data, total=len(lab_data), secret=secret,
         restart_leaders=restart_leaders,
     ))
@@ -1931,7 +1940,7 @@ def dashboard_lab_detail(request: Request, lab_id: str, x_admin_secret: Optional
     gpu_summary = _extract_gpu_summary(metrics)
     digest = db.get_latest_digest(lab_id)
 
-    return templates.TemplateResponse("lab_detail.html", _tpl_context(
+    return _render("lab_detail.html", _tpl_context(
         request, lab=lab, online=_lab_is_online(lab["last_seen"]),
         gpu=gpu_summary, system=system_summary, docker=docker_summary,
         metrics=metrics, history_count=len(history), alerts=alerts,
@@ -3506,7 +3515,7 @@ def billing_success(request: Request):
     flip happens in the webhook — this page just thanks the user and
     points them at their dashboard.
     """
-    return templates.TemplateResponse("billing_result.html", _tpl_context(
+    return _render("billing_result.html", _tpl_context(
         request, outcome="success",
     ))
 
@@ -3514,7 +3523,7 @@ def billing_success(request: Request):
 @app.get("/billing/cancel", response_class=HTMLResponse)
 def billing_cancel(request: Request):
     """Landing page if the user cancels/closes the checkout page."""
-    return templates.TemplateResponse("billing_result.html", _tpl_context(
+    return _render("billing_result.html", _tpl_context(
         request, outcome="cancel",
     ))
 
