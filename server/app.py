@@ -413,6 +413,7 @@ def _tpl_context(request: Request, **kwargs) -> dict:
         "language_names": LANGUAGE_NAMES,
         "user_email": _get_session_email(request),
         "base_url": config.BASE_URL,
+        "secret": "",
     }
     ctx.update(kwargs)
     return ctx
