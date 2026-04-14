@@ -1449,7 +1449,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(function(res) {
             if (res.ok) {
-                window.location.href = '/dashboard';
+                window.location.href = {% if user_email %}'/my/dashboard'{% else %}'/dashboard?secret=' + encodeURIComponent({{ secret | tojson }}){% endif %};
             } else {
                 hideDeleteModal();
                 showToast('Failed to delete lab');
