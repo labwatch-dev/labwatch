@@ -20,7 +20,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
-from starlette.middleware.gzip import GzipMiddleware
+try:
+    from starlette.middleware.gzip import GZipMiddleware as GzipMiddleware
+except ImportError:
+    from starlette.middleware.gzip import GzipMiddleware
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr, format="%(name)s: %(message)s")
 
