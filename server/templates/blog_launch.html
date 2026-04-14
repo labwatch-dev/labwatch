@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Why we built labwatch{% endblock %}
+{% block og_title %}Why we built labwatch — monitoring without the YAML hell{% endblock %}
+
+{% block extra_styles %}
+.blog-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 24px 60px;
+    line-height: 1.75;
+    color: var(--text);
+}
+.blog-container h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: var(--accent);
+}
+.blog-meta {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 40px;
+}
+.blog-container h2 {
+    font-size: 1.3rem;
+    margin-top: 40px;
+    margin-bottom: 12px;
+    color: var(--text);
+}
+.blog-container p {
+    margin-bottom: 16px;
+    font-size: 15px;
+}
+.blog-container code {
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+.blog-container pre {
+    background: var(--surface);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 16px 0;
+    font-size: 13px;
+    line-height: 1.5;
+    border: 1px solid var(--border);
+}
+.blog-container pre code {
+    background: none;
+    padding: 0;
+}
+.blog-container a {
+    color: var(--accent);
+    text-decoration: none;
+}
+.blog-container a:hover {
+    text-decoration: underline;
+}
+.blog-container blockquote {
+    border-left: 3px solid var(--accent);
+    margin: 16px 0;
+    padding: 8px 16px;
+    color: var(--text-dim);
+    font-style: italic;
+}
+.blog-container ul, .blog-container ol {
+    margin: 12px 0 16px 20px;
+    font-size: 15px;
+}
+.blog-container li {
+    margin-bottom: 6px;
+}
+.blog-container img {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin: 16px 0;
+}
+.blog-cta {
+    margin-top: 48px;
+    padding: 24px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    text-align: center;
+}
+.blog-cta a {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--bg);
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+{% endblock %}
+
+{% block content %}
+<article class="blog-container">
+    <h1>Why we built labwatch</h1>
+    <div class="blog-meta">April 15, 2026 · Luca Zazella</div>
+
+    <p>I run a 5-node Proxmox cluster out of my apartment in Zurich. Caddy, Pi-hole, Uptime Kuma, a media stack, some AI experiments — the usual homelab stuff. And for months I tried to monitor all of it properly.</p>
+
+    <p>The answer was always the same: Prometheus + Grafana. Install node_exporter on every machine, write a prometheus.yml with scrape configs, set up Grafana, build dashboards, configure alerting with Alertmanager, and then maintain all of it. For a homelab.</p>
+
+    <p>I didn't want a monitoring career. I wanted to know if my NAS was running out of disk.</p>
+
+    <h2>The problem</h2>
+
+    <p>Every monitoring tool I tried was built for teams of SREs managing hundreds of microservices. The defaults assume you have a Kubernetes cluster and a full-time ops person. For homelabs, the setup cost is absurd relative to what you're monitoring.</p>
+
+    <p>I wanted something that:</p>
+    <ul>
+        <li>Installs in under 2 minutes, not 2 hours</li>
+        <li>Doesn't require learning PromQL or writing YAML dashboards</li>
+        <li>Tells me what's wrong in plain English, not just graphs</li>
+        <li>Runs on a Raspberry Pi without eating all the RAM</li>
+        <li>Handles Docker containers and systemd services, not just system metrics</li>
+    </ul>
+
+    <p>Nothing like that existed. So I built it.</p>
+
+    <h2>What labwatch does</h2>
+
+    <p>Two commands to go from zero to monitoring:</p>
+
+    <pre><code># Start the server (Docker)
+git clone https://github.com/labwatch-dev/labwatch && cd labwatch
+docker compose up -d
+
+# Install the agent on each node
+curl -fsSL https://labwatch.dev/install.sh | sudo bash</code></pre>
+
+    <p>The agent is a single Go binary (~8 MB, ~15 MB RSS). It collects CPU, memory, disk, network, load average, Docker containers, systemd services, GPU stats (NVIDIA), and S.M.A.R.T. disk health — then ships everything to your server every 60 seconds over HTTPS.</p>
+
+    <p>The server is a Python/FastAPI app with SQLite. No external databases, no message queues, no Redis. It stores metrics, runs rule-based analysis, generates alerts with deduplication, and serves a dashboard.</p>
+
+    <img src="/static/screenshots-dashboard.webp" alt="labwatch fleet dashboard showing 4 monitored nodes">
+
+    <h2>Intelligence digests instead of dashboards</h2>
+
+    <p>My favourite feature: intelligence digests. Instead of staring at graphs, labwatch generates a plain-English summary of what happened in the last 24 hours:</p>
+
+    <blockquote>
+        pve-main had a quiet last 24 hours. Running well below capacity.<br><br>
+        CPU usage averaged just 23% — significant headroom for additional workloads.<br>
+        Memory is moderate at 61% but stable with no swapping detected.<br>
+        Disk sits at 45% — plenty of room.<br><br>
+        <strong>Health Grade: A</strong>
+    </blockquote>
+
+    <p>You can also ask questions in natural language: "Why is my NAS slow?", "Which node uses the most CPU?", "What happened last night?" — and get answers from your actual metrics.</p>
+
+    <h2>The architecture</h2>
+
+    <p>I made some deliberate trade-offs for simplicity:</p>
+
+    <ul>
+        <li><strong>SQLite over Postgres/InfluxDB</strong> — single file, zero config, handles thousands of labs without issues. WAL mode for concurrent reads.</li>
+        <li><strong>Single Go binary for the agent</strong> — no runtime dependencies, cross-compiles for linux/amd64 and linux/arm64, installs via curl|bash or direct download.</li>
+        <li><strong>Rule-based NLQ over LLMs</strong> — the natural language queries use regex pattern matching, not AI. Zero API calls, zero latency, works offline. Not as flexible as GPT, but instant and private.</li>
+        <li><strong>Push over pull</strong> — agents push to the server (unlike Prometheus pull model). Works through NAT, firewalls, and VPNs without scrape config.</li>
+    </ul>
+
+    <img src="/static/screenshots-detail.webp" alt="labwatch node detail view with system metrics, charts, and alerts">
+
+    <h2>What it monitors</h2>
+
+    <ul>
+        <li><strong>System</strong> — CPU, memory, disk, network throughput, load average, uptime</li>
+        <li><strong>Docker</strong> — container status, restart loops, CPU/memory per container</li>
+        <li><strong>Services</strong> — HTTP and TCP health checks via agent config</li>
+        <li><strong>GPU</strong> — NVIDIA GPU utilization, temperature, memory (via nvidia-smi)</li>
+        <li><strong>Disks</strong> — S.M.A.R.T. health, temperature, reallocated sectors, power-on hours</li>
+        <li><strong>Alerts</strong> — configurable thresholds, auto-resolve, deduplication, 8 notification channels</li>
+    </ul>
+
+    <h2>Self-hosted and open source</h2>
+
+    <p>The agent is MIT-licensed. The server is AGPL-3.0. Your data stays on your hardware — no cloud, no telemetry, no accounts required for self-hosting. The hosted version at labwatch.dev is there for people who don't want to run the server themselves.</p>
+
+    <p>The entire codebase is on <a href="https://github.com/labwatch-dev/labwatch">GitHub</a>. PRs welcome.</p>
+
+    <h2>What's next</h2>
+
+    <p>This is v1. There's a lot I want to add:</p>
+    <ul>
+        <li>Nonce-based CSP (currently using unsafe-inline)</li>
+        <li>Agent retry with exponential backoff for network outages</li>
+        <li>CSV/JSON data export</li>
+        <li>Schema version tracking for smoother upgrades</li>
+        <li>More notification channels</li>
+    </ul>
+
+    <p>But it works today, it's stable, and it's been running on my cluster for weeks. I'd rather ship something useful than wait for perfection.</p>
+
+    <div class="blog-cta">
+        <p style="margin:0 0 8px; font-size: 15px;">Try the live demo — no account needed</p>
+        <a href="/demo">Open demo dashboard</a>
+        <span style="margin: 0 8px; color: var(--text-muted);">or</span>
+        <a href="https://github.com/labwatch-dev/labwatch" style="background: transparent; color: var(--accent); border: 1px solid var(--accent);">View on GitHub</a>
+    </div>
+</article>
+{% endblock %}

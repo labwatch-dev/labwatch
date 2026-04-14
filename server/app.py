@@ -146,7 +146,7 @@ async def csrf_origin_check(request: Request, call_next):
     return await call_next(request)
 
 
-_STATIC_PAGES = frozenset({"/", "/docs", "/about", "/privacy", "/terms", "/support", "/self-hosted", "/compare"})
+_STATIC_PAGES = frozenset({"/", "/docs", "/about", "/privacy", "/terms", "/support", "/self-hosted", "/compare", "/blog/why-we-built-labwatch"})
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
@@ -587,6 +587,11 @@ def privacy_page(request: Request):
 @app.get("/terms", response_class=HTMLResponse)
 def terms_page(request: Request):
     return _render("terms.html", _tpl_context(request, active_page="terms"))
+
+
+@app.get("/blog/why-we-built-labwatch", response_class=HTMLResponse)
+def blog_launch(request: Request):
+    return _render("blog_launch.html", _tpl_context(request))
 
 
 @app.get("/pricing")
