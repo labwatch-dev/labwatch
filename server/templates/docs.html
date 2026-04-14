@@ -360,7 +360,7 @@
 
         <h3>Intelligence</h3>
         <a href="#query">Natural Language Query</a>
-        <a href="#nlq-stats">NLQ Stats <span style="font-size:0.7em;color:#e67e22">(planned)</span></a>
+        <a href="#nlq-stats">NLQ Stats <span style="font-size:0.7em;color:#e67e22">(roadmap)</span></a>
         <a href="#digest-lab">Lab Digest</a>
         <a href="#digest-fleet">Fleet Digest</a>
 
@@ -372,7 +372,7 @@
         <a href="#notif-test">Test Channel</a>
 
         <h3>MCP (LLM Tools)</h3>
-        <a href="#mcp-token">Planned</a>
+        <a href="#mcp-token">Roadmap</a>
 
         <h3>Dashboard (Session)</h3>
         <a href="#my-api">User API reference</a>
@@ -412,7 +412,7 @@ X-Admin-Secret: your-secret-here</div>
             <h3>Session Cookie</h3>
             <p>Endpoints under <code>/api/v1/my/*</code> are used by the dashboard UI and authenticate with a signed session cookie set by <code>POST /login</code>. They are not intended for server-to-server use — prefer the admin-secret endpoints for integrations.</p>
 
-            <h3>MCP Token (planned)</h3>
+            <h3>MCP Token (roadmap)</h3>
             <p>MCP integration is on the roadmap. See the <a href="#mcp-token" style="color:var(--accent);">MCP section</a> for details.</p>
         </section>
 
@@ -1196,16 +1196,16 @@ X-Admin-Secret: your-secret-here</div>
             </div>
         </section>
 
-        <!-- NLQ Stats (planned) -->
+        <!-- NLQ Stats (roadmap) -->
         <section class="docs-section" id="nlq-stats">
-            <h2>NLQ Stats &amp; Misses <span style="color: #e67e22; font-size: 0.7em;">(planned)</span></h2>
-            <p style="color: #e67e22; margin-bottom: 1rem;">These endpoints are planned for a future release and not yet implemented.</p>
+            <h2>NLQ Stats &amp; Misses <span style="color: #e67e22; font-size: 0.7em;">(roadmap)</span></h2>
+            <p style="color: #e67e22; margin-bottom: 1rem;">These endpoints are on the roadmap for v1.1.</p>
 
             <div class="endpoint">
                 <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/nlq/stats</span>
-                    <span class="endpoint-desc">Intent hit counts + fallback rate <em>(planned)</em></span>
+                    <span class="endpoint-desc">Intent hit counts + fallback rate <em>(roadmap)</em></span>
                     <span class="endpoint-auth">admin</span>
                     <span class="endpoint-chevron">&#9654;</span>
                 </div>
@@ -1240,7 +1240,7 @@ X-Admin-Secret: your-secret-here</div>
                 <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/nlq/misses</span>
-                    <span class="endpoint-desc">Recent unmatched queries <em>(planned)</em></span>
+                    <span class="endpoint-desc">Recent unmatched queries <em>(roadmap)</em></span>
                     <span class="endpoint-auth">admin</span>
                     <span class="endpoint-chevron">&#9654;</span>
                 </div>
@@ -1417,9 +1417,9 @@ X-Admin-Secret: your-secret-here</div>
             </div>
         </section>
 
-        <!-- MCP (planned) -->
+        <!-- MCP (roadmap) -->
         <section class="docs-section" id="mcp-token">
-            <h2>MCP Integration (planned)</h2>
+            <h2>MCP Integration (roadmap)</h2>
             <p>MCP (Model Context Protocol) support is on the roadmap. It will allow LLM tools like Claude Desktop to query your fleet metrics directly. This section will be updated when the feature ships.</p>
         </section>
 
@@ -1438,9 +1438,9 @@ X-Admin-Secret: your-secret-here</div>
             <h3>Layout &amp; Pins</h3>
             <table class="param-table">
                 <tr><th>Method</th><th>Path</th><th>Description</th></tr>
-                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Get the saved widget layout <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Save a new widget layout <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Reset layout to the default <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Get the saved widget layout <em>(roadmap)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">PUT</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Save a new widget layout <em>(roadmap)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/dashboard-layout</td><td>Reset layout to the default <em>(roadmap)</em></td></tr>
                 <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/pins</td><td>List pinned labs</td></tr>
                 <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/pin/{lab_id}</td><td>Pin a lab</td></tr>
                 <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/pin/{lab_id}</td><td>Unpin a lab</td></tr>
@@ -1460,13 +1460,13 @@ X-Admin-Secret: your-secret-here</div>
             <h3>Per-Lab Controls</h3>
             <table class="param-table">
                 <tr><th>Method</th><th>Path</th><th>Description</th></tr>
-                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Get the public status page config (token, enabled) <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Enable a public status page (returns <code>/s/{public_id}</code>) <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Disable the public status page <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Check if the lab is in a maintenance window <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Start a maintenance window (alerts suppressed) <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>End the active maintenance window <em>(planned)</em></td></tr>
-                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/display-name</td><td>Set a custom display name for a lab <em>(planned)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Get the public status page config (token, enabled) <em>(roadmap)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Enable a public status page (returns <code>/s/{public_id}</code>) <em>(roadmap)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/public-status</td><td>Disable the public status page <em>(roadmap)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">GET</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Check if the lab is in a maintenance window <em>(roadmap)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>Start a maintenance window (alerts suppressed) <em>(roadmap)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">DELETE</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/maintenance</td><td>End the active maintenance window <em>(roadmap)</em></td></tr>
+                <tr><td><span class="response-code code-2xx">POST</span></td><td class="param-name">/api/v1/my/lab/{lab_id}/display-name</td><td>Set a custom display name for a lab <em>(roadmap)</em></td></tr>
             </table>
 
             <h3>Notifications</h3>

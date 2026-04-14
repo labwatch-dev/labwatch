@@ -72,6 +72,7 @@ fi
 
 # Download latest release
 LATEST_URL="${BASE_URL}/download/labwatch-${OS}-${ARCH}"
+CHECKSUM_URL="${LATEST_URL}.sha256"
 info "Downloading from ${LATEST_URL}..."
 TMP_BIN=$(mktemp)
 trap 'rm -f "$TMP_BIN"' EXIT
@@ -79,6 +80,19 @@ if ! curl -fsSL -o "$TMP_BIN" "$LATEST_URL"; then
     error "Download failed. Check your internet connection."
     exit 1
 fi
+
+# Verify checksum if available
+if EXPECTED=$(curl -fsSL "$CHECKSUM_URL" 2>/dev/null); then
+    ACTUAL=$(sha256sum "$TMP_BIN" | awk '{print $1}')
+    if [ "$ACTUAL" != "$EXPECTED" ]; then
+        error "Checksum mismatch! Expected ${EXPECTED}, got ${ACTUAL}"
+        exit 1
+    fi
+    ok "Checksum verified"
+else
+    warn "Checksum file not available — skipping verification"
+fi
+
 chmod +x "$TMP_BIN"
 mv "$TMP_BIN" "${INSTALL_DIR}/labwatch"
 trap - EXIT
