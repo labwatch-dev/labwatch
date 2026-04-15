@@ -274,11 +274,43 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 - **Dashboard**: vanilla HTML/CSS/JS, Chart.js for history charts, inline SVG sparklines
 - **Design**: dark theme, amber accent, fully responsive
 
+## Comparison
+
+| Feature | labwatch | Prometheus + Grafana | Uptime Kuma | Beszel | Netdata |
+|---------|----------|---------------------|-------------|--------|---------|
+| Setup time | ~2 min | 30+ min | ~5 min | ~5 min | ~5 min |
+| Agent footprint | ~15 MB RSS | ~40 MB (node_exporter) | N/A (pull) | ~20 MB | ~150 MB |
+| Query language | Plain English | PromQL | N/A | N/A | N/A |
+| Intelligence digests | Yes (auto-graded) | No | No | No | No |
+| Docker monitoring | Built-in | Separate exporter | No | No | Plugin |
+| GPU monitoring | Built-in (NVIDIA) | Separate exporter | No | No | Plugin |
+| Alert deduplication | Built-in | Alertmanager needed | Built-in | No | Built-in |
+| Database | SQLite (zero config) | TSDB + Postgres | SQLite | SQLite | Custom DB |
+| Config format | YAML (simple) | YAML (complex) | Web UI | Web UI | Auto |
+| Notification channels | 8 | Via Alertmanager | 90+ | 4 | Cloud only |
+| Self-contained | Yes | No (3+ services) | Yes | Yes | Partial |
+| License | AGPL + MIT | Apache-2.0 | MIT | MIT | GPL-3.0 |
+
+labwatch is not a Prometheus replacement for production infrastructure. It's built for homelabs where you want monitoring that works in 2 minutes, not 2 hours.
+
+## Roadmap
+
+- [ ] Nonce-based CSP (replacing unsafe-inline)
+- [ ] Agent retry with exponential backoff
+- [ ] CSV/JSON data export
+- [ ] Schema version tracking for smoother upgrades
+- [ ] S.M.A.R.T. disk health dashboard widget
+- [ ] More notification channels
+- [ ] Log collection (syslog/journald)
+- [ ] Mobile-friendly PWA wrapper
+
+See [open issues](https://github.com/labwatch-dev/labwatch/issues) for feature requests.
+
 ## Self-hosting
 
 labwatch is designed to run entirely on your own hardware. No cloud dependencies, no telemetry, no external API calls. Your data stays on your network.
 
-The server runs comfortably on a Raspberry Pi or any small VM. The agent uses ~45MB RAM per node.
+The server runs comfortably on a Raspberry Pi or any small VM. The agent uses ~15 MB RAM per node.
 
 ## License
 
