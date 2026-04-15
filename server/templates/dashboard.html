@@ -1646,10 +1646,13 @@ function askQuery() {
     responseDiv.innerHTML = '<span class="query-thinking">{{ t.dashboard_thinking }}</span>';
     btn.disabled = true;
 
+    var emberMode = localStorage.getItem('ember_unlocked') === '1';
+    var payload = {question: question, secret: {{ secret | tojson }}};
+    if (emberMode) payload.ember_mode = true;
     fetch('/api/v1/query', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({question: question, secret: {{ secret | tojson }}})
+        body: JSON.stringify(payload)
     })
     .then(function(resp) {
         if (!resp.ok) throw new Error('HTTP ' + resp.status);

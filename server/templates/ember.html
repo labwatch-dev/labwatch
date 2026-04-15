@@ -363,6 +363,9 @@ function claim(e) {
     return false;
 }
 
+/* Activate ember mode in localStorage for dashboard */
+localStorage.setItem('ember_unlocked', '1');
+
 /* Draggable ember mascot */
 (function() {
     var stage = document.querySelector('.ember-stage');

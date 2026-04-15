@@ -113,7 +113,7 @@ def init_db() -> None:
                 processed_at TEXT NOT NULL
             );
         """)
-        conn.execute("""
+        conn.executescript("""
             CREATE TABLE IF NOT EXISTS nlq_log (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 question    TEXT NOT NULL,
@@ -122,6 +122,13 @@ def init_db() -> None:
                 confidence  REAL NOT NULL DEFAULT 0.0,
                 email       TEXT,
                 created_at  TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS ember_claims (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                email       TEXT NOT NULL,
+                found_via   TEXT NOT NULL DEFAULT 'direct',
+                claimed_at  TEXT NOT NULL
             );
         """)
         conn.commit()

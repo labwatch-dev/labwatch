@@ -595,6 +595,53 @@ def blog_launch(request: Request):
     return _render("blog_launch.html", _tpl_context(request))
 
 
+@app.get("/ember", response_class=HTMLResponse)
+def ember_page(request: Request, via: str = "direct"):
+    """Easter egg discovery page. Sets ember_unlocked in response."""
+    conn = db._connect()
+    try:
+        row = conn.execute("SELECT email, found_via, claimed_at FROM ember_claims ORDER BY id LIMIT 1").fetchone()
+    finally:
+        conn.close()
+    winner = None
+    if row:
+        email = row[0]
+        at_idx = email.index("@")
+        obscured = email[0] + "*" * (at_idx - 1) + email[at_idx:]
+        winner = {"email_obscured": obscured, "found_via": row[1], "claimed_at": row[2][:10]}
+    found_via = via if via in ("install", "nlq", "direct") else "direct"
+    ctx = _tpl_context(request, winner=winner, found_via=found_via)
+    response = _render("ember.html", ctx)
+    response.set_cookie("ember_unlocked", "1", max_age=86400 * 365 * 3, httponly=False, samesite="lax")
+    return response
+
+
+@app.post("/api/v1/ember/claim")
+async def ember_claim(request: Request):
+    """Claim the ember easter egg prize. One winner total."""
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    found_via = body.get("found_via", "direct")
+    if not email or "@" not in email:
+        return JSONResponse({"detail": "valid email required"}, status_code=400)
+    if found_via not in ("install", "nlq", "direct"):
+        found_via = "direct"
+    conn = db._connect()
+    try:
+        existing = conn.execute("SELECT id FROM ember_claims LIMIT 1").fetchone()
+        if existing:
+            return JSONResponse({"already_claimed": True}, status_code=409)
+        now = datetime.now(timezone.utc).isoformat()
+        conn.execute(
+            "INSERT INTO ember_claims (email, found_via, claimed_at) VALUES (?, ?, ?)",
+            (email, found_via, now),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return JSONResponse({"success": True, "email": email})
+
+
 @app.get("/pricing")
 def pricing_redirect():
     # Pricing lives as a section on the landing page. A canonical /pricing
@@ -3153,6 +3200,41 @@ def _demo_nlq_response(question: str) -> dict:
     }
 
 
+def _ember_personality(result: dict) -> dict:
+    """Add Ember's personality to NLQ responses."""
+    answer = result.get("answer", "")
+    qtype = result.get("query_type", "")
+
+    # Prefix based on query type
+    prefixes = {
+        "fleet_overview": "here's the lay of the land — ",
+        "attention": "let me check... ",
+        "temperature": "thermal check — ",
+        "status": "checking on that — ",
+        "comparative": "running the numbers — ",
+        "diagnostics": "let me dig in — ",
+        "capacity": "storage check — ",
+        "time_range": "looking back — ",
+        "alerts": "heads up — ",
+    }
+    prefix = prefixes.get(qtype, "")
+
+    # Suffix based on content sentiment
+    if "all clear" in answer.lower() or "healthy" in answer.lower() or "grade: a" in answer.lower():
+        suffix = "\n\nyour lab is vibing. nothing to worry about."
+    elif "critical" in answer.lower() or "offline" in answer.lower():
+        suffix = "\n\nmight want to look into that."
+    elif "warning" in answer.lower() or "high" in answer.lower():
+        suffix = "\n\nnot urgent, but keep an eye on it."
+    else:
+        suffix = ""
+
+    result = dict(result)
+    result["answer"] = prefix + answer + suffix
+    result["ember_mode"] = True
+    return result
+
+
 @app.post("/api/v1/query")
 def natural_language_query(
     request: Request,
@@ -3185,13 +3267,21 @@ def natural_language_query(
 
     from nlq import query
 
+    ember_mode = request_body.get("ember_mode", False)
+
     if secret and hmac.compare_digest(secret, config.ADMIN_SECRET):
-        return query(question, lang=lang)
+        result = query(question, lang=lang)
+        if ember_mode:
+            result = _ember_personality(result)
+        return result
 
     # Session-auth fallback: user dashboard widget sends an empty secret.
     email = _get_session_email(request)
     if email:
-        return query(question, email=email, lang=lang)
+        result = query(question, email=email, lang=lang)
+        if ember_mode:
+            result = _ember_personality(result)
+        return result
 
     raise HTTPException(status_code=403, detail="Forbidden")
 
