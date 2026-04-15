@@ -73,6 +73,27 @@
     color: var(--bg);
     border-color: var(--accent);
 }
+.ember-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: none;
+}
+.ember-toggle-btn:hover {
+    border-color: #ff7a18;
+    color: #ff7a18;
+}
+.ember-toggle-btn.active {
+    background: linear-gradient(180deg, #ffb02e, #ff7a18);
+    color: #1a0f06;
+    border-color: #ff7a18;
+}
 .add-node-btn {
     background: var(--accent);
     border: 1px solid var(--accent);
@@ -1249,12 +1270,14 @@ body.edit-mode .widget-block.drop-after {
         <div class="dash-status">
             {% if is_demo %}
             <a href="/signup" class="add-node-btn" id="add-node-btn" title="Sign up to add your own nodes">+ {{ t.nav_add_node.replace('+ ', '') if t and t.nav_add_node else 'add node' }}</a>
+            <button class="ember-toggle-btn" id="ember-toggle-btn" onclick="toggleEmberMode()" title="Toggle ember personality for NLQ">ember</button>
             <button class="edit-layout-btn" id="edit-layout-btn" onclick="toggleEditMode()" title="Drag widgets to reorder — your layout won't persist in demo mode">{{ t.dashboard_edit_layout if t and t.dashboard_edit_layout else 'edit layout' }}</button>
             {% elif user_email %}
             <a href="/my/add-node" class="add-node-btn" id="add-node-btn">+ {{ t.nav_add_node.replace('+ ', '') if t and t.nav_add_node else 'add node' }}</a>
             {% if billing_enabled and user_plan == "free" %}
             <button type="button" class="upgrade-pro-btn" id="upgrade-pro-btn" onclick="startUpgradeCheckout()">{{ t.dashboard_upgrade_pro if t and t.dashboard_upgrade_pro else 'upgrade to pro' }}</button>
             {% endif %}
+            <button class="ember-toggle-btn" id="ember-toggle-btn-auth" onclick="toggleEmberMode()" title="Toggle ember personality for NLQ">ember</button>
             <button class="edit-layout-btn" id="edit-layout-btn" onclick="toggleEditMode()">{{ t.dashboard_edit_layout if t and t.dashboard_edit_layout else 'edit layout' }}</button>
             {% endif %}
             <span class="live-dot"></span>
@@ -1646,7 +1669,7 @@ function askQuery() {
     responseDiv.innerHTML = '<span class="query-thinking">{{ t.dashboard_thinking }}</span>';
     btn.disabled = true;
 
-    var emberMode = localStorage.getItem('ember_unlocked') === '1';
+    var emberMode = localStorage.getItem('ember_unlocked') === '1' && localStorage.getItem('ember_mode_enabled') !== '0';
     var payload = {question: question, secret: {{ secret | tojson }}};
     if (emberMode) payload.ember_mode = true;
     fetch('/api/v1/query', {
@@ -2795,6 +2818,33 @@ function dismissSuggestions() {
         document.addEventListener('DOMContentLoaded', loadLayout);
     } else {
         loadLayout();
+    }
+})();
+</script>
+<script>
+/* Ember mode toggle — only visible after /ember discovery */
+(function() {
+    function initEmberToggle() {
+        if (localStorage.getItem('ember_unlocked') !== '1') return;
+        var btns = document.querySelectorAll('.ember-toggle-btn');
+        var enabled = localStorage.getItem('ember_mode_enabled') !== '0';
+        btns.forEach(function(btn) {
+            btn.style.display = 'inline-block';
+            if (enabled) btn.classList.add('active');
+        });
+    }
+    window.toggleEmberMode = function() {
+        var enabled = localStorage.getItem('ember_mode_enabled') !== '0';
+        var newState = !enabled;
+        localStorage.setItem('ember_mode_enabled', newState ? '1' : '0');
+        document.querySelectorAll('.ember-toggle-btn').forEach(function(btn) {
+            btn.classList.toggle('active', newState);
+        });
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initEmberToggle);
+    } else {
+        initEmberToggle();
     }
 })();
 </script>
