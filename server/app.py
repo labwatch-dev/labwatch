@@ -642,11 +642,12 @@ async def ember_claim(request: Request):
     return JSONResponse({"success": True, "email": email})
 
 
-@app.get("/pricing")
-def pricing_redirect():
-    # Pricing lives as a section on the landing page. A canonical /pricing
-    # path exists because docs + NLQ link to it (cold-look audit 2026-04-11).
-    return RedirectResponse("/#pricing", status_code=302)
+@app.get("/pricing", response_class=HTMLResponse)
+def pricing_page(request: Request):
+    # Serve the landing page and auto-scroll to the pricing section so that
+    # direct links from Reddit / HN land on pricing without a 302 redirect.
+    ctx = _tpl_context(request, scroll_to="pricing")
+    return _render("landing.html", ctx)
 
 
 @app.get("/compare")
@@ -1717,13 +1718,21 @@ def widget_alerts(request: Request, limit: int = 20, x_admin_secret: Optional[st
 
 
 @app.get("/api/v1/widgets/sparkline/{lab_id}/{metric}")
-def widget_sparkline(request: Request, lab_id: str, metric: str, hours: int = 1, x_admin_secret: Optional[str] = Header(None)):
+def widget_sparkline(request: Request, lab_id: str, metric: str, hours: int = 1, x_admin_secret: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
     """Sparkline data for a specific lab metric."""
     email = _get_session_email(request)
     is_admin = x_admin_secret and hmac.compare_digest(x_admin_secret, config.ADMIN_SECRET)
-    if not email and not is_admin:
+    # Also accept Bearer token auth (for API agents)
+    bearer_lab = None
+    if not email and not is_admin and authorization and authorization.startswith("Bearer "):
+        bearer_lab = db.get_lab_by_token(authorization[7:])
+    if not email and not is_admin and not bearer_lab:
         raise HTTPException(status_code=401, detail="Authentication required")
-    if email and not is_admin:
+    if bearer_lab:
+        # Bearer token grants access only to the lab it belongs to
+        if lab_id != bearer_lab["id"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+    elif email and not is_admin:
         user_lab_ids = {lab["id"] for lab in db.get_labs_for_email(email)}
         if lab_id not in user_lab_ids:
             raise HTTPException(status_code=403, detail="Access denied")

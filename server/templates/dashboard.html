@@ -2124,7 +2124,9 @@ function dismissSuggestions() {
             var labId = card.dataset.labId;
             if (!labId || labId.startsWith('demo-')) return; // skip demo cards
             ['cpu', 'memory', 'disk'].forEach(function(metric) {
-                fetch('/api/v1/widgets/sparkline/' + labId + '/' + metric)
+                fetch('/api/v1/widgets/sparkline/' + labId + '/' + metric, {
+                    headers: {% if user_email %}{}{% else %}{'x-admin-secret': {{ secret | tojson }}}{% endif %}
+                })
                     .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
                     .then(function(points) {
                         if (!points || points.length < 2) return;

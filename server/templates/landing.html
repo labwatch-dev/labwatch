@@ -1517,4 +1517,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 })();
 </script>
+{% if scroll_to %}
+<script>document.addEventListener("DOMContentLoaded",function(){var e=document.getElementById("{{ scroll_to }}");if(e){e.scrollIntoView({behavior:"smooth"});}});</script>
+{% endif %}
 {% endblock %}
