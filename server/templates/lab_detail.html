@@ -629,6 +629,41 @@
     margin-bottom: 12px;
     font-family: var(--font-mono);
 }
+
+/* Log Viewer */
+.log-viewer { margin-top: 16px; }
+.log-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.log-filter-btn {
+    padding: 4px 12px; font-size: 12px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--surface); color: var(--text-dim);
+    cursor: pointer; transition: all 0.15s;
+}
+.log-filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.log-search {
+    flex: 1; min-width: 150px; padding: 6px 10px; font-size: 13px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text); font-family: inherit;
+}
+.log-entries { max-height: 500px; overflow-y: auto; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+.log-entry { display: flex; gap: 8px; padding: 3px 8px; border-bottom: 1px solid var(--border); line-height: 1.6; }
+.log-entry:hover { background: var(--surface); }
+.log-ts { color: var(--text-muted); white-space: nowrap; min-width: 80px; }
+.log-src { color: var(--accent); white-space: nowrap; min-width: 100px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+.log-lvl { min-width: 44px; font-weight: 600; text-transform: uppercase; font-size: 11px; }
+.log-lvl.error { color: var(--danger, #ef4444); }
+.log-lvl.warn { color: var(--warning, #f59e0b); }
+.log-lvl.info { color: var(--text-dim); }
+.log-lvl.debug { color: var(--text-muted); }
+.log-msg { flex: 1; word-break: break-all; color: var(--text); }
+.log-empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: 13px; }
+.log-pagination { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 12px; font-size: 13px; }
+.log-pagination button {
+    padding: 4px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--text); cursor: pointer; font-size: 12px;
+}
+.log-pagination button:disabled { opacity: 0.4; cursor: default; }
+.log-stats { font-size: 12px; color: var(--text-muted); }
+
 {% endblock %}
 
 {% block content %}
@@ -1077,6 +1112,35 @@
                 </div>
                 {% endif %}
             </div>
+        </div>
+    </div>
+
+
+    <!-- Log Viewer -->
+    <div class="detail-section log-viewer" id="log-viewer-section">
+        <div class="section-title">
+            Logs
+            <span class="log-stats" id="log-stats"></span>
+        </div>
+        <div class="log-controls">
+            <button class="log-filter-btn active" data-log-level="">All</button>
+            <button class="log-filter-btn" data-log-level="error">Error</button>
+            <button class="log-filter-btn" data-log-level="warn">Warn</button>
+            <button class="log-filter-btn" data-log-level="info">Info</button>
+            <button class="log-filter-btn" data-log-level="debug">Debug</button>
+            <span style="color: var(--text-muted); font-size: 12px;">|</span>
+            <select id="log-source-filter" style="padding: 4px 8px; font-size: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text);">
+                <option value="">All sources</option>
+            </select>
+            <input class="log-search" id="log-search" type="text" placeholder="Search logs...">
+        </div>
+        <div class="log-entries" id="log-entries">
+            <div class="log-empty">Loading logs...</div>
+        </div>
+        <div class="log-pagination" id="log-pagination" style="display:none;">
+            <button id="log-prev" disabled>Prev</button>
+            <span id="log-page-info"></span>
+            <button id="log-next">Next</button>
         </div>
     </div>
 
@@ -1536,5 +1600,130 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
     });
-</script>
+
+    // Log viewer
+    (function() {
+        var labId = '{{ lab.id }}';
+        var logLevel = '';
+        var logSource = '';
+        var logOffset = 0;
+        var logLimit = 100;
+        var logTotal = 0;
+        var searchTimeout = null;
+
+        function fetchLogs() {
+            var params = new URLSearchParams({limit: logLimit, offset: logOffset});
+            if (logLevel) params.set('level', logLevel);
+            if (logSource) params.set('source', logSource);
+
+            var searchQ = document.getElementById('log-search').value.trim();
+            var url = searchQ
+                ? '/my/lab/' + labId + '/logs/search?q=' + encodeURIComponent(searchQ) + '&limit=' + logLimit
+                : '/my/lab/' + labId + '/logs?' + params.toString();
+
+            fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+                renderLogs(data.logs || []);
+                logTotal = data.total || data.logs.length;
+                updateStats();
+                updatePagination();
+                if (data.sources) populateSources(data.sources);
+            }).catch(function(err) {
+                document.getElementById('log-entries').innerHTML = '<div class="log-empty">Failed to load logs</div>';
+            });
+        }
+
+        function renderLogs(logs) {
+            var container = document.getElementById('log-entries');
+            if (!logs.length) {
+                container.innerHTML = '<div class="log-empty">No log entries' + (logLevel ? ' at ' + logLevel + ' level' : '') + '</div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < logs.length; i++) {
+                var log = logs[i];
+                var ts = log.ts || '';
+                // Show only time portion
+                var timePart = ts.indexOf('T') !== -1 ? ts.split('T')[1].replace('Z','').substring(0,8) : ts.substring(11,19);
+                html += '<div class="log-entry">'
+                    + '<span class="log-ts">' + escapeHtml(timePart) + '</span>'
+                    + '<span class="log-src" title="' + escapeHtml(log.source) + '">' + escapeHtml(log.source) + '</span>'
+                    + '<span class="log-lvl ' + log.level + '">' + log.level + '</span>'
+                    + '<span class="log-msg">' + escapeHtml(log.message) + '</span>'
+                    + '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        function escapeHtml(s) {
+            if (!s) return '';
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function populateSources(sources) {
+            var sel = document.getElementById('log-source-filter');
+            var current = sel.value;
+            sel.innerHTML = '<option value="">All sources</option>';
+            for (var i = 0; i < sources.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = sources[i];
+                opt.textContent = sources[i];
+                if (sources[i] === current) opt.selected = true;
+                sel.appendChild(opt);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('log-stats').textContent = logTotal + ' entries';
+        }
+
+        function updatePagination() {
+            var pag = document.getElementById('log-pagination');
+            if (logTotal <= logLimit && logOffset === 0) { pag.style.display = 'none'; return; }
+            pag.style.display = 'flex';
+            document.getElementById('log-prev').disabled = logOffset === 0;
+            document.getElementById('log-next').disabled = logOffset + logLimit >= logTotal;
+            var page = Math.floor(logOffset / logLimit) + 1;
+            var pages = Math.ceil(logTotal / logLimit);
+            document.getElementById('log-page-info').textContent = page + ' / ' + pages;
+        }
+
+        // Event delegation for log controls
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('[data-log-level]');
+            if (btn) {
+                var btns = document.querySelectorAll('[data-log-level]');
+                for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+                btn.classList.add('active');
+                logLevel = btn.getAttribute('data-log-level');
+                logOffset = 0;
+                fetchLogs();
+                return;
+            }
+            if (e.target.id === 'log-prev') { logOffset = Math.max(0, logOffset - logLimit); fetchLogs(); }
+            if (e.target.id === 'log-next') { logOffset += logLimit; fetchLogs(); }
+        });
+
+        document.getElementById('log-source-filter').addEventListener('change', function() {
+            logSource = this.value;
+            logOffset = 0;
+            fetchLogs();
+        });
+
+        document.getElementById('log-search').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() { logOffset = 0; fetchLogs(); }, 300);
+        });
+
+        // Initial load
+        fetchLogs();
+
+        // Auto-refresh every 15 seconds
+        setInterval(function() {
+            if (logOffset === 0 && !document.getElementById('log-search').value.trim()) {
+                fetchLogs();
+            }
+        }, 15000);
+    })();
+
+    </script>
 {% endblock %}
