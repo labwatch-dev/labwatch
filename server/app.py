@@ -35,7 +35,7 @@ import database as db
 import mailer
 from analyzer import analyze_metrics
 from i18n import detect_language, get_translations, SUPPORTED_LANGUAGES, LANGUAGE_NAMES
-from models import MetricPayload, RegisterRequest, RegisterResponse, SignupRequest
+from models import MetricPayload, RegisterRequest, RegisterResponse, SignupRequest, LogIngestPayload
 
 # ---------------------------------------------------------------------------
 # In-memory rate limiter (login brute-force protection)
@@ -1731,6 +1731,106 @@ def lab_status(lab_id: str, lab: dict = Depends(_require_agent_auth)):
         ],
     }
 
+
+
+
+# ---------------------------------------------------------------------------
+# Log collection endpoints
+# ---------------------------------------------------------------------------
+
+
+@app.post("/api/v1/lab/{lab_id}/logs")
+def ingest_logs(lab_id: str, body: LogIngestPayload, lab: dict = Depends(_require_agent_auth)):
+    """Ingest log entries from an agent."""
+    if lab_id != lab["id"]:
+        raise HTTPException(status_code=403, detail="Token does not match lab_id")
+
+    entries = [e.dict() for e in body.entries]
+    count = db.store_logs(lab_id, entries)
+    return {"status": "accepted", "lab_id": lab_id, "stored": count}
+
+
+@app.get("/my/lab/{lab_id}/logs")
+def user_lab_logs(
+    request: Request,
+    lab_id: str,
+    limit: int = 100,
+    offset: int = 0,
+    level: str = None,
+    source: str = None,
+    since: str = None,
+    until: str = None,
+):
+    """User-facing paginated log viewer API."""
+    email = _get_session_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    user_labs = db.get_labs_for_email(email)
+    user_lab_ids = {lab["id"] for lab in user_labs}
+    if lab_id not in user_lab_ids:
+        raise HTTPException(status_code=403, detail="You don't have access to this lab")
+
+    logs = db.get_logs(lab_id, limit=limit, offset=offset, level=level,
+                       source=source, since=since, until=until)
+    total = db.count_logs(lab_id, level=level, source=source)
+    sources = db.get_log_sources(lab_id)
+
+    return {
+        "lab_id": lab_id,
+        "logs": logs,
+        "total": total,
+        "sources": sources,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+@app.get("/my/lab/{lab_id}/logs/search")
+def user_search_logs(request: Request, lab_id: str, q: str = "", limit: int = 50):
+    """Full-text search logs for a user's lab."""
+    email = _get_session_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    user_labs = db.get_labs_for_email(email)
+    user_lab_ids = {lab["id"] for lab in user_labs}
+    if lab_id not in user_lab_ids:
+        raise HTTPException(status_code=403, detail="You don't have access to this lab")
+
+    if not q.strip():
+        return {"lab_id": lab_id, "logs": [], "query": q}
+
+    logs = db.search_logs(lab_id, q.strip(), limit=limit)
+    return {"lab_id": lab_id, "logs": logs, "query": q}
+
+
+@app.get("/api/v1/admin/lab/{lab_id}/logs")
+def admin_lab_logs(
+    lab_id: str,
+    limit: int = 100,
+    offset: int = 0,
+    level: str = None,
+    source: str = None,
+    _admin: str = Depends(_require_admin),
+):
+    """Admin log viewer API."""
+    lab = db.get_lab(lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+
+    logs = db.get_logs(lab_id, limit=limit, offset=offset, level=level, source=source)
+    total = db.count_logs(lab_id, level=level, source=source)
+    sources = db.get_log_sources(lab_id)
+
+    return {
+        "lab_id": lab_id,
+        "logs": logs,
+        "total": total,
+        "sources": sources,
+        "limit": limit,
+        "offset": offset,
+    }
 
 @app.get("/api/v1/labs")
 def list_labs_api(_: str = Depends(_require_admin)):
