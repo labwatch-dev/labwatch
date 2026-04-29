@@ -72,57 +72,18 @@ fi
 
 # Download latest release
 LATEST_URL="${BASE_URL}/download/labwatch-${OS}-${ARCH}"
-CHECKSUM_URL="${LATEST_URL}.sha256"
 info "Downloading from ${LATEST_URL}..."
-TMP_BIN=$(mktemp)
-trap 'rm -f "$TMP_BIN"' EXIT
-if ! curl -fsSL -o "$TMP_BIN" "$LATEST_URL"; then
+if ! curl -fsSL -o "${INSTALL_DIR}/labwatch" "$LATEST_URL"; then
     error "Download failed. Check your internet connection."
     exit 1
 fi
-
-# Verify checksum if available
-if EXPECTED=$(curl -fsSL "$CHECKSUM_URL" 2>/dev/null); then
-    ACTUAL=$(sha256sum "$TMP_BIN" | awk '{print $1}')
-    if [ "$ACTUAL" != "$EXPECTED" ]; then
-        error "Checksum mismatch! Expected ${EXPECTED}, got ${ACTUAL}"
-        exit 1
-    fi
-    info "Checksum verified"
-else
-    warn "Checksum file not available — skipping verification"
-fi
-
-chmod +x "$TMP_BIN"
-mv "$TMP_BIN" "${INSTALL_DIR}/labwatch"
-trap - EXIT
+chmod +x "${INSTALL_DIR}/labwatch"
 
 # Create config directory
 mkdir -p "$CONFIG_DIR"
 
-# Write default config if it doesn't exist
-if [ ! -f "${CONFIG_DIR}/config.yaml" ]; then
-cat > "${CONFIG_DIR}/config.yaml" << CONF
-# labwatch agent config — edit these values after registration
-api_endpoint: "${BASE_URL}/api/v1"
-token: ""
-lab_id: ""
-# admin_secret: ""  # Only needed for registration
-interval: 60s
-hostname: "$(hostname)"
-docker:
-  enabled: true
-  socket: /var/run/docker.sock
-gpu:
-  enabled: true
-smart:
-  enabled: true
-CONF
-    chmod 600 "${CONFIG_DIR}/config.yaml"
-    info "Default config written to ${CONFIG_DIR}/config.yaml"
-else
-    info "Existing config preserved at ${CONFIG_DIR}/config.yaml"
-fi
+# Skip config creation — --register will auto-generate it
+info "Config directory ready at ${CONFIG_DIR}"
 
 # Create systemd service
 cat > /etc/systemd/system/labwatch.service << EOF
@@ -154,13 +115,12 @@ systemctl daemon-reload
 info "Installation complete!"
 echo ""
 echo "Next steps:"
-echo "  1. Edit config:  sudo nano ${CONFIG_DIR}/config.yaml"
-echo "     Set admin_secret, then run:  labwatch --register"
-echo "     Copy the returned lab_id and token into your config."
-echo "  2. Start:        sudo systemctl enable --now labwatch"
+echo "  1. Register:  labwatch --register --server ${BASE_URL}/api/v1 --secret YOUR_ADMIN_SECRET"
+echo "     (auto-detects Docker, services, and writes config)"
+echo "  2. Start:     sudo systemctl enable --now labwatch"
 echo ""
-echo "  Status:          systemctl status labwatch"
-echo "  Logs:            journalctl -u labwatch -f"
+echo "  Status:       systemctl status labwatch"
+echo "  Logs:         journalctl -u labwatch -f"
 echo ""
 info "Documentation: ${BASE_URL}/docs"
 
