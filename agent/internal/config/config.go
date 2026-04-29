@@ -42,6 +42,9 @@ type Config struct {
 	// ZFS pool health settings
 	ZFS ZFSConfig `yaml:"zfs"`
 
+	// Log collection settings
+	Logs LogsConfig `yaml:"logs"`
+
 	// Services to monitor
 	Services []ServiceConfig `yaml:"services"`
 }
@@ -67,6 +70,17 @@ type SMARTConfig struct {
 // Requires zpool (ZFS utilities) installed.
 type ZFSConfig struct {
 	Enabled bool `yaml:"enabled"`
+}
+
+// LogsConfig controls log collection and shipping.
+type LogsConfig struct {
+	Enabled         bool     `yaml:"enabled"`
+	Journald        bool     `yaml:"journald"`
+	Docker          bool     `yaml:"docker"`
+	Files           []string `yaml:"files"`
+	LevelFilter     string   `yaml:"level_filter"`
+	MaxLinesPerPush int      `yaml:"max_lines_per_push"`
+	DockerSocket    string   `yaml:"docker_socket"`
 }
 
 // ServiceConfig defines a service to monitor.
@@ -96,6 +110,13 @@ func Defaults() *Config {
 		},
 		ZFS: ZFSConfig{
 			Enabled: true,
+		},
+		Logs: LogsConfig{
+			Enabled:         false,
+			Journald:        true,
+			Docker:          true,
+			LevelFilter:     "warn",
+			MaxLinesPerPush: 100,
 		},
 	}
 }
@@ -147,6 +168,14 @@ smart:
 
 zfs:
   enabled: true
+
+logs:
+  enabled: false
+  journald: true
+  docker: true
+  level_filter: warn
+  max_lines_per_push: 100
+  # files: []
 
 # Add custom service checks:
 # services:
