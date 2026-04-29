@@ -89,7 +89,7 @@ def generate_digest(lab_id: str, hostname: str, hours: int = 168) -> dict[str, A
         cpu_status = "idle" if cpu["avg"] < 10 else "moderate" if cpu["avg"] < 50 else "heavy" if cpu["avg"] < 80 else "critical"
         sections.append(f"**CPU**: {cpu['avg']}% avg ({cpu_status}), peaked at {cpu['max']}%, currently {cpu['current']}%")
         if cpu["max"] > 90:
-            concerns.append(f"CPU peaked at {cpu['max']}% — investigate what process caused the spike")
+            concerns.append(f"CPU peaked at {cpu['max']}% — investigate what process caused the spike. Run: `ps aux --sort=-%cpu | head -10`")
         if cpu["avg"] < 5:
             highlights.append("CPU barely touched — significant spare capacity")
 
@@ -99,9 +99,9 @@ def generate_digest(lab_id: str, hostname: str, hours: int = 168) -> dict[str, A
         mem_trend = "stable" if mem_range < 5 else "fluctuating" if mem_range < 20 else "volatile"
         sections.append(f"**Memory**: {mem['avg']}% avg ({mem_trend}), range {mem['min']}%-{mem['max']}%, currently {mem['current']}%")
         if mem["avg"] > 85:
-            concerns.append(f"Memory consistently above 85% (avg {mem['avg']}%) — consider adding RAM or reducing workload")
+            concerns.append(f"Memory consistently above 85% (avg {mem['avg']}%) — consider adding RAM or reducing workload. Run: `ps aux --sort=-%mem | head -10`")
         elif mem["avg"] > 70:
-            concerns.append(f"Memory running warm at {mem['avg']}% average — monitor for growth")
+            concerns.append(f"Memory running warm at {mem['avg']}% average — monitor for growth. Run: `free -h` to check swap usage")
 
     # Disk analysis
     if disk.get("avg", 0) > 0:
@@ -109,17 +109,17 @@ def generate_digest(lab_id: str, hostname: str, hours: int = 168) -> dict[str, A
         disk_growth = disk["max"] - disk["min"]
         if disk_growth > 5:
             days_to_full = (100 - disk["current"]) / (disk_growth / period_days) if disk_growth > 0 else 999
-            concerns.append(f"Disk grew by {disk_growth:.1f}% — at this rate, full in ~{days_to_full:.0f} days")
+            concerns.append(f"Disk grew by {disk_growth:.1f}% — at this rate, full in ~{days_to_full:.0f} days. Run: `journalctl --vacuum-size=500M` and `find /tmp -atime +7 -delete`")
         if disk["current"] > 90:
-            concerns.append(f"Disk at {disk['current']}% — CRITICAL. Clean up or expand storage immediately")
+            concerns.append(f"Disk at {disk['current']}% — CRITICAL. Clean up or expand storage immediately. Run: `du -sh /var/log/* | sort -h | tail -10` and `docker system prune -f`")
         elif disk["current"] > 80:
-            concerns.append(f"Disk at {disk['current']}% — approaching warning threshold")
+            concerns.append(f"Disk at {disk['current']}% — approaching warning threshold. Run: `df -h` and `docker system df`")
 
     # Load analysis
     if load.get("avg", 0) > 0:
         sections.append(f"**Load**: {load['avg']} avg (1m), peaked at {load['max']}, currently {load['current']}")
         if load["avg"] > 10:
-            concerns.append(f"Sustained high load average ({load['avg']}) — system under consistent pressure")
+            concerns.append(f"Sustained high load average ({load['avg']}) — system under consistent pressure. Run: `iostat -x 1 3` or `iotop -bn1 | head -20`")
 
     # Alerts
     if alerts_total > 0:
