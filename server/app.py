@@ -683,7 +683,7 @@ def health():
             content={"status": "unhealthy", "service": "labwatch", "detail": "database unreachable"},
             status_code=503,
         )
-    return {"status": "ok", "service": "labwatch", "version": "1.0.0"}
+    return {"status": "ok", "service": "labwatch", "version": "1.0.0", "schema_version": db.get_schema_version()}
 
 
 @app.get("/metrics")
