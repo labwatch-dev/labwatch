@@ -809,7 +809,7 @@
                 <h2 class="section-title">{{ t.lab_digest }}</h2>
                 <div class="digest-card">
                     <div class="digest-meta">{{ t.lab_digest_none }}</div>
-                    <button class="generate-digest-btn" onclick="generateDigest()">{{ t.lab_digest_generate }}</button>
+                    <button class="generate-digest-btn" data-click="generateDigest">{{ t.lab_digest_generate }}</button>
                 </div>
             </div>
             {% endif %}
@@ -1113,8 +1113,8 @@
             </div>
         </div>
         <div style="display: flex; gap: 8px; margin-top: 16px;">
-            <button class="copy-btn" onclick="saveThresholds()" style="background: var(--accent); color: var(--bg); padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 600;">{{ t.lab_threshold_save if t and t.lab_threshold_save else "Save" }}</button>
-            <button class="copy-btn" onclick="resetThresholds()" style="padding: 8px 16px;">{{ t.lab_threshold_reset if t and t.lab_threshold_reset else "Reset to defaults" }}</button>
+            <button class="copy-btn" data-click="saveThresholds" style="background: var(--accent); color: var(--bg); padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 600;">{{ t.lab_threshold_save if t and t.lab_threshold_save else "Save" }}</button>
+            <button class="copy-btn" data-click="resetThresholds" style="padding: 8px 16px;">{{ t.lab_threshold_reset if t and t.lab_threshold_reset else "Reset to defaults" }}</button>
         </div>
         <div id="threshold-msg" style="font-size: 12px; margin-top: 8px; color: var(--green);"></div>
     </div>
@@ -1132,15 +1132,15 @@
                         <span class="masked" id="api-token-masked">&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;</span>
                         <span id="api-token-plain" style="display:none;">{{ lab.api_token | default('--') }}</span>
                     </code>
-                    <button class="copy-btn" onclick="toggleToken()">{{ t.lab_admin_reveal }}</button>
-                    <button class="copy-btn" onclick="copyToClipboard('{{ lab.api_token | default('') }}')">{{ t.lab_admin_copy }}</button>
+                    <button class="copy-btn" data-click="toggleToken">{{ t.lab_admin_reveal }}</button>
+                    <button class="copy-btn" data-copy="{{ lab.api_token | default('') }}">{{ t.lab_admin_copy }}</button>
                 </div>
             </div>
             <div class="admin-field">
                 <div class="admin-field-label">{{ t.lab_admin_lab_id }}</div>
                 <div class="admin-field-value">
                     <code>{{ lab.id }}</code>
-                    <button class="copy-btn" onclick="copyToClipboard('{{ lab.id }}')">{{ t.lab_admin_copy }}</button>
+                    <button class="copy-btn" data-copy="{{ lab.id }}">{{ t.lab_admin_copy }}</button>
                 </div>
             </div>
         </div>
@@ -1150,7 +1150,7 @@
                 <h3>{{ t.lab_admin_delete }}</h3>
                 <p>{{ t.lab_admin_delete_desc }}</p>
             </div>
-            <button class="btn btn-danger" onclick="showDeleteModal()">{{ t.lab_admin_delete_btn }}</button>
+            <button class="btn btn-danger" data-click="showDeleteModal">{{ t.lab_admin_delete_btn }}</button>
         </div>
     </div>
     {% endif %}
@@ -1163,8 +1163,8 @@
         <h3>{{ t.lab_admin_delete }}</h3>
         <p>{{ t.lab_admin_delete_confirm }}</p>
         <div class="modal-actions">
-            <button class="btn" onclick="hideDeleteModal()">{{ t.cancel if t.cancel else 'Cancel' }}</button>
-            <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">{{ t.lab_admin_delete_btn }}</button>
+            <button class="btn" data-click="hideDeleteModal">{{ t.cancel if t.cancel else 'Cancel' }}</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn" data-click="confirmDelete">{{ t.lab_admin_delete_btn }}</button>
         </div>
     </div>
 </div>
@@ -1515,5 +1515,26 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     {% endif %}
+
+    // === CSP Event Delegation (lab_detail.html) ===
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-click]');
+        if (btn) {
+            var fn = btn.getAttribute('data-click');
+            if (fn === 'generateDigest') generateDigest();
+            else if (fn === 'saveThresholds') saveThresholds();
+            else if (fn === 'resetThresholds') resetThresholds();
+            else if (fn === 'toggleToken') toggleToken();
+            else if (fn === 'showDeleteModal') showDeleteModal();
+            else if (fn === 'hideDeleteModal') hideDeleteModal();
+            else if (fn === 'confirmDelete') confirmDelete();
+            return;
+        }
+        var copyBtn = e.target.closest('[data-copy]');
+        if (copyBtn) {
+            copyToClipboard(copyBtn.getAttribute('data-copy'));
+            return;
+        }
+    });
 </script>
 {% endblock %}
