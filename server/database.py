@@ -1766,6 +1766,24 @@ def count_logs(lab_id: str, level: str | None = None, source: str | None = None)
         conn.close()
 
 
+
+def get_recent_error_logs(limit: int = 10) -> list[dict]:
+    """Get recent error-level logs across all labs with hostname. For dashboard widget."""
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            """SELECT g.id, g.lab_id, g.ts, g.source, g.level, g.message, g.unit,
+                    l.hostname
+             FROM logs g JOIN labs l ON g.lab_id = l.id
+             WHERE g.level = 'error'
+             ORDER BY g.ts DESC LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
 def purge_old_logs(hours: int = 24) -> int:
     """Remove logs older than the given hours. Returns count deleted."""
     cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
