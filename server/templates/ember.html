@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% if winner %}ember was found{% else %}you found ember{% endif %}</title>
 <meta name="robots" content="noindex, nofollow">
-<style>
+<style nonce="{{ csp_nonce }}">
 :root {
     --bg: #07080a;
     --surface: #11141a;
@@ -322,7 +322,7 @@ h1 {
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 function claim(e) {
     e.preventDefault();
     var email = document.getElementById('email').value.trim();
