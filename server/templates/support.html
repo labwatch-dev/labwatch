@@ -192,7 +192,7 @@
         <h2>{{ t.support_faq_title }}</h2>
 
         <div class="faq-item">
-            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            <div class="faq-question"">
                 <span>{{ t.support_faq_q1 }}</span>
                 <span class="toggle">+</span>
             </div>
@@ -200,7 +200,7 @@
         </div>
 
         <div class="faq-item">
-            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            <div class="faq-question"">
                 <span>{{ t.support_faq_q2 }}</span>
                 <span class="toggle">+</span>
             </div>
@@ -208,7 +208,7 @@
         </div>
 
         <div class="faq-item">
-            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            <div class="faq-question"">
                 <span>{{ t.support_faq_q3 }}</span>
                 <span class="toggle">+</span>
             </div>
@@ -216,4 +216,11 @@
         </div>
     </div>
 </div>
+
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('click', function(e) {
+    var q = e.target.closest('.faq-question');
+    if (q) q.parentElement.classList.toggle('open');
+});
+</script>
 {% endblock %}
