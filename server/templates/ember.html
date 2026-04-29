@@ -304,7 +304,7 @@ h1 {
         </p>
         <div class="card">
             <h2>claim your year</h2>
-            <form id="claim-form" onsubmit="return claim(event)">
+            <form id="claim-form" data-submit="claim">
                 <div class="field">
                     <input type="email" id="email" placeholder="you@yourdomain.com" required autocomplete="email">
                     <button type="submit" id="claim-btn">claim</button>
@@ -403,6 +403,10 @@ localStorage.setItem('ember_unlocked', '1');
     document.addEventListener('touchmove', function(e) { if (isDragging) { var t = e.touches[0]; moveDrag(t.clientX, t.clientY); } }, {passive: true});
     document.addEventListener('touchend', endDrag);
 })();
+
+    // === CSP Event Delegation (ember.html) ===
+    var claimForm = document.querySelector('[data-submit="claim"]');
+    if (claimForm) claimForm.addEventListener('submit', function(e) { return claim(e); });
 </script>
 </body>
 </html>
