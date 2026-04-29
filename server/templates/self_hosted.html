@@ -455,17 +455,17 @@ sudo bash install.sh</div>
         <!-- Agent config -->
         <section class="sh-section" id="agent-config">
             <h2>Agent config</h2>
-            <p>Edit <code>/etc/labwatch/config.yaml</code> on the agent host. The minimum required fields are <code>api_endpoint</code>, <code>admin_secret</code> (one-time, for registration), and a collection interval:</p>
+            <p>Register the agent with your server in one command. This auto-detects the hostname, contacts the API, and writes <code>/etc/labwatch/config.yaml</code> with the received credentials:</p>
             <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
-# /etc/labwatch/config.yaml
-api_endpoint: "http://your-labwatch-host:8097/api/v1"
-admin_secret: "your-admin-secret"   # remove after first register
-interval: 60s
-
-docker:
-  enabled: true
-  socket: "/var/run/docker.sock"
-
+sudo labwatch --register --server http://your-labwatch-host:8097/api/v1 --secret YOUR_ADMIN_SECRET
+sudo systemctl enable --now labwatch</div>
+            <p>That&rsquo;s it. The agent starts collecting metrics within 60 seconds. Docker, GPU, S.M.A.R.T., and ZFS monitoring are enabled by default &mdash; the agent gracefully skips any that aren&rsquo;t available.</p>
+            <div class="info-box">
+                <strong>Multiple nodes?</strong> Repeat the install + register on each node. Each agent gets its own <code>lab_id</code> and token.
+            </div>
+            <p>To add custom service checks, edit <code>/etc/labwatch/config.yaml</code> after registration:</p>
+            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+# Append to /etc/labwatch/config.yaml
 services:
   - name: "Web"
     type: "http"
@@ -475,14 +475,6 @@ services:
     type: "tcp"
     endpoint: "localhost:22"
     timeout: "3s"</div>
-            <p>Register with the server, then start the service:</p>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
-sudo labwatch --register
-sudo systemctl enable --now labwatch</div>
-            <p>After a successful register the agent prints your <code>lab_id</code> and <code>token</code> to stdout. Paste them into <code>/etc/labwatch/config.yaml</code>, then you can remove <code>admin_secret</code> from the config.</p>
-            <div class="info-box">
-                <strong>Multiple nodes?</strong> Repeat the install + register on each node. Each agent gets its own <code>lab_id</code> and token.
-            </div>
         </section>
 
         <!-- Upgrade -->
@@ -525,7 +517,7 @@ docker compose up -d --build</div>
             <p>Check the agent logs: <code>journalctl -u labwatch -f</code>. If you see <code>401 Unauthorized</code>, the token in <code>/etc/labwatch/config.yaml</code> is wrong &mdash; re-run <code>labwatch --register</code>. If you see connection refused, verify <code>api_endpoint</code> is reachable from the agent: <code>curl http://your-labwatch-host:8097/health</code>.</p>
 
             <h3>NLQ returns &ldquo;I didn&rsquo;t quite get that&rdquo;</h3>
-            <p>The query bar uses regex pattern matching &mdash; it recognizes ~20 query shapes (fleet overview, alerts, cpu/memory/disk pressure, containers, temperature, network, nodes needing attention). Rephrase toward one of those shapes, or try clicking a suggested chip. No API key is needed &mdash; if you got an error, check <code>docker compose logs labwatch</code> for a stack trace.</p>
+            <p>The query bar uses regex pattern matching &mdash; it recognizes ~20 query shapes (fleet overview, alerts, cpu/memory/disk pressure, containers, temperature, network, ZFS pools, nodes needing attention). Rephrase toward one of those shapes, or try clicking a suggested chip. No API key is needed &mdash; if you got an error, check <code>docker compose logs labwatch</code> for a stack trace.</p>
 
             <p>Still stuck? Email <a href="mailto:support@labwatch.dev">support@labwatch.dev</a> with your <code>docker compose logs labwatch</code> output and we'll dig in with you.</p>
         </section>
