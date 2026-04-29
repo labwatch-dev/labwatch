@@ -16,13 +16,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/labwatch-dev/labwatch/internal/collector"
-	"github.com/labwatch-dev/labwatch/internal/config"
-	"github.com/labwatch-dev/labwatch/internal/transport"
+	"github.com/zazastation/labwatch/internal/collector"
+	"github.com/zazastation/labwatch/internal/config"
+	"github.com/zazastation/labwatch/internal/transport"
 )
 
 var (
-	version   = "0.2.3"
+	version   = "0.2.4"
 	buildDate = "dev"
 )
 
@@ -60,11 +60,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Warn about missing credentials
-	if cfg.LabID == "" || cfg.Token == "" {
-		log.Fatal("lab_id and token must be set in config. Run 'labwatch --register' first.")
-	}
-
 	// Create collectors
 	collectors := []collector.Collector{
 		collector.NewSystem(),
@@ -88,6 +83,11 @@ func main() {
 	// Optionally add S.M.A.R.T. disk health collector (auto-disables if smartctl missing)
 	if cfg.SMART.Enabled {
 		collectors = append(collectors, collector.NewSMART())
+	}
+
+	// Optionally add ZFS pool health collector (auto-disables if zpool missing)
+	if cfg.ZFS.Enabled {
+		collectors = append(collectors, collector.NewZFS())
 	}
 
 	// Optionally add service checker
