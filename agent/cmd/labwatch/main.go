@@ -16,9 +16,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zazastation/labwatch/internal/collector"
-	"github.com/zazastation/labwatch/internal/config"
-	"github.com/zazastation/labwatch/internal/transport"
+	"github.com/labwatch-dev/labwatch/internal/collector"
+	"github.com/labwatch-dev/labwatch/internal/config"
+	"github.com/labwatch-dev/labwatch/internal/transport"
 )
 
 var (
