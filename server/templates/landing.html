@@ -993,7 +993,7 @@
             <a href="/signup" class="btn btn-primary">{{ t.landing_btn_install }}</a>
             <a href="/demo" class="btn btn-secondary">{{ t.landing_btn_demo }}</a>
         </div>
-        <div class="hero-terminal" onclick="copyToClipboard('curl -fsSL {{ base_url }}/install.sh | sudo bash')" title="Click to copy" style="cursor: pointer;">
+        <div class="hero-terminal"" title="Click to copy" style="cursor: pointer;">
             <span class="prompt">$</span>
             <code>curl -fsSL {{ base_url }}/install.sh | sudo bash</code>
             <span class="hero-terminal-copy">copy</span>
@@ -1289,12 +1289,12 @@ processes waiting on I/O rather than computing.
 <span class="metric-ok">Memory at 12.1%, Disk at 55.3%</span> — no other resource pressure.</div>
         </div>
         <div class="demo-nav">
-            <button class="demo-dot active" data-idx="0" onclick="jumpToDemo(0)"></button>
-            <button class="demo-dot" data-idx="1" onclick="jumpToDemo(1)"></button>
-            <button class="demo-dot" data-idx="2" onclick="jumpToDemo(2)"></button>
-            <button class="demo-dot" data-idx="3" onclick="jumpToDemo(3)"></button>
-            <button class="demo-dot" data-idx="4" onclick="jumpToDemo(4)"></button>
-            <button class="demo-dot" data-idx="5" onclick="jumpToDemo(5)"></button>
+            <button class="demo-dot active" data-idx="0"></button>
+            <button class="demo-dot" data-idx="1"></button>
+            <button class="demo-dot" data-idx="2"></button>
+            <button class="demo-dot" data-idx="3"></button>
+            <button class="demo-dot" data-idx="4"></button>
+            <button class="demo-dot" data-idx="5"></button>
         </div>
     </div>
 </section>
@@ -1530,6 +1530,20 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 {% if scroll_to %}
-<script nonce="{{ csp_nonce }}">document.addEventListener("DOMContentLoaded",function(){var e=document.getElementById("{{ scroll_to }}");if(e){e.scrollIntoView({behavior:"smooth"});}});</script>
+<script nonce="{{ csp_nonce }}">document.addEventListener("DOMContentLoaded",function(){var e=document.getElementById("{{ scroll_to }}");if(e){e.scrollIntoView({behavior:"smooth"});}});
+    // === CSP Event Delegation (landing.html) ===
+    document.addEventListener('click', function(e) {
+        var terminal = e.target.closest('.hero-terminal');
+        if (terminal) {
+            copyToClipboard('curl -fsSL {{ base_url }}/install.sh | sudo bash');
+            return;
+        }
+        var dot = e.target.closest('.demo-dot[data-idx]');
+        if (dot) {
+            jumpToDemo(parseInt(dot.getAttribute('data-idx')));
+            return;
+        }
+    });
+</script>
 {% endif %}
 {% endblock %}
