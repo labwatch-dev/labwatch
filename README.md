@@ -301,7 +301,7 @@ labwatch is not a Prometheus replacement for production infrastructure. It's bui
 
 ## Roadmap
 
-- [ ] Nonce-based CSP (replacing unsafe-inline)
+- [x] Nonce-based CSP (131 inline handlers migrated, nonce-only mode)
 - [x] Agent retry with exponential backoff
 - [x] CSV/JSON data export
 - [x] Schema version tracking for smoother upgrades
