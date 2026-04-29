@@ -906,7 +906,7 @@
                 <span class="dot"></span>
                 labwatch
             </a>
-            <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+            <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
             <ul class="nav-links">
                 {% if user_email %}
                 <li><a href="/my/dashboard" {% if active_page == 'dashboard' %}class="active"{% endif %}>{{ t.nav_dashboard if t else 'Dashboard' }}</a></li>
@@ -922,7 +922,7 @@
                 <li><a href="/about" {% if active_page == 'about' %}class="active"{% endif %}>{{ t.about_title if t and t.about_title else 'About' }}</a></li>
                 {% if user_email %}
                 <li class="account-menu-wrap" style="position:relative;">
-                    <button class="account-toggle" onclick="toggleAccountMenu(event)">
+                    <button class="account-toggle">
                         <span class="account-avatar">{{ user_email[0]|upper }}</span>
                         <span class="account-email">{{ user_email }}</span>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="currentColor" style="margin-left:4px;opacity:0.5;"><path d="M1 1l4 4 4-4"/></svg>
@@ -951,7 +951,7 @@
                 {% endif %}
                 {% if languages %}
                 <li class="lang-switcher">
-                    <select onchange="window.location.href='/lang/'+this.value" aria-label="Language">
+                    <select data-lang-select="true" aria-label="Language">
                         {% for lc in languages %}
                         <option value="{{ lc }}" {% if lc == lang %}selected{% endif %}>{{ language_names[lc] if language_names else lc }}</option>
                         {% endfor %}
@@ -959,32 +959,32 @@
                 </li>
                 {% endif %}
                 <li style="position:relative;">
-                    <button class="settings-toggle" onclick="toggleSettings(event)" aria-label="Settings" title="{{ t.settings_title if t else 'Settings' }}">&#9881;</button>
+                    <button class="settings-toggle" aria-label="Settings" title="{{ t.settings_title if t else 'Settings' }}">&#9881;</button>
                     <div class="settings-panel" id="settings-panel">
                         <div class="settings-section">
                             <div class="settings-label">{{ t.settings_theme if t else 'Theme' }}</div>
                             <div class="theme-options">
-                                <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')">{{ t.settings_dark if t else 'Dark' }}</button>
-                                <button class="theme-btn" data-theme="light" onclick="setTheme('light')">{{ t.settings_light if t else 'Light' }}</button>
+                                <button class="theme-btn" data-theme="dark"">{{ t.settings_dark if t else 'Dark' }}</button>
+                                <button class="theme-btn" data-theme="light"">{{ t.settings_light if t else 'Light' }}</button>
                             </div>
                         </div>
                         <div class="settings-section">
                             <div class="settings-label">{{ t.settings_accent if t else 'Accent Color' }}</div>
                             <div class="accent-options">
-                                <div class="accent-dot" data-color="default" onclick="setAccent('default')" title="Amber"></div>
-                                <div class="accent-dot" data-color="blue" onclick="setAccent('blue')" title="Blue"></div>
-                                <div class="accent-dot" data-color="green" onclick="setAccent('green')" title="Green"></div>
-                                <div class="accent-dot" data-color="purple" onclick="setAccent('purple')" title="Purple"></div>
-                                <div class="accent-dot" data-color="red" onclick="setAccent('red')" title="Red"></div>
-                                <div class="accent-dot" data-color="cyan" onclick="setAccent('cyan')" title="Cyan"></div>
+                                <div class="accent-dot" data-color="default"" title="Amber"></div>
+                                <div class="accent-dot" data-color="blue"" title="Blue"></div>
+                                <div class="accent-dot" data-color="green"" title="Green"></div>
+                                <div class="accent-dot" data-color="purple"" title="Purple"></div>
+                                <div class="accent-dot" data-color="red"" title="Red"></div>
+                                <div class="accent-dot" data-color="cyan"" title="Cyan"></div>
                             </div>
                         </div>
                         <div class="settings-section">
                             <div class="settings-label">{{ t.settings_layout if t else 'Card Layout' }}</div>
                             <div class="layout-options">
-                                <button class="layout-btn" data-layout="default" onclick="setLayout('default')">{{ t.settings_default if t else 'Default' }}</button>
-                                <button class="layout-btn" data-layout="compact" onclick="setLayout('compact')">{{ t.settings_compact if t else 'Compact' }}</button>
-                                <button class="layout-btn" data-layout="minimal" onclick="setLayout('minimal')">{{ t.settings_minimal if t else 'Minimal' }}</button>
+                                <button class="layout-btn" data-layout="default"">{{ t.settings_default if t else 'Default' }}</button>
+                                <button class="layout-btn" data-layout="compact"">{{ t.settings_compact if t else 'Compact' }}</button>
+                                <button class="layout-btn" data-layout="minimal"">{{ t.settings_minimal if t else 'Minimal' }}</button>
                             </div>
                         </div>
                         {% if user_email %}
@@ -1121,7 +1121,7 @@
                         container.innerHTML += '<div class="notif-toggle">'
                             + '<label for="notif-' + key + '">' + _notifLabels[key] + '</label>'
                             + '<div class="notif-switch">'
-                            + '<input type="checkbox" id="notif-' + key + '" ' + (checked ? 'checked' : '') + ' onchange="saveNotifPref(\'' + key + '\', this.checked)">'
+                            + '<input type="checkbox" id="notif-' + key + '" ' + (checked ? 'checked' : '') + ' data-notif-pref="' + key + '"">'
                             + '<span class="notif-slider"></span>'
                             + '</div></div>';
                     });
@@ -1257,7 +1257,58 @@
         // Run timestamp updates every 30s
         setInterval(updateTimestamps, 30000);
         document.addEventListener('DOMContentLoaded', updateTimestamps);
-    </script>
+    
+    // === CSP Event Delegation (base.html) ===
+    document.addEventListener('click', function(e) {
+        // Nav toggle
+        if (e.target.closest('.nav-toggle')) {
+            document.querySelector('.nav-links').classList.toggle('open');
+            return;
+        }
+        // Account menu toggle
+        if (e.target.closest('.account-toggle')) {
+            toggleAccountMenu(e);
+            return;
+        }
+        // Settings toggle
+        if (e.target.closest('.settings-toggle')) {
+            toggleSettings(e);
+            return;
+        }
+        // Theme buttons
+        var themeBtn = e.target.closest('.theme-btn[data-theme]');
+        if (themeBtn) {
+            setTheme(themeBtn.getAttribute('data-theme'));
+            return;
+        }
+        // Accent dots
+        var accentDot = e.target.closest('.accent-dot[data-color]');
+        if (accentDot) {
+            setAccent(accentDot.getAttribute('data-color'));
+            return;
+        }
+        // Layout buttons
+        var layoutBtn = e.target.closest('.layout-btn[data-layout]');
+        if (layoutBtn) {
+            setLayout(layoutBtn.getAttribute('data-layout'));
+            return;
+        }
+    });
+    // Language selector
+    var langSelect = document.querySelector('[data-lang-select]');
+    if (langSelect) {
+        langSelect.addEventListener('change', function() {
+            window.location.href = '/lang/' + this.value;
+        });
+    }
+    // Notification preference checkboxes (delegated)
+    document.addEventListener('change', function(e) {
+        var cb = e.target.closest('[data-notif-pref]');
+        if (cb) {
+            saveNotifPref(cb.getAttribute('data-notif-pref'), cb.checked);
+        }
+    });
+</script>
 
     {% block extra_scripts %}{% endblock %}
 </body>
