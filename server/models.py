@@ -60,3 +60,17 @@ class Alert(BaseModel):
     severity: str  # info, warning, critical
     message: str
     created_at: Optional[str] = None
+
+
+# --- Logs ---
+
+class LogEntry(BaseModel):
+    ts: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    source: str = Field("unknown", max_length=128)
+    level: str = Field("info", max_length=8)
+    message: str = Field(..., max_length=4096)
+    unit: Optional[str] = Field(None, max_length=128)
+
+
+class LogIngestPayload(BaseModel):
+    entries: list[LogEntry] = Field(..., max_items=100)
