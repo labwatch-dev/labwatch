@@ -27,6 +27,8 @@ jobs:
       - run: python -m py_compile app.py && echo "app.py compiles OK"
       - run: python -m py_compile database.py && echo "database.py compiles OK"
       - run: python -m py_compile notifications.py && echo "notifications.py compiles OK"
+      - run: pip install pytest -q
+      - run: python -m pytest test_labwatch.py -v
 
   agent:
     name: Agent (Go)
