@@ -166,16 +166,16 @@
         <textarea id="nl-input" placeholder="{{ t.alerts_placeholder if t and t.alerts_placeholder else 'e.g. alert me when any lab\'s disk fills past 85%' }}"></textarea>
 
         <div class="nl-examples">
-            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_cpu if t and t.alerts_chip_cpu else "alert me when CPU goes above 90%" }}</div>
-            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_mem if t and t.alerts_chip_mem else "critical alert when memory hits 95" }}</div>
-            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_disk if t and t.alerts_chip_disk else "warn me when disk fills past 85%" }}</div>
-            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_gpu if t and t.alerts_chip_gpu else "alert me if GPU temperature exceeds 80C" }}</div>
-            <div class="nl-example" onclick="useExample(this)">{{ t.alerts_chip_load if t and t.alerts_chip_load else "notify me when load average is above 10" }}</div>
+            <div class="nl-example">{{ t.alerts_chip_cpu if t and t.alerts_chip_cpu else "alert me when CPU goes above 90%" }}</div>
+            <div class="nl-example">{{ t.alerts_chip_mem if t and t.alerts_chip_mem else "critical alert when memory hits 95" }}</div>
+            <div class="nl-example">{{ t.alerts_chip_disk if t and t.alerts_chip_disk else "warn me when disk fills past 85%" }}</div>
+            <div class="nl-example">{{ t.alerts_chip_gpu if t and t.alerts_chip_gpu else "alert me if GPU temperature exceeds 80C" }}</div>
+            <div class="nl-example">{{ t.alerts_chip_load if t and t.alerts_chip_load else "notify me when load average is above 10" }}</div>
         </div>
 
         <div class="nl-buttons">
-            <button type="button" onclick="generate()">{{ t.alerts_preview if t and t.alerts_preview else "Preview rule" }}</button>
-            <button type="button" class="btn-primary" id="apply-btn" onclick="apply()" disabled>{{ t.alerts_apply if t and t.alerts_apply else "Apply rule" }}</button>
+            <button type="button" data-click="generate">{{ t.alerts_preview if t and t.alerts_preview else "Preview rule" }}</button>
+            <button type="button" class="btn-primary" id="apply-btn" data-click="apply" disabled>{{ t.alerts_apply if t and t.alerts_apply else "Apply rule" }}</button>
         </div>
 
         <div class="preview" id="preview"></div>
@@ -287,5 +287,17 @@ function escapeHtml(s) {
 }
 
 renderCurrent();
+
+    // === CSP Event Delegation (alerts.html) ===
+    document.addEventListener('click', function(e) {
+        var example = e.target.closest('.nl-example');
+        if (example) { useExample(example); return; }
+        var btn = e.target.closest('[data-click]');
+        if (btn) {
+            var fn = btn.getAttribute('data-click');
+            if (fn === 'generate') generate();
+            else if (fn === 'apply') apply();
+        }
+    });
 </script>
 {% endblock %}
