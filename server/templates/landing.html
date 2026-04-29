@@ -1215,6 +1215,13 @@
                     <td><span class="yes">&#10003;</span></td>
                 </tr>
                 <tr>
+                    <td>ZFS pool health <span style="color:var(--text-muted);font-size:11px">(capacity, scrub status, errors)</span></td>
+                    <td class="cm-us"><span class="yes">&#10003;</span></td>
+                    <td><span class="partial">partial</span></td>
+                    <td><span class="no">&#10005;</span></td>
+                    <td><span class="yes">&#10003;</span></td>
+                </tr>
+                <tr>
                     <td>Notification channels <span style="color:var(--text-muted);font-size:11px">(integrations)</span></td>
                     <td class="cm-us"><span class="num">ntfy, Discord, Slack, Telegram + Apprise</span></td>
                     <td><span class="num">Shoutrrr (~20)</span></td>
@@ -1287,6 +1294,7 @@ processes waiting on I/O rather than computing.
             <button class="demo-dot" data-idx="2" onclick="jumpToDemo(2)"></button>
             <button class="demo-dot" data-idx="3" onclick="jumpToDemo(3)"></button>
             <button class="demo-dot" data-idx="4" onclick="jumpToDemo(4)"></button>
+            <button class="demo-dot" data-idx="5" onclick="jumpToDemo(5)"></button>
         </div>
     </div>
 </section>
@@ -1364,7 +1372,7 @@ processes waiting on I/O rather than computing.
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 var demoData = [
     {
         query: "why is pve-storage slow?",
@@ -1385,6 +1393,10 @@ var demoData = [
     {
         query: "how hot is gpu-server?",
         response: '<span class="highlight">Temperatures on gpu-server:</span>\n\n  NVIDIA RTX 3090: <span class="metric-warn">78°C</span>\n  NVIDIA RTX 3090 (#2): <span class="metric-ok">72°C</span>\n  CPU Package: <span class="metric-ok">58°C</span>\n  CPU Core 0: <span class="metric-ok">56°C</span>\n  NVMe SSD: <span class="metric-ok">42°C</span>\n\nGPU #1 is warm but within safe range. All other sensors normal.'
+    },
+    {
+        query: "zfs pool status",
+        response: '<span class="highlight">ZFS pools across the fleet (2 pools):</span>\n\n  pve-main/rpool: <span class="metric-ok">OK</span> — 44.8% used (52.1 GB free of 94.4 GB), frag 12%\n    Last scrub: 3d ago, 0 errors\n  nas-storage/tank: <span class="metric-ok">OK</span> — <span class="metric-warn">78.1%</span> used (412.3 GB free of 1862.6 GB), frag 8%\n    Last scrub: 7d ago, 0 errors\n\n<span class="metric-warn">Warning:</span> nas-storage/tank at 78.1% capacity'
     }
 ];
 
@@ -1518,6 +1530,6 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 {% if scroll_to %}
-<script>document.addEventListener("DOMContentLoaded",function(){var e=document.getElementById("{{ scroll_to }}");if(e){e.scrollIntoView({behavior:"smooth"});}});</script>
+<script nonce="{{ csp_nonce }}">document.addEventListener("DOMContentLoaded",function(){var e=document.getElementById("{{ scroll_to }}");if(e){e.scrollIntoView({behavior:"smooth"});}});</script>
 {% endif %}
 {% endblock %}
