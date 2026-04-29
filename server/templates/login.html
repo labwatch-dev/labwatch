@@ -154,8 +154,8 @@
     {% endif %}
 
     <div class="login-tabs">
-        <button class="login-tab active" onclick="switchTab('email')" id="tab-email">{{ t.login_tab_email }}</button>
-        <button class="login-tab" onclick="switchTab('token')" id="tab-token">{{ t.login_tab_token }}</button>
+        <button class="login-tab active"" id="tab-email">{{ t.login_tab_email }}</button>
+        <button class="login-tab"" id="tab-token">{{ t.login_tab_token }}</button>
     </div>
 
     <!-- Email + Password Login -->
@@ -207,5 +207,14 @@ function switchTab(tab) {
 // Restore tab from URL param (after error redirect)
 const params = new URLSearchParams(window.location.search);
 if (params.get('tab') === 'token') switchTab('token');
+
+document.addEventListener('click', function(e) {
+    var tab = e.target.closest('.login-tab');
+    if (tab) {
+        var id = tab.id;
+        if (id === 'tab-email') switchTab('email');
+        else if (id === 'tab-token') switchTab('token');
+    }
+});
 </script>
 {% endblock %}
