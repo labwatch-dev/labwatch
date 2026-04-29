@@ -400,13 +400,13 @@
             <h3>Agent Bearer Token</h3>
             <p>Agents authenticate with a Bearer token received during registration. Include it in the <code>Authorization</code> header:</p>
             <div class="code-block">
-                <button class="copy-btn" onclick="copyToClipboard('Authorization: Bearer lw_abc123...')">copy</button>
+                <button class="copy-btn" data-copy="Authorization: Bearer lw_abc123...">copy</button>
 Authorization: Bearer lw_abc123...</div>
 
             <h3>Admin Secret</h3>
             <p>Admin endpoints require the <code>X-Admin-Secret</code> header. This is set during server setup and gives full access to all data and configuration. You can also pass it as a <code>?secret=</code> query parameter on GET endpoints where convenient.</p>
             <div class="code-block">
-                <button class="copy-btn" onclick="copyToClipboard('X-Admin-Secret: your-secret-here')">copy</button>
+                <button class="copy-btn" data-copy="X-Admin-Secret: your-secret-here">copy</button>
 X-Admin-Secret: your-secret-here</div>
 
             <h3>Session Cookie</h3>
@@ -423,7 +423,7 @@ X-Admin-Secret: your-secret-here</div>
 
             <h3>1. Sign up for a free account</h3>
             <div class="code-block">
-                <button class="copy-btn" onclick="copyToClipboard(this.parentElement.querySelector('code').textContent)">copy</button>
+                <button class="copy-btn" data-copy-code="true">copy</button>
 <code>curl -X POST {{ base_url }}/api/v1/signup \
   -H 'Content-Type: application/json' \
   -d '{"email": "you@example.com", "hostname": "my-server"}'</code></div>
@@ -448,7 +448,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Signup</h2>
 
             <div class="endpoint" id="ep-signup">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-post">POST</span>
                     <span class="endpoint-path">/api/v1/signup</span>
                     <span class="endpoint-desc">Self-service account creation</span>
@@ -525,7 +525,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Register Agent</h2>
 
             <div class="endpoint" id="ep-register">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-post">POST</span>
                     <span class="endpoint-path">/api/v1/register</span>
                     <span class="endpoint-desc">Register a new monitoring agent</span>
@@ -585,7 +585,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Ingest Metrics</h2>
 
             <div class="endpoint" id="ep-ingest">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-post">POST</span>
                     <span class="endpoint-path">/api/v1/ingest</span>
                     <span class="endpoint-desc">Submit metrics from an agent</span>
@@ -680,7 +680,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Agent Status</h2>
 
             <div class="endpoint" id="ep-status">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/status/{lab_id}</span>
                     <span class="endpoint-desc">Get current node status</span>
@@ -716,7 +716,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>List Labs</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/labs</span>
                     <span class="endpoint-desc">List all monitored nodes</span>
@@ -744,7 +744,7 @@ X-Admin-Secret: your-secret-here</div>
             </div>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/labs</span>
                     <span class="endpoint-desc">List labs with full agent metadata</span>
@@ -782,7 +782,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Admin Dashboard</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/dashboard</span>
                     <span class="endpoint-desc">Fleet-wide summary snapshot</span>
@@ -819,7 +819,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Uptime Timeline</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/widgets/uptime</span>
                     <span class="endpoint-desc">Per-lab uptime segments</span>
@@ -856,7 +856,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Alert Feed</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/widgets/alerts</span>
                     <span class="endpoint-desc">Recent alerts across the fleet</span>
@@ -894,7 +894,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Metric Sparkline</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/widgets/sparkline/{lab_id}/{metric}</span>
                     <span class="endpoint-desc">Short-window time series</span>
@@ -939,7 +939,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Lab History</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/labs/{lab_id}/history</span>
                     <span class="endpoint-desc">Time-series metrics data</span>
@@ -989,7 +989,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Export Data</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/lab/{lab_id}/export</span>
                     <span class="endpoint-desc">Export all lab data as JSON</span>
@@ -1010,7 +1010,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Prometheus Export</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/metrics</span>
                     <span class="endpoint-desc">Prometheus exposition format</span>
@@ -1041,7 +1041,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Delete Lab</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-delete">DELETE</span>
                     <span class="endpoint-path">/api/v1/admin/lab/{lab_id}</span>
                     <span class="endpoint-desc">Remove a monitored node</span>
@@ -1065,7 +1065,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Natural Language Query</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-post">POST</span>
                     <span class="endpoint-path">/api/v1/query</span>
                     <span class="endpoint-desc">Ask questions in plain English</span>
@@ -1117,7 +1117,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Lab Digest</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-post">POST</span>
                     <span class="endpoint-path">/api/v1/admin/digest/{lab_id}</span>
                     <span class="endpoint-desc">Generate a health digest for a node</span>
@@ -1157,7 +1157,7 @@ X-Admin-Secret: your-secret-here</div>
             </div>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/digest/{lab_id}</span>
                     <span class="endpoint-desc">Retrieve stored digest</span>
@@ -1175,7 +1175,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Fleet Digest</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-post">POST</span>
                     <span class="endpoint-path">/api/v1/admin/digest</span>
                     <span class="endpoint-desc">Generate fleet-wide intelligence briefing</span>
@@ -1205,7 +1205,7 @@ X-Admin-Secret: your-secret-here</div>
             <p style="color: #e67e22; margin-bottom: 1rem;">These endpoints are on the roadmap for v1.1.</p>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/nlq/stats</span>
                     <span class="endpoint-desc">Intent hit counts + fallback rate <em>(roadmap)</em></span>
@@ -1240,7 +1240,7 @@ X-Admin-Secret: your-secret-here</div>
             </div>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/nlq/misses</span>
                     <span class="endpoint-desc">Recent unmatched queries <em>(roadmap)</em></span>
@@ -1278,7 +1278,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>List Notification Channels</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/admin/notifications</span>
                     <span class="endpoint-desc">List all notification channels</span>
@@ -1308,7 +1308,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Create Notification Channel</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-post">POST</span>
                     <span class="endpoint-path">/api/v1/admin/notifications</span>
                     <span class="endpoint-desc">Create a new notification channel</span>
@@ -1366,7 +1366,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Update Notification Channel</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-put">PUT</span>
                     <span class="endpoint-path">/api/v1/admin/notifications/{channel_id}</span>
                     <span class="endpoint-desc">Update channel configuration</span>
@@ -1383,7 +1383,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Delete Notification Channel</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-delete">DELETE</span>
                     <span class="endpoint-path">/api/v1/admin/notifications/{channel_id}</span>
                     <span class="endpoint-desc">Remove a notification channel</span>
@@ -1400,7 +1400,7 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Test Notification Channel</h2>
 
             <div class="endpoint">
-                <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                <div class="endpoint-header"">
                     <span class="endpoint-method method-post">POST</span>
                     <span class="endpoint-path">/api/v1/admin/notifications/{channel_id}/test</span>
                     <span class="endpoint-desc">Send a test notification</span>
@@ -1487,4 +1487,25 @@ X-Admin-Secret: your-secret-here</div>
 
     </div>
 </div>
+
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('click', function(e) {
+    var header = e.target.closest('.endpoint-header');
+    if (header) {
+        header.parentElement.classList.toggle('open');
+        return;
+    }
+    var copyBtn = e.target.closest('[data-copy]');
+    if (copyBtn) {
+        copyToClipboard(copyBtn.getAttribute('data-copy'));
+        return;
+    }
+    var codeBtn = e.target.closest('[data-copy-code]');
+    if (codeBtn) {
+        var code = codeBtn.parentElement.querySelector('code');
+        if (code) copyToClipboard(code.textContent);
+        return;
+    }
+});
+</script>
 {% endblock %}
