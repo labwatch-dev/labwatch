@@ -3,6 +3,33 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block extra_styles %}
+/* Skeleton loading */
+@keyframes skeleton-shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+.skeleton-line {
+    height: 12px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border) 25%, color-mix(in srgb, var(--border) 60%, var(--bg)) 50%, var(--border) 75%);
+    background-size: 200px 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    margin-bottom: 8px;
+}
+.skeleton-line:last-child { margin-bottom: 0; }
+.skeleton-line.w60 { width: 60%; }
+.skeleton-line.w80 { width: 80%; }
+.skeleton-line.w40 { width: 40%; }
+.skeleton-bar {
+    height: 24px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border) 25%, color-mix(in srgb, var(--border) 60%, var(--bg)) 50%, var(--border) 75%);
+    background-size: 200px 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    margin-bottom: 6px;
+}
+.skeleton-bar:last-child { margin-bottom: 0; }
+
 /* Dashboard header */
 .dash-header {
     display: flex;
@@ -1420,12 +1447,12 @@ body.edit-mode .widget-block.drop-after {
                 <button type="button" class="win-btn" data-hours="720">30d</button>
             </div>
         </div>
-        <div id="uptime-content"><span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span></div>
+        <div id="uptime-content"><div class="skeleton-bar" style="width:100%"></div><div class="skeleton-bar" style="width:100%"></div><div class="skeleton-bar" style="width:80%"></div></div>
     </div>
     <div class="widget widget-block" id="widget-alerts" data-widget="alerts" data-widget-label="alerts">
         <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="widget-title">{{ t.dashboard_widget_alerts }}</div>
-        <div class="alert-feed" id="alert-feed-content"><span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span></div>
+        <div class="alert-feed" id="alert-feed-content"><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w80"></div></div>
     </div>
     {# Top alerts rollup: shows the top 5 labs with the most active alerts #}
     {% set noisy_labs = [] %}
@@ -1511,7 +1538,7 @@ body.edit-mode .widget-block.drop-after {
         <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="widget-title">Recent Errors</div>
         <div class="error-log-list" id="error-log-content">
-            <span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span>
+            <div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div>
         </div>
     </div>
 
@@ -1547,7 +1574,7 @@ body.edit-mode .widget-block.drop-after {
         <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="widget-title">intelligence digest</div>
         <div class="digest-cards" id="digest-cards">
-            <span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading digests...</span>
+            <div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w80"></div><div class="skeleton-line w40"></div>
         </div>
     </div>
 
@@ -2409,7 +2436,7 @@ function dismissSuggestions() {
     }
 
     function loadUptime() {
-        if (uptimeEl) uptimeEl.innerHTML = '<span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span>';
+        if (uptimeEl) uptimeEl.innerHTML = '<div class="skeleton-bar" style="width:100%"></div><div class="skeleton-bar" style="width:100%"></div><div class="skeleton-bar" style="width:80%"></div>';
         fetch('/api/v1/widgets/uptime?hours=' + _uptimeHours, {
             headers: {% if user_email %}{}{% else %}{'x-admin-secret': {{ secret | tojson }}}{% endif %}
         })
