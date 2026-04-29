@@ -632,6 +632,8 @@ X-Admin-Secret: your-secret-here</div>
                         <tr><td class="param-name">docker</td><td>Container list with health, restarts, CPU/memory per container</td></tr>
                         <tr><td class="param-name">services</td><td>HTTP/TCP health check results with response times</td></tr>
                         <tr><td class="param-name">gpu</td><td>GPU utilization, memory, temperature per device</td></tr>
+                        <tr><td class="param-name">smart</td><td>S.M.A.R.T. disk health, temperature, reallocated sectors, power-on hours</td></tr>
+                        <tr><td class="param-name">zfs</td><td>ZFS pool health, capacity, fragmentation, scrub status, error counts</td></tr>
                     </table>
 
                     <h4>Example</h4>
@@ -1090,6 +1092,7 @@ X-Admin-Secret: your-secret-here</div>
 "Is caddy running?"
 "Which server uses the most CPU?"
 "Am I running out of disk?"
+"How are my ZFS pools?"
 "What happened last night?"</code></div>
 
                     <h4>Example</h4>
