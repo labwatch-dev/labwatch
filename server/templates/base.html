@@ -23,7 +23,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%23f0a030'/></svg>">
     <link rel="canonical" href="https://labwatch.dev{{ request.url.path }}">
     <title>{% block title %}labwatch{% endblock %} — homelab intelligence</title>
-    <style>
+    <style nonce="{{ csp_nonce }}">
         :root, [data-theme="dark"] {
             --bg: #0a0a0f;
             --surface: #12121a;
@@ -897,7 +897,7 @@
 
         {% block extra_styles %}{% endblock %}
     </style>
-<script defer src="https://labwatch.dev/script.js" data-website-id="cab5253a-aecc-4a16-bdab-e2bb14d48911"></script>
+<script defer src="https://labwatch.dev/script.js" data-website-id="cab5253a-aecc-4a16-bdab-e2bb14d48911" nonce="{{ csp_nonce }}"></script>
 </head>
 <body>
     <nav>
@@ -1021,7 +1021,7 @@
 
     <div class="toast" id="toast"></div>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         // --- Personalization ---
         function getCookie(name) {
             var m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
@@ -1164,7 +1164,7 @@
         });
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         // Time ago utility
         function timeAgo(dateStr) {
             if (!dateStr) return 'never';
