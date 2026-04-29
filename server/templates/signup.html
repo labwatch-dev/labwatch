@@ -362,7 +362,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 async function handleSignup(e) {
     e.preventDefault();
 
