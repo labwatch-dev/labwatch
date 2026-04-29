@@ -1737,6 +1737,22 @@ def lab_status(lab_id: str, lab: dict = Depends(_require_agent_auth)):
 
 
 
+
+
+@app.get("/api/v1/dashboard/errors")
+def dashboard_recent_errors(request: Request, limit: int = 10):
+    """Recent error logs across all labs for the dashboard widget."""
+    email = _get_session_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Not logged in")
+    # Filter to only labs this user owns
+    user_labs = db.get_labs_for_email(email)
+    user_lab_ids = {lab["id"] for lab in user_labs}
+    all_errors = db.get_recent_error_logs(limit=max(1, min(limit, 50)))
+    filtered = [e for e in all_errors if e["lab_id"] in user_lab_ids]
+    return {"errors": filtered}
+
+
 # ---------------------------------------------------------------------------
 # Log collection endpoints
 # ---------------------------------------------------------------------------
