@@ -12,7 +12,7 @@ Know what's happening across every node in your homelab — without Grafana, wit
 
 ## What it does
 
-labwatch collects system metrics, Docker container status, service health, GPU stats, S.M.A.R.T. disk data, and ZFS pool health from every node in your homelab. It stores everything in SQLite, runs rule-based analysis, and generates plain-English intelligence digests about your infrastructure.
+labwatch collects system metrics, Docker container status, service health, GPU stats, S.M.A.R.T. disk data, ZFS pool health, and centralized logs from every node in your homelab. It stores everything in SQLite, runs rule-based analysis, and generates plain-English intelligence digests about your infrastructure.
 
 **Features:**
 - **System metrics** — CPU, memory, disk, load average, network, uptime with inline sparklines
@@ -21,6 +21,7 @@ labwatch collects system metrics, Docker container status, service health, GPU s
 - **GPU monitoring** — NVIDIA GPU stats via nvidia-smi
 - **S.M.A.R.T. monitoring** — disk health, temperature, reallocated sectors, power-on hours
 - **ZFS monitoring** — pool health, capacity, fragmentation, scrub status, error counts
+- **Centralized logs** — journald + Docker container logs shipped to server, level/source filters, full-text search, tier-based retention
 - **Smart alerts** — deduplication, auto-resolution, severity levels (warning/critical)
 - **Push notifications** — 8 channels: webhook, ntfy, Telegram, Discord, Slack, Gotify, Pushover, Apprise
 - **Intelligence digests** — narrative health reports with grades (A through C)
@@ -268,6 +269,9 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 | `/api/v1/my/lab/{id}/export.csv` | GET | User | Export own metrics as CSV |
 | `/api/v1/my/pin/{id}` | POST/DELETE | User | Pin/unpin nodes |
 | `/api/v1/my/thresholds/{id}` | GET/PUT/DELETE | User | Custom alert thresholds |
+| `/api/v1/lab/{id}/logs` | POST | Bearer | Submit log entries (agent) |
+| `/my/lab/{id}/logs` | GET | User | View node logs with filters |
+| `/my/lab/{id}/logs/search` | GET | User | Full-text log search |
 
 **Admin auth**: `X-Admin-Secret` header | **Bearer auth**: `Authorization: Bearer <token>` (from registration) | **User auth**: session cookie
 
@@ -290,6 +294,7 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 | GPU monitoring | Built-in (NVIDIA) | Separate exporter | No | No | Plugin |
 | S.M.A.R.T. health | Built-in | Separate exporter | No | No | Plugin |
 | ZFS pool health | Built-in | Separate exporter | No | Partial | No |
+| Centralized logs | Built-in (SQLite) | Loki/Elasticsearch | No | No | No |
 | Alert deduplication | Built-in | Alertmanager needed | Built-in | No | Built-in |
 | Database | SQLite (zero config) | TSDB + Postgres | SQLite | SQLite | Custom DB |
 | Config format | YAML (simple) | YAML (complex) | Web UI | Web UI | Auto |
@@ -308,7 +313,7 @@ labwatch is not a Prometheus replacement for production infrastructure. It's bui
 - [x] S.M.A.R.T. disk health monitoring
 - [x] ZFS pool health monitoring
 - [ ] More notification channels
-- [x] Log collection (journald + Docker, server + agent) (syslog/journald)
+- [x] Centralized log collection (journald + Docker, level filters, full-text search, tier-based retention)
 - [ ] Mobile-friendly PWA wrapper
 
 See [open issues](https://github.com/labwatch-dev/labwatch/issues) for feature requests.
