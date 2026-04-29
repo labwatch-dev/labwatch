@@ -1178,6 +1178,19 @@ body.edit-mode .widget-block.drop-after {
     background: color-mix(in srgb, var(--red) 12%, transparent);
 }
 
+/* Recent Error Logs widget */
+.error-log-list { max-height: 300px; overflow-y: auto; }
+.error-log-item {
+    display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border);
+    font-size: 12px; line-height: 1.5; align-items: flex-start;
+}
+.error-log-item:last-child { border-bottom: none; }
+.error-log-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; margin-top: 4px; }
+.error-log-body { flex: 1; min-width: 0; }
+.error-log-msg { color: var(--text); font-family: var(--font-mono); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.error-log-meta { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
+
+
 /* Disk pressure widget */
 .disk-pressure-list {
     display: flex;
@@ -1491,6 +1504,16 @@ body.edit-mode .widget-block.drop-after {
         </div>
     </div>
     {% endif %}
+
+
+    {# Recent error logs across all nodes #}
+    <div class="widget widget-block" id="widget-error-logs" data-widget="error_logs" data-widget-label="error logs">
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
+        <div class="widget-title">Recent Errors</div>
+        <div class="error-log-list" id="error-log-content">
+            <span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span>
+        </div>
+    </div>
 
     <!-- Query Bar -->
     <div class="query-section widget-block" id="query-section" data-widget="query" data-widget-label="query">
@@ -3059,5 +3082,43 @@ function dismissSuggestions() {
             return;
         }
     });
-</script>
+
+    // Recent error logs widget
+    (function() {
+        var errorEl = document.getElementById('error-log-content');
+        if (!errorEl) return;
+
+        function fetchErrors() {
+            fetch('/api/v1/dashboard/errors?limit=10')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var errors = data.errors || [];
+                    if (!errors.length) {
+                        errorEl.innerHTML = '<span class="alert-feed-empty">no recent errors</span>';
+                        return;
+                    }
+                    var html = '';
+                    for (var i = 0; i < errors.length; i++) {
+                        var e = errors[i];
+                        var ts = (e.ts || '').replace('T',' ').substring(0,19);
+                        var src = e.source || '';
+                        var host = e.hostname || '';
+                        html += '<div class="error-log-item">'
+                            + '<div class="error-log-dot"></div>'
+                            + '<div class="error-log-body">'
+                            + '<div class="error-log-msg">' + escapeHtml(e.message || '') + '</div>'
+                            + '<div class="error-log-meta">' + escapeHtml(host) + ' · ' + escapeHtml(src) + ' · ' + ts + '</div>'
+                            + '</div></div>';
+                    }
+                    errorEl.innerHTML = html;
+                })
+                .catch(function() {
+                    errorEl.innerHTML = '<span class="alert-feed-empty">failed to load</span>';
+                });
+        }
+        fetchErrors();
+        setInterval(fetchErrors, 30000);
+    })();
+
+    </script>
 {% endblock %}
