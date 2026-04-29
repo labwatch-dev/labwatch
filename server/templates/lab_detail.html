@@ -1172,8 +1172,8 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous" nonce="{{ csp_nonce }}"></script>
+<script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function() {
     fetch({% if is_demo %}'/demo/lab/{{ lab.id }}/history'{% elif user_email %}'/my/lab/{{ lab.id }}/history'{% else %}'/api/v1/labs/{{ lab.id }}/history?secret=' + encodeURIComponent({{ secret | tojson }}){% endif %})
         .then(function(r) { return r.json(); })
@@ -1328,7 +1328,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(function(err) { console.error('Failed to load chart data:', err); });
 });
 </script>
-<script>
+<script nonce="{{ csp_nonce }}">
     // Toggle API token visibility
     function toggleToken() {
         var masked = document.getElementById('api-token-masked');
