@@ -720,6 +720,18 @@ def prometheus_metrics(
         "# TYPE labwatch_alerts_active gauge",
         "# HELP labwatch_node_online Whether the node is online (1) or offline (0).",
         "# TYPE labwatch_node_online gauge",
+        "# HELP labwatch_gpu_utilization_percent GPU utilization percentage.",
+        "# TYPE labwatch_gpu_utilization_percent gauge",
+        "# HELP labwatch_gpu_temperature_celsius GPU temperature in Celsius.",
+        "# TYPE labwatch_gpu_temperature_celsius gauge",
+        "# HELP labwatch_smart_healthy Whether the disk is healthy (1) or failing (0).",
+        "# TYPE labwatch_smart_healthy gauge",
+        "# HELP labwatch_smart_temperature_celsius Disk temperature in Celsius.",
+        "# TYPE labwatch_smart_temperature_celsius gauge",
+        "# HELP labwatch_zfs_pool_used_percent ZFS pool usage percentage.",
+        "# TYPE labwatch_zfs_pool_used_percent gauge",
+        "# HELP labwatch_zfs_pool_healthy Whether the ZFS pool is healthy (1) or degraded (0).",
+        "# TYPE labwatch_zfs_pool_healthy gauge",
     ]
 
     for lab in labs:
@@ -750,6 +762,37 @@ def prometheus_metrics(
         # Active alerts
         alerts = db.get_active_alerts(lab_id)
         lines.append(f"labwatch_alerts_active{{{labels}}} {len(alerts)}")
+
+        # GPU metrics
+        gpu_entry = metrics.get("gpu", {})
+        gpu_data = gpu_entry.get("data", {}) if isinstance(gpu_entry, dict) else {}
+        for gpu in gpu_data.get("gpus", []):
+            gpu_id = gpu.get("index", 0)
+            gl = f'{labels},gpu="{gpu_id}"'
+            if "utilization" in gpu:
+                lines.append(f"labwatch_gpu_utilization_percent{{{gl}}} {gpu['utilization']}")
+            if "temperature" in gpu:
+                lines.append(f"labwatch_gpu_temperature_celsius{{{gl}}} {gpu['temperature']}")
+
+        # S.M.A.R.T. disk health
+        smart_entry = metrics.get("smart", {})
+        smart_data = smart_entry.get("data", smart_entry) if isinstance(smart_entry, dict) else {}
+        for disk in smart_data.get("devices", []):
+            dev = disk.get("device", "unknown").replace('"', '')
+            dl = f'{labels},device="{dev}"'
+            lines.append(f"labwatch_smart_healthy{{{dl}}} {1 if disk.get('healthy', True) else 0}")
+            if disk.get("temperature_c"):
+                lines.append(f"labwatch_smart_temperature_celsius{{{dl}}} {disk['temperature_c']}")
+
+        # ZFS pool health
+        zfs_entry = metrics.get("zfs", {})
+        zfs_data = zfs_entry.get("data", {}) if isinstance(zfs_entry, dict) else {}
+        for pool in zfs_data.get("pools", []):
+            pn = pool.get("name", "unknown").replace('"', '')
+            pl = f'{labels},pool="{pn}"'
+            lines.append(f"labwatch_zfs_pool_used_percent{{{pl}}} {pool.get('used_percent', 0):.1f}")
+            healthy = 1 if pool.get("health", "").upper() == "ONLINE" else 0
+            lines.append(f"labwatch_zfs_pool_healthy{{{pl}}} {healthy}")
 
     lines.append("")  # trailing newline
     return PlainTextResponse("\n".join(lines), media_type="text/plain; version=0.0.4; charset=utf-8")
