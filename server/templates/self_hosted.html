@@ -526,7 +526,7 @@ docker compose up -d --build</div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(function() {
         // no-op; the button shows a subtle visual via :hover
