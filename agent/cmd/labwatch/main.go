@@ -22,14 +22,16 @@ import (
 )
 
 var (
-	version   = "0.2.4"
+	version   = "0.2.5"
 	buildDate = "dev"
 )
 
 func main() {
 	configPath := flag.String("config", "/etc/labwatch/config.yaml", "Path to config file")
 	showVersion := flag.Bool("version", false, "Show version and exit")
-	register := flag.Bool("register", false, "Register this agent with the API")
+	register := flag.Bool("register", false, "Register this agent and write config")
+	server := flag.String("server", "", "Server API URL for registration (e.g., http://myserver:8097/api/v1)")
+	secret := flag.String("secret", "", "Admin secret for registration")
 	flag.Parse()
 
 	if *showVersion {
@@ -37,13 +39,19 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Load config
+	// Load config (defaults used if file doesn't exist yet)
 	cfg, err := config.Load(*configPath)
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	log.Printf("labwatch v%s starting (interval: %s)", version, cfg.Interval)
+	// CLI flags override config values for registration
+	if *server != "" {
+		cfg.APIEndpoint = *server
+	}
+	if *secret != "" {
+		cfg.AdminSecret = *secret
+	}
 
 	// Create transport
 	sender, err := transport.New(cfg, version)
@@ -53,12 +61,42 @@ func main() {
 
 	// Register if requested
 	if *register {
-		if err := sender.Register(); err != nil {
+		if cfg.APIEndpoint == "" || cfg.APIEndpoint == "https://labwatch.dev/api/v1" {
+			if *server == "" {
+				log.Fatal("Registration requires --server flag (e.g., --server http://myserver:8097/api/v1)")
+			}
+		}
+		if cfg.AdminSecret == "" {
+			log.Fatal("Registration requires --secret flag (your ADMIN_SECRET)")
+		}
+
+		result, err := sender.Register()
+		if err != nil {
 			log.Fatalf("Registration failed: %v", err)
 		}
-		log.Println("Agent registered successfully")
+
+		// Apply credentials to config
+		cfg.Token = result.Token
+		cfg.LabID = result.LabID
+		cfg.AdminSecret = "" // Don't persist admin secret in config
+
+		if err := config.Write(*configPath, cfg); err != nil {
+			log.Fatalf("Failed to write config: %v", err)
+		}
+
+		fmt.Printf("Registered successfully!\n")
+		fmt.Printf("  Lab ID: %s\n", result.LabID)
+		fmt.Printf("  Config: %s\n", *configPath)
+		fmt.Printf("\nStart the agent:\n")
+		fmt.Printf("  sudo systemctl enable --now labwatch\n")
 		os.Exit(0)
 	}
+
+	if cfg.Token == "" {
+		log.Fatal("No token configured. Run: labwatch --register --server http://YOUR_SERVER:8097/api/v1 --secret YOUR_ADMIN_SECRET")
+	}
+
+	log.Printf("labwatch v%s starting (interval: %s)", version, cfg.Interval)
 
 	// Create collectors
 	collectors := []collector.Collector{
