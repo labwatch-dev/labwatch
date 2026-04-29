@@ -223,7 +223,7 @@
         <h2>{{ t.notif_add_channel if t and t.notif_add_channel else "+ Add channel" }}</h2>
         <p class="hint">{{ t.notif_add_hint if t and t.notif_add_hint else "Pick a provider, fill in the details, click Save & test." }}</p>
 
-        <form class="add-form" id="add-form" onsubmit="return false;">
+        <form class="add-form" id="add-form">
             <div class="field-row">
                 <div>
                     <label for="nc-name">{{ t.notif_name if t and t.notif_name else "Name" }}</label>
@@ -231,7 +231,7 @@
                 </div>
                 <div>
                     <label for="nc-type">{{ t.notif_provider if t and t.notif_provider else "Provider" }}</label>
-                    <select id="nc-type" onchange="renderConfigFields()">
+                    <select id="nc-type" data-onchange="renderConfigFields">
                         <option value="ntfy">ntfy</option>
                         <option value="discord">Discord</option>
                         <option value="slack">Slack</option>
@@ -258,8 +258,8 @@
             </div>
 
             <div class="btn-row">
-                <button type="button" class="btn-primary" onclick="saveChannel()">{{ t.notif_save if t and t.notif_save else "Save channel" }}</button>
-                <button type="button" onclick="testInline()">{{ t.notif_test if t and t.notif_test else "Test without saving" }}</button>
+                <button type="button" class="btn-primary" data-click="saveChannel">{{ t.notif_save if t and t.notif_save else "Save channel" }}</button>
+                <button type="button" data-click="testInline">{{ t.notif_test if t and t.notif_test else "Test without saving" }}</button>
             </div>
 
             <div class="result-line" id="add-result"></div>
@@ -440,5 +440,18 @@ async function loadChannels() {
 
 renderConfigFields();
 loadChannels();
+
+    // === CSP Event Delegation (notifications.html) ===
+    document.getElementById('add-form').addEventListener('submit', function(e) { e.preventDefault(); });
+    var ncType = document.querySelector('[data-onchange="renderConfigFields"]');
+    if (ncType) ncType.addEventListener('change', renderConfigFields);
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-click]');
+        if (btn) {
+            var fn = btn.getAttribute('data-click');
+            if (fn === 'saveChannel') saveChannel();
+            else if (fn === 'testInline') testInline();
+        }
+    });
 </script>
 {% endblock %}
