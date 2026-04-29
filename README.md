@@ -223,7 +223,7 @@ scrape_configs:
     scheme: http
 ```
 
-Exported metrics: `labwatch_cpu_percent`, `labwatch_memory_percent`, `labwatch_disk_percent`, `labwatch_uptime_seconds`, `labwatch_containers_total`, `labwatch_containers_running`, `labwatch_alerts_active`, `labwatch_node_online`. All labeled with `lab_id` and `hostname`.
+Exported metrics: `labwatch_cpu_percent`, `labwatch_memory_percent`, `labwatch_disk_percent`, `labwatch_uptime_seconds`, `labwatch_containers_total`, `labwatch_containers_running`, `labwatch_alerts_active`, `labwatch_node_online`, `labwatch_gpu_utilization_percent`, `labwatch_gpu_temperature_celsius`, `labwatch_smart_healthy`, `labwatch_smart_temperature_celsius`, `labwatch_zfs_pool_used_percent`, `labwatch_zfs_pool_healthy`. All labeled with `lab_id` and `hostname` (GPU, S.M.A.R.T., and ZFS metrics include additional `gpu`, `device`, or `pool` labels).
 
 ## Alert rules
 
