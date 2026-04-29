@@ -262,6 +262,10 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 | `/api/v1/admin/digest` | POST | Admin | Fleet digest |
 | `/api/v1/admin/notifications` | GET/POST | Admin | Notification channels |
 | `/api/v1/metrics` | GET | Admin | Prometheus exposition format |
+| `/api/v1/admin/lab/{id}/export` | GET | Admin | Export metrics as JSON |
+| `/api/v1/admin/lab/{id}/export.csv` | GET | Admin | Export metrics as CSV |
+| `/api/v1/my/lab/{id}/export` | GET | User | Export own metrics as JSON |
+| `/api/v1/my/lab/{id}/export.csv` | GET | User | Export own metrics as CSV |
 | `/api/v1/my/pin/{id}` | POST/DELETE | User | Pin/unpin nodes |
 | `/api/v1/my/thresholds/{id}` | GET/PUT/DELETE | User | Custom alert thresholds |
 
@@ -299,7 +303,7 @@ labwatch is not a Prometheus replacement for production infrastructure. It's bui
 
 - [ ] Nonce-based CSP (replacing unsafe-inline)
 - [x] Agent retry with exponential backoff
-- [ ] CSV/JSON data export
+- [x] CSV/JSON data export
 - [ ] Schema version tracking for smoother upgrades
 - [x] S.M.A.R.T. disk health monitoring
 - [x] ZFS pool health monitoring
