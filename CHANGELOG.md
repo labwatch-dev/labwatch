@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [0.2.5] — 2026-04-29
 
 ### Added
-- \`--register\` flag auto-writes config file with token and lab ID (no manual editing)
-- \`--server\` and \`--secret\` CLI flags for zero-config registration
+- `--register` flag auto-writes config file with token and lab ID (no manual editing)
+- `--server` and `--secret` CLI flags for zero-config registration
 - Helpful error messages when token/server/secret are missing
 - Agent retry with exponential backoff and jitter (3 retries, 2s/4s/8s)
 
 ### Changed
-- Registration flow is now a single command: \`labwatch --register --server URL --secret SECRET\`
+- Registration flow is now a single command: `labwatch --register --server URL --secret SECRET`
 - Admin secret is not persisted in config file after registration
 - Agent version bumped to 0.2.5
 
