@@ -57,6 +57,12 @@ RETENTION_HOURS: int = int(os.getenv("RETENTION_HOURS", "168"))
 #   node_cap:        max registered nodes per email (None = unlimited)
 #   retention_hours: metric history window enforced by the periodic purge
 DEFAULT_PLAN: str = "free"
+LOG_TIER_LIMITS: dict[str, int] = {
+    "free": 24,       # 24h log retention
+    "pro": 168,       # 7 days
+    "business": 720,  # 30 days
+}
+
 TIER_LIMITS: dict[str, dict] = {
     "free":     {"node_cap": 3,    "retention_hours": 30 * 24},
     "pro":      {"node_cap": None, "retention_hours": 365 * 24},
