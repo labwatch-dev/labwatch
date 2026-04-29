@@ -1350,8 +1350,11 @@ body.edit-mode .widget-block.drop-after {
 
 {% block content %}
 {% if is_demo %}
-<div style="background: var(--accent-glow); border-bottom: 1px solid var(--accent); padding: 10px 24px; text-align: center; font-size: 14px; color: var(--accent);">
-    {{ t.dashboard_demo_banner }} <a href="/#install" style="color: var(--text); text-decoration: underline;">{{ t.dashboard_demo_install }}</a>
+<div style="background: var(--accent-glow); border-bottom: 1px solid var(--accent); padding: 12px 24px; text-align: center; font-size: 14px; color: var(--text-dim);">
+    <strong style="color: var(--accent);">{{ t.dashboard_demo_banner }}</strong>
+    <span style="margin: 0 6px;">&mdash;</span>
+    Monitor every node in your homelab from one dashboard. Ask questions in plain English, get intelligence digests, and never miss an alert.
+    <a href="/#install" style="color: var(--accent); text-decoration: underline; margin-left: 8px;">{{ t.dashboard_demo_install }}</a>
 </div>
 {% endif %}
 <div class="container">
