@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.4] — 2026-04-29
+
+### Added
+- ZFS pool health monitoring (capacity, fragmentation, scrub status, error counts)
+- S.M.A.R.T. disk health monitoring (temperature, reallocated sectors, power-on hours)
+- ZFS natural language query handler ("How are my ZFS pools?", "ZFS pool status")
+- ZFS demo chip on dashboard for interactive demo
+- ZFS row in landing page comparison table
+- ZFS carousel slide on landing page
+- ZFS and S.M.A.R.T. collector types documented in API docs
+- Pre-built agent binary for linux/armv7
+
+### Fixed
+- Signup API returned hardcoded `BASE_URL` (broken `labwatch.dev`) in install commands — now derives from request Host header
+- Add-node API had the same `BASE_URL` issue
+- Stripe checkout success/cancel URLs used hardcoded `BASE_URL` — now request-derived
+- NLQ handler routing: ZFS queries incorrectly matched fleet_overview pattern (reordered handlers)
+- Privacy policy and about page now accurately disclose self-hosted Umami analytics
+
 ## [0.2.3] — 2026-04-28
 
 ### Added
