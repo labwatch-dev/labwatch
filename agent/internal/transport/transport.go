@@ -152,3 +152,77 @@ func (s *Sender) Send(ctx context.Context, payload Payload) error {
 
 	return fmt.Errorf("after %d retries: %w", maxRetries, lastErr)
 }
+
+
+// LogEntry is a single log line to ship.
+type LogEntry struct {
+	Timestamp string `json:"ts"`
+	Source    string `json:"source"`
+	Level     string `json:"level"`
+	Message   string `json:"message"`
+	Unit      string `json:"unit,omitempty"`
+}
+
+// LogPayload wraps log entries for the ingest API.
+type LogPayload struct {
+	Entries []LogEntry `json:"entries"`
+}
+
+// SendLogs transmits log entries to the server with retry and backoff.
+func (s *Sender) SendLogs(ctx context.Context, entries []LogEntry) error {
+	if len(entries) == 0 {
+		return nil
+	}
+
+	payload := LogPayload{Entries: entries}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("marshaling log payload: %w", err)
+	}
+
+	url := fmt.Sprintf("%s/lab/%s/logs", s.cfg.APIEndpoint, s.cfg.LabID)
+
+	const maxRetries = 3
+	backoff := 2 * time.Second
+
+	var lastErr error
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backoff + time.Duration(rand.Int63n(int64(backoff/2)))):
+				backoff *= 2
+			}
+		}
+
+		req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
+		if err != nil {
+			return fmt.Errorf("creating request: %w", err)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+s.cfg.Token)
+		req.Header.Set("User-Agent", s.userAgent)
+
+		resp, err := s.client.Do(req)
+		if err != nil {
+			lastErr = fmt.Errorf("sending logs: %w", err)
+			continue
+		}
+
+		respBody, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusAccepted {
+			return nil
+		}
+
+		lastErr = fmt.Errorf("API returned HTTP %d: %s", resp.StatusCode, string(respBody))
+		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+			return lastErr
+		}
+	}
+
+	return fmt.Errorf("after %d retries: %w", maxRetries, lastErr)
+}
