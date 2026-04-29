@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/labwatch-dev/labwatch/internal/config"
+	"github.com/zazastation/labwatch/internal/config"
 )
 
 // Payload is the data sent to the API on each collection interval.
@@ -58,9 +58,7 @@ func (s *Sender) Register() error {
 		return fmt.Errorf("marshaling registration body: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.APIEndpoint+"/register", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", s.cfg.APIEndpoint+"/register", bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
@@ -76,7 +74,7 @@ func (s *Sender) Register() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+		respBody, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("registration failed (HTTP %d): %s", resp.StatusCode, string(respBody))
 	}
 
@@ -95,7 +93,9 @@ func (s *Sender) Register() error {
 	return nil
 }
 
-// Send transmits a payload to the API.
+// Send transmits a payload to the API with retry and exponential backoff.
+// Retries up to 3 times on transient errors (network failures, 5xx responses).
+// Non-retryable errors (4xx) fail immediately.
 func (s *Sender) Send(ctx context.Context, payload Payload) error {
 	payload.LabID = s.cfg.LabID
 	payload.Hostname = s.cfg.Hostname
@@ -105,27 +105,50 @@ func (s *Sender) Send(ctx context.Context, payload Payload) error {
 		return fmt.Errorf("marshaling payload: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.APIEndpoint+"/ingest", bytes.NewReader(body))
-	if err != nil {
-		return fmt.Errorf("creating request: %w", err)
+	const maxRetries = 3
+	backoff := 2 * time.Second
+
+	var lastErr error
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backoff):
+				backoff *= 2 // exponential: 2s, 4s, 8s
+			}
+		}
+
+		req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.APIEndpoint+"/ingest", bytes.NewReader(body))
+		if err != nil {
+			return fmt.Errorf("creating request: %w", err)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+s.cfg.Token)
+		req.Header.Set("User-Agent", s.userAgent)
+
+		resp, err := s.client.Do(req)
+		if err != nil {
+			lastErr = fmt.Errorf("sending metrics: %w", err)
+			continue // retry on network error
+		}
+
+		respBody, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusAccepted {
+			return nil // success
+		}
+
+		lastErr = fmt.Errorf("API returned HTTP %d: %s", resp.StatusCode, string(respBody))
+
+		// Don't retry client errors (4xx) — they won't succeed on retry
+		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+			return lastErr
+		}
+		// Retry on 5xx (server errors)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+s.cfg.Token)
-	req.Header.Set("User-Agent", s.userAgent)
-
-	resp, err := s.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("sending metrics: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
-		respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-		return fmt.Errorf("API returned HTTP %d: %s", resp.StatusCode, string(respBody))
-	}
-
-	// Drain response body to enable connection reuse
-	_, _ = io.Copy(io.Discard, resp.Body)
-	return nil
+	return fmt.Errorf("after %d retries: %w", maxRetries, lastErr)
 }
