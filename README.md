@@ -304,7 +304,7 @@ labwatch is not a Prometheus replacement for production infrastructure. It's bui
 - [ ] Nonce-based CSP (replacing unsafe-inline)
 - [x] Agent retry with exponential backoff
 - [x] CSV/JSON data export
-- [ ] Schema version tracking for smoother upgrades
+- [x] Schema version tracking for smoother upgrades
 - [x] S.M.A.R.T. disk health monitoring
 - [x] ZFS pool health monitoring
 - [ ] More notification channels
