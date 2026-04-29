@@ -401,6 +401,17 @@ def _set_session_cookie(response, email: str):
 # Template context helper
 # ---------------------------------------------------------------------------
 
+def _request_base_url(request: Request) -> str:
+    """Derive base URL from request Host header so install commands work
+    regardless of which domain the visitor used."""
+    import re
+    host = request.headers.get("host", "")
+    if host and re.fullmatch(r'[A-Za-z0-9._:-]+', host):
+        scheme = "https" if request.headers.get("x-forwarded-proto") == "https" or request.url.scheme == "https" else "http"
+        return f"{scheme}://{host}"
+    return config.BASE_URL
+
+
 def _tpl_context(request: Request, **kwargs) -> dict:
     """Build template context with i18n, session, and custom kwargs."""
     lang = detect_language(request)
@@ -412,7 +423,7 @@ def _tpl_context(request: Request, **kwargs) -> dict:
         "languages": SUPPORTED_LANGUAGES,
         "language_names": LANGUAGE_NAMES,
         "user_email": _get_session_email(request),
-        "base_url": config.BASE_URL,
+        "base_url": _request_base_url(request),
         "secret": "",
     }
     ctx.update(kwargs)
@@ -784,7 +795,7 @@ def sitemap_xml():
 
 
 @app.get("/install.sh", response_class=PlainTextResponse)
-def install_script():
+def install_script(request: Request):
     """Serve the install script with BASE_URL pre-configured."""
     # Check local copy first (Docker), then sibling agent dir (dev)
     script_path = Path(__file__).parent / "install.sh"
@@ -793,11 +804,17 @@ def install_script():
     if not script_path.exists():
         raise HTTPException(status_code=404, detail="Install script not found")
     script = script_path.read_text()
-    # Sanitise BASE_URL before inserting into shell script to prevent injection.
+    # Derive URL from the request so the install command works regardless
+    # of which domain the visitor used (labwatch.dev vs duckdns fallback).
     import re
-    safe_url = config.BASE_URL
-    if not re.fullmatch(r'https?://[A-Za-z0-9._:/-]+', safe_url):
-        safe_url = "https://labwatch.dev"
+    host = request.headers.get("host", "")
+    scheme = "https" if request.headers.get("x-forwarded-proto") == "https" or request.url.scheme == "https" else "http"
+    if host and re.fullmatch(r'[A-Za-z0-9._:-]+', host):
+        safe_url = f"{scheme}://{host}"
+    else:
+        safe_url = config.BASE_URL
+        if not re.fullmatch(r'https?://[A-Za-z0-9._:/-]+', safe_url):
+            safe_url = "https://labwatch.dev"
     script = script.replace(
         'BASE_URL="${LABWATCH_URL:-https://labwatch.dev}"',
         f'BASE_URL="${{LABWATCH_URL:-{safe_url}}}"',
@@ -875,12 +892,13 @@ def signup(body: SignupRequest, request: Request):
 
     lab_id, token = db.signup_lab(body.email, hostname, client_ip, body.password)
 
+    base = _request_base_url(request)
     return {
         "lab_id": lab_id,
         "token": token,
-        "install_command": f'curl -fsSL {config.BASE_URL}/install.sh | sudo bash',
+        "install_command": f'curl -fsSL {base}/install.sh | sudo bash',
         "config_snippet": (
-            f"api_endpoint: \"{config.BASE_URL}/api/v1\"\n"
+            f"api_endpoint: \"{base}/api/v1\"\n"
             f"token: \"{token}\"\n"
             f"lab_id: \"{lab_id}\"\n"
             f"interval: 60s\n"
@@ -889,10 +907,10 @@ def signup(body: SignupRequest, request: Request):
             f"  socket: /var/run/docker.sock"
         ),
         "next_steps": [
-            f"Run: curl -fsSL {config.BASE_URL}/install.sh | sudo bash",
+            f"Run: curl -fsSL {base}/install.sh | sudo bash",
             f"Save config to /etc/labwatch/config.yaml",
             "Run: sudo systemctl enable --now labwatch",
-            f"View your dashboard at {config.BASE_URL}/my/dashboard",
+            f"View your dashboard at {base}/my/dashboard",
         ],
     }
 
@@ -1076,7 +1094,7 @@ def add_node_api(request_body: dict, request: Request):
     return {
         "lab_id": lab_id,
         "token": token,
-        "config_snippet": f'api_endpoint: "{config.BASE_URL}/api/v1"\ntoken: "{token}"\nlab_id: "{lab_id}"\ninterval: 60s',
+        "config_snippet": f'api_endpoint: "{_request_base_url(request)}/api/v1"\ntoken: "{token}"\nlab_id: "{lab_id}"\ninterval: 60s',
     }
 
 
@@ -2485,6 +2503,26 @@ _DEMO_RESPONSES = [
             "demo": True,
         },
     },
+    {
+        "patterns": [
+            r"zfs", r"zpool", r"scrub", r"pool\s+(?:status|health)",
+        ],
+        "response": {
+            "answer": (
+                "ZFS pools across the fleet (2 pools):\n"
+                "  pve-main/rpool: OK \u2014 44.8% used (52.1 GB free of 94.4 GB), frag 12%\n"
+                "    Last scrub: 3d ago, 0 errors\n"
+                "  nas-storage/tank: OK \u2014 78.1% used (412.3 GB free of 1862.6 GB), frag 8%\n"
+                "    Last scrub: 7d ago, 0 errors\n"
+                "\n"
+                "Warnings:\n"
+                "  nas-storage/tank at 78.1% capacity"
+            ),
+            "query_type": "zfs",
+            "confidence": 0.95,
+            "demo": True,
+        },
+    },
 ]
 
 # Demo node-specific status responses
@@ -3512,8 +3550,8 @@ def billing_checkout(request_body: dict, request: Request):
             client_reference_id=email,
             metadata={"email": email, "plan": plan},
             subscription_data={"metadata": {"email": email, "plan": plan}},
-            success_url=f"{config.BASE_URL}/billing/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{config.BASE_URL}/billing/cancel",
+            success_url=f"{_request_base_url(request)}/billing/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{_request_base_url(request)}/billing/cancel",
             allow_promotion_codes=True,
         )
     except Exception:
