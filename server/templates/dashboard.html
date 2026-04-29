@@ -1509,6 +1509,7 @@ body.edit-mode .widget-block.drop-after {
             {% if is_demo %}
             <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_disk }}</button>
             <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_night }}</button>
+            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_zfs }}</button>
             {% endif %}
             <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_temp }}</button>
             <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_network }}</button>
@@ -1684,7 +1685,7 @@ body.edit-mode .widget-block.drop-after {
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 function escapeHtml(str) {
     if (!str) return '';
     var div = document.createElement('div');
@@ -1802,7 +1803,7 @@ function dismissSuggestions() {
 })();
 </script>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function() {
     var isDemo = {{ 'true' if is_demo else 'false' }};
     var countdown = 30;
@@ -2302,7 +2303,7 @@ function dismissSuggestions() {
 })();
 </script>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 // --- Widgets ---
 (function() {
     var isDemo = {{ 'true' if is_demo else 'false' }};
@@ -2886,7 +2887,7 @@ function dismissSuggestions() {
     }
 })();
 </script>
-<script>
+<script nonce="{{ csp_nonce }}">
 /* Ember mode toggle — only visible after /ember discovery */
 (function() {
     function initEmberToggle() {
