@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"math/rand"
 	"os"
 	"time"
 
@@ -114,8 +115,8 @@ func (s *Sender) Send(ctx context.Context, payload Payload) error {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case <-time.After(backoff):
-				backoff *= 2 // exponential: 2s, 4s, 8s
+			case <-time.After(backoff + time.Duration(rand.Int63n(int64(backoff/2)))):
+				backoff *= 2 // exponential with jitter: ~2-3s, ~4-6s, ~8-12s
 			}
 		}
 
