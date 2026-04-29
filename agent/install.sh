@@ -88,7 +88,7 @@ if EXPECTED=$(curl -fsSL "$CHECKSUM_URL" 2>/dev/null); then
         error "Checksum mismatch! Expected ${EXPECTED}, got ${ACTUAL}"
         exit 1
     fi
-    ok "Checksum verified"
+    info "Checksum verified"
 else
     warn "Checksum file not available — skipping verification"
 fi

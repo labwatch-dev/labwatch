@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] — 2026-04-28
+
+### Added
+- Pre-built agent binaries for linux/amd64, linux/arm64, and linux/armv7
+- `/download/{binary}.sha256` endpoint computes and serves checksums on the fly
+- `scripts/build-agent.sh` for cross-compiling agent binaries
+
+### Fixed
+- SHA256 checksum route returned 404 due to route ordering (existence check ran before `.sha256` handler)
+- Install script now correctly injects `BASE_URL` from server hostname
+
 ## [0.1.0] — 2026-04-12
 
 ### Added

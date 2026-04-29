@@ -221,6 +221,59 @@ body.edit-mode .edit-save-bar { display: flex; }
 }
 .edit-save-bar button:hover { opacity: 0.85; }
 
+
+/* Intelligence Digest widget */
+.digest-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+.digest-card {
+    background: var(--card-bg, #1a1a2e);
+    border: 1px solid var(--border, #2a2a3e);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.digest-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.digest-grade {
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+.digest-grade-a { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+.digest-grade-b { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.digest-grade-c { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
+.digest-grade-d { background: rgba(244, 67, 54, 0.2); color: #f44336; }
+.digest-grade-f { background: rgba(244, 67, 54, 0.3); color: #f44336; }
+.digest-summary {
+    color: var(--text-muted, #8888aa);
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-line;
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+}
+.digest-summary.expanded { max-height: none; }
+.digest-expand {
+    background: none; border: none; color: var(--accent, #7c6ef0);
+    cursor: pointer; font-size: 11px; padding: 4px 0; margin-top: 4px;
+}
+.digest-expand:hover { text-decoration: underline; }
+
 /* Labs grid */
 .labs-grid {
     display: grid;
@@ -1464,6 +1517,16 @@ body.edit-mode .widget-block.drop-after {
         <div id="query-response" class="query-response"></div>
     </div>
 
+
+    <!-- Intelligence Digest -->
+    <div class="widget widget-block" id="widget-digest" data-widget="digest" data-widget-label="intelligence digest">
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-title">intelligence digest</div>
+        <div class="digest-cards" id="digest-cards">
+            <span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading digests...</span>
+        </div>
+    </div>
+
     {% if labs %}
     <div class="labs-grid-wrap widget-block" data-widget="lab_grid" data-widget-label="labs">
     <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
@@ -2420,10 +2483,10 @@ function dismissSuggestions() {
  *   - Save persists order + visibility
  */
 (function() {
-    var ALL_WIDGETS = ['fleet_summary', 'uptime', 'alerts', 'alert_rollup', 'disk_pressure', 'container_restarts', 'query', 'lab_grid'];
+    var ALL_WIDGETS = ['fleet_summary', 'uptime', 'alerts', 'alert_rollup', 'disk_pressure', 'container_restarts', 'query', 'digest', 'lab_grid'];
     // Minimal base: shown to new users. Everything else is opt-in via the add-widget picker.
     // Rationale: demo/first-time users need signal, not noise. Fleet overview + what's on fire + ask anything + the labs.
-    var DEFAULT_VISIBLE = ['fleet_summary', 'alert_rollup', 'query', 'lab_grid'];
+    var DEFAULT_VISIBLE = ['fleet_summary', 'alert_rollup', 'digest', 'query', 'lab_grid'];
     var DEFAULT_LAYOUT = {widgets: DEFAULT_VISIBLE.map(function(t){return {type:t,id:t,size:'wide'};})};
     var IS_AUTHED = {% if user_email and not is_demo %}true{% else %}false{% endif %};
     var LS_KEY = 'labwatch_dashboard_layout';
@@ -2849,5 +2912,81 @@ function dismissSuggestions() {
         initEmberToggle();
     }
 })();
-</script>
+
+    // --- Intelligence Digest Widget ---
+    var _digestIsDemo = {{ 'true' if is_demo else 'false' }};
+    function loadDigests() {
+        var container = document.getElementById('digest-cards');
+        if (!container) return;
+        if (_digestIsDemo) {
+            var demoIds = ['demo-1', 'demo-2', 'demo-3', 'demo-4'];
+            var fetches = demoIds.map(function(id) {
+                return fetch('/api/v1/admin/digest/' + id, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-Admin-Secret': 'demo'}
+                }).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
+            });
+            Promise.all(fetches).then(function(results) {
+                container.innerHTML = '';
+                results.forEach(function(d) {
+                    if (!d) return;
+                    container.appendChild(renderDigestCard(d));
+                });
+                if (!container.children.length) {
+                    container.innerHTML = '<span style="color:var(--text-muted);font-size:12px">no digests available</span>';
+                }
+            });
+        } else {
+            var cards = document.querySelectorAll('.lab-card');
+            var labIds = [];
+            cards.forEach(function(c) { var id = c.getAttribute('data-lab-id'); if (id) labIds.push(id); });
+            if (!labIds.length) { container.innerHTML = '<span style="color:var(--text-muted);font-size:12px">add labs to see digests</span>'; return; }
+            var fetches = labIds.map(function(id) {
+                return fetch('/api/v1/admin/digest/' + id, {
+                    headers: {% if user_email %}{}{% else %}{'X-Admin-Secret': {{ secret | tojson }}}{% endif %}
+                }).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
+            });
+            Promise.all(fetches).then(function(results) {
+                container.innerHTML = '';
+                results.forEach(function(d) {
+                    if (!d) return;
+                    container.appendChild(renderDigestCard(d));
+                });
+                if (!container.children.length) {
+                    container.innerHTML = '<span style="color:var(--text-muted);font-size:12px">no digests yet &mdash; generate one from a lab detail page</span>';
+                }
+            });
+        }
+    }
+    function renderDigestCard(d) {
+        var card = document.createElement('div');
+        card.className = 'digest-card';
+        var grade = (d.grade || '?').toUpperCase();
+        var gradeClass = 'digest-grade-' + grade.charAt(0).toLowerCase();
+        var summary = (d.summary || '').replace(/</g, '&lt;').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        card.innerHTML = '<div class="digest-card-header">' +
+            '<span>' + (d.hostname || d.lab_id || '?') + '</span>' +
+            '<span class="digest-grade ' + gradeClass + '">' + grade + '</span>' +
+            '</div>' +
+            '<div class="digest-summary" id="ds-' + (d.lab_id || '') + '">' + summary + '</div>' +
+            '<button class="digest-expand" onclick="toggleDigest(this)">show more</button>';
+        return card;
+    }
+    function toggleDigest(btn) {
+        var sum = btn.previousElementSibling;
+        if (sum.classList.contains('expanded')) {
+            sum.classList.remove('expanded');
+            btn.textContent = 'show more';
+        } else {
+            sum.classList.add('expanded');
+            btn.textContent = 'show less';
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadDigests);
+    } else {
+        loadDigests();
+    }
+
+    </script>
 {% endblock %}

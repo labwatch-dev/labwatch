@@ -813,8 +813,6 @@ def download_binary(filename: str):
     file_path = (dist_dir / filename).resolve()
     if not str(file_path).startswith(str(dist_dir.resolve()) + "/"):
         raise HTTPException(status_code=400, detail="Invalid filename")
-    if not file_path.exists() or not file_path.is_file():
-        raise HTTPException(status_code=404, detail="Binary not found")
     if filename.endswith(".sha256"):
         # Serve checksum for the corresponding binary
         bin_path = file_path.with_suffix("")  # strip .sha256
@@ -823,6 +821,8 @@ def download_binary(filename: str):
         import hashlib
         sha = hashlib.sha256(bin_path.read_bytes()).hexdigest()
         return PlainTextResponse(sha)
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Binary not found")
     return FileResponse(
         file_path,
         media_type="application/octet-stream",

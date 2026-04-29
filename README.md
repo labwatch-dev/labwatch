@@ -108,7 +108,7 @@ go build -o labwatch -ldflags="-s -w" ./cmd/labwatch/
   on each node        central host        persistent
 ```
 
-**Agent**: single static Go binary (linux/amd64 and linux/arm64). No runtime dependencies. Sends metrics over HTTP every 60 seconds. Docker and GPU monitoring enabled by default. Configured via a simple YAML file at `/etc/labwatch/config.yaml`.
+**Agent**: single static Go binary (linux/amd64, linux/arm64, linux/armv7). No runtime dependencies. Sends metrics over HTTP every 60 seconds. Docker and GPU monitoring enabled by default. Configured via a simple YAML file at `/etc/labwatch/config.yaml`.
 
 **Server**: Python FastAPI with Jinja2 templates. SQLite in WAL mode. Runs rule-based analysis on every ingest cycle. Serves the dashboard, API, agent binaries, and install script from a single process.
 
