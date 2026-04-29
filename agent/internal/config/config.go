@@ -38,6 +38,9 @@ type Config struct {
 	// S.M.A.R.T. disk health settings
 	SMART SMARTConfig `yaml:"smart"`
 
+	// ZFS pool health settings
+	ZFS ZFSConfig `yaml:"zfs"`
+
 	// Services to monitor
 	Services []ServiceConfig `yaml:"services"`
 }
@@ -59,6 +62,12 @@ type SMARTConfig struct {
 	Enabled bool `yaml:"enabled"`
 }
 
+// ZFSConfig controls ZFS pool health collection.
+// Requires zpool (ZFS utilities) installed.
+type ZFSConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
 // ServiceConfig defines a service to monitor.
 type ServiceConfig struct {
 	Name     string `yaml:"name"`
@@ -69,10 +78,7 @@ type ServiceConfig struct {
 
 // Defaults returns a config with sensible defaults.
 func Defaults() *Config {
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = "unknown"
-	}
+	hostname, _ := os.Hostname()
 	return &Config{
 		APIEndpoint: "https://labwatch.dev/api/v1",
 		Interval:    60 * time.Second,
@@ -85,6 +91,9 @@ func Defaults() *Config {
 			Enabled: true,
 		},
 		SMART: SMARTConfig{
+			Enabled: true,
+		},
+		ZFS: ZFSConfig{
 			Enabled: true,
 		},
 	}
