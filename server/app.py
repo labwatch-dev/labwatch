@@ -152,6 +152,8 @@ _STATIC_PAGES = frozenset({"/", "/docs", "/about", "/privacy", "/terms", "/suppo
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
+    # Generate per-request nonce for CSP
+    request.state.csp_nonce = secrets.token_urlsafe(24)
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -427,6 +429,7 @@ def _tpl_context(request: Request, **kwargs) -> dict:
         "user_email": _get_session_email(request),
         "base_url": _request_base_url(request),
         "secret": "",
+        "csp_nonce": getattr(request.state, "csp_nonce", ""),
     }
     ctx.update(kwargs)
     return ctx
