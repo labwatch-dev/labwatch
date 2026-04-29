@@ -59,29 +59,26 @@ curl -fsSL http://YOUR_SERVER:8097/install.sh | sudo bash
 
 > Prefer to inspect first? [View the install script](agent/install.sh) or download the binary directly from `/download/`.
 
-Register the agent and get a token:
+Register and configure in one command:
 
 ```bash
-curl -X POST http://YOUR_SERVER:8097/api/v1/register \
-  -H 'X-Admin-Secret: YOUR_ADMIN_SECRET' \
-  -H 'Content-Type: application/json' \
-  -d '{"hostname":"my-node"}'
+sudo labwatch --register --server http://YOUR_SERVER:8097/api/v1 --secret YOUR_ADMIN_SECRET
 ```
 
-Edit `/etc/labwatch/config.yaml` with your server URL, lab_id, and token from the response, then:
+This auto-writes `/etc/labwatch/config.yaml` with the correct token and lab ID. Then start:
 
 ```bash
 sudo systemctl enable --now labwatch
 ```
 
-Docker and GPU monitoring are enabled by default — the agent gracefully skips them if Docker or nvidia-smi isn't available. Add custom service checks (HTTP, TCP) in the config file. (Prefer to review the install script first? See the [self-hosted guide](https://labwatch.dev/self-hosted#agents).)
+Docker, GPU, S.M.A.R.T., and ZFS monitoring are enabled by default — the agent gracefully skips any that aren't available. Add custom service checks (HTTP, TCP) in the config file.
 
 ### Multi-node rollout
 
-Run the install script on each node, pointing it at your server:
+Run the install script + register on each node:
 
 ```bash
-ssh root@<IP> 'curl -fsSL http://YOUR_SERVER/install.sh | bash'
+ssh root@<IP> 'curl -fsSL http://YOUR_SERVER:8097/install.sh | bash && labwatch --register --server http://YOUR_SERVER:8097/api/v1 --secret YOUR_ADMIN_SECRET && systemctl enable --now labwatch'
 ```
 
 ### Server (manual, without Docker)
@@ -301,7 +298,7 @@ labwatch is not a Prometheus replacement for production infrastructure. It's bui
 ## Roadmap
 
 - [ ] Nonce-based CSP (replacing unsafe-inline)
-- [ ] Agent retry with exponential backoff
+- [x] Agent retry with exponential backoff
 - [ ] CSV/JSON data export
 - [ ] Schema version tracking for smoother upgrades
 - [x] S.M.A.R.T. disk health monitoring
