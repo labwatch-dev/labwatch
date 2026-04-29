@@ -1323,15 +1323,15 @@ body.edit-mode .widget-block.drop-after {
         <div class="dash-status">
             {% if is_demo %}
             <a href="/signup" class="add-node-btn" id="add-node-btn" title="Sign up to add your own nodes">+ {{ t.nav_add_node.replace('+ ', '') if t and t.nav_add_node else 'add node' }}</a>
-            <button class="ember-toggle-btn" id="ember-toggle-btn" onclick="toggleEmberMode()" title="Toggle ember personality for NLQ">ember</button>
-            <button class="edit-layout-btn" id="edit-layout-btn" onclick="toggleEditMode()" title="Drag widgets to reorder — your layout won't persist in demo mode">{{ t.dashboard_edit_layout if t and t.dashboard_edit_layout else 'edit layout' }}</button>
+            <button class="ember-toggle-btn" id="ember-toggle-btn" title="Toggle ember personality for NLQ">ember</button>
+            <button class="edit-layout-btn" id="edit-layout-btn" title="Drag widgets to reorder — your layout won't persist in demo mode">{{ t.dashboard_edit_layout if t and t.dashboard_edit_layout else 'edit layout' }}</button>
             {% elif user_email %}
             <a href="/my/add-node" class="add-node-btn" id="add-node-btn">+ {{ t.nav_add_node.replace('+ ', '') if t and t.nav_add_node else 'add node' }}</a>
             {% if billing_enabled and user_plan == "free" %}
-            <button type="button" class="upgrade-pro-btn" id="upgrade-pro-btn" onclick="startUpgradeCheckout()">{{ t.dashboard_upgrade_pro if t and t.dashboard_upgrade_pro else 'upgrade to pro' }}</button>
+            <button type="button" class="upgrade-pro-btn" id="upgrade-pro-btn">{{ t.dashboard_upgrade_pro if t and t.dashboard_upgrade_pro else 'upgrade to pro' }}</button>
             {% endif %}
-            <button class="ember-toggle-btn" id="ember-toggle-btn-auth" onclick="toggleEmberMode()" title="Toggle ember personality for NLQ">ember</button>
-            <button class="edit-layout-btn" id="edit-layout-btn" onclick="toggleEditMode()">{{ t.dashboard_edit_layout if t and t.dashboard_edit_layout else 'edit layout' }}</button>
+            <button class="ember-toggle-btn" id="ember-toggle-btn-auth" title="Toggle ember personality for NLQ">ember</button>
+            <button class="edit-layout-btn" id="edit-layout-btn">{{ t.dashboard_edit_layout if t and t.dashboard_edit_layout else 'edit layout' }}</button>
             {% endif %}
             <span class="live-dot"></span>
             <span>{{ t.dashboard_autorefresh }} <span id="refresh-countdown">30</span>s</span>
@@ -1356,7 +1356,7 @@ body.edit-mode .widget-block.drop-after {
             {% set ns.disk_sum = ns.disk_sum + (lab.disk_percent | default(0)) %}
         {% endif %}
     {% endfor %}
-    <div class="fleet-summary widget-block" id="fleet-summary" data-widget="fleet_summary" data-widget-label="fleet"><div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+    <div class="fleet-summary widget-block" id="fleet-summary" data-widget="fleet_summary" data-widget-label="fleet"><div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="fleet-stat">
             <div class="fleet-stat-value {{ 'green' if ns.online == (labs | length) else 'amber' }}" id="fs-nodes">{{ ns.online }}/{{ labs | length }}</div>
             <div class="fleet-stat-label">{{ t.dashboard_nodes_online }}</div>
@@ -1398,19 +1398,19 @@ body.edit-mode .widget-block.drop-after {
     <!-- Widgets: uptime + alerts, each a standalone reorderable block -->
     {% if labs %}
     <div class="widget widget-block" id="widget-uptime" data-widget="uptime" data-widget-label="uptime">
-        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="widget-title" style="display: flex; align-items: center; gap: 12px;">
             <span id="uptime-title-label">{{ t.dashboard_widget_uptime }}</span>
             <div class="uptime-window-toggle" role="tablist" aria-label="Time window">
-                <button type="button" class="win-btn" data-hours="24" onclick="setUptimeWindow(24)">24h</button>
-                <button type="button" class="win-btn" data-hours="168" onclick="setUptimeWindow(168)">7d</button>
-                <button type="button" class="win-btn" data-hours="720" onclick="setUptimeWindow(720)">30d</button>
+                <button type="button" class="win-btn" data-hours="24">24h</button>
+                <button type="button" class="win-btn" data-hours="168">7d</button>
+                <button type="button" class="win-btn" data-hours="720">30d</button>
             </div>
         </div>
         <div id="uptime-content"><span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span></div>
     </div>
     <div class="widget widget-block" id="widget-alerts" data-widget="alerts" data-widget-label="alerts">
-        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="widget-title">{{ t.dashboard_widget_alerts }}</div>
         <div class="alert-feed" id="alert-feed-content"><span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading...</span></div>
     </div>
@@ -1422,7 +1422,7 @@ body.edit-mode .widget-block.drop-after {
         {% endif %}
     {% endfor %}
     <div class="widget widget-block" id="widget-alert-rollup" data-widget="alert_rollup" data-widget-label="alert rollup">
-        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="widget-title">{{ t.dashboard_widget_alert_rollup }}</div>
         <div class="alert-rollup-list">
             {% if noisy_labs %}
@@ -1451,7 +1451,7 @@ body.edit-mode .widget-block.drop-after {
         {% endif %}
     {% endfor %}
     <div class="widget widget-block" id="widget-disk-pressure" data-widget="disk_pressure" data-widget-label="disk pressure">
-        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="widget-title">{{ t.dashboard_widget_disk_pressure }}</div>
         <div class="disk-pressure-list">
             {% if disky_labs %}
@@ -1474,7 +1474,7 @@ body.edit-mode .widget-block.drop-after {
     </div>
     {# Container restart leaders — top restarting containers across the fleet #}
     <div class="widget widget-block" id="widget-container-restarts" data-widget="container_restarts" data-widget-label="container restarts">
-        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="widget-title">{{ t.dashboard_widget_container_restarts }}</div>
         <div class="container-restarts-list">
             {% if restart_leaders %}
@@ -1494,26 +1494,26 @@ body.edit-mode .widget-block.drop-after {
 
     <!-- Query Bar -->
     <div class="query-section widget-block" id="query-section" data-widget="query" data-widget-label="query">
-        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="query-form">
             <input type="text" id="query-input" class="query-input"
                    placeholder="{% if is_demo %}{{ t.dashboard_ask_demo_placeholder }}{% else %}{{ t.dashboard_ask_placeholder }}{% endif %}">
-            <button id="query-btn" class="query-btn" onclick="askQuery()">{{ t.dashboard_ask_button }}</button>
+            <button id="query-btn" class="query-btn">{{ t.dashboard_ask_button }}</button>
         </div>
         <div class="query-suggestions" id="query-suggestions">
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_attention }}</button>
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_alerts }}</button>
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_fleet }}</button>
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_cpu }}</button>
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_containers }}</button>
+            <button class="query-chip">{{ t.dashboard_query_attention }}</button>
+            <button class="query-chip">{{ t.dashboard_query_alerts }}</button>
+            <button class="query-chip">{{ t.dashboard_query_fleet }}</button>
+            <button class="query-chip">{{ t.dashboard_query_cpu }}</button>
+            <button class="query-chip">{{ t.dashboard_query_containers }}</button>
             {% if is_demo %}
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_disk }}</button>
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_night }}</button>
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_zfs }}</button>
+            <button class="query-chip">{{ t.dashboard_query_disk }}</button>
+            <button class="query-chip">{{ t.dashboard_query_night }}</button>
+            <button class="query-chip">{{ t.dashboard_query_zfs }}</button>
             {% endif %}
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_temp }}</button>
-            <button class="query-chip" onclick="suggestQuery(this)">{{ t.dashboard_query_network }}</button>
-            <button class="query-chip-dismiss" id="query-chip-dismiss" onclick="dismissSuggestions()" title="hide suggestions">×</button>
+            <button class="query-chip">{{ t.dashboard_query_temp }}</button>
+            <button class="query-chip">{{ t.dashboard_query_network }}</button>
+            <button class="query-chip-dismiss" id="query-chip-dismiss" title="hide suggestions">×</button>
         </div>
         <div id="query-response" class="query-response"></div>
     </div>
@@ -1521,7 +1521,7 @@ body.edit-mode .widget-block.drop-after {
 
     <!-- Intelligence Digest -->
     <div class="widget widget-block" id="widget-digest" data-widget="digest" data-widget-label="intelligence digest">
-        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+        <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
         <div class="widget-title">intelligence digest</div>
         <div class="digest-cards" id="digest-cards">
             <span style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">loading digests...</span>
@@ -1530,7 +1530,7 @@ body.edit-mode .widget-block.drop-after {
 
     {% if labs %}
     <div class="labs-grid-wrap widget-block" data-widget="lab_grid" data-widget-label="labs">
-    <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget" onclick="removeWidget(event, this)">×</button>
+    <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
     {% if labs | length > 1 %}
     <div class="lab-search-row">
         <input type="search" id="lab-search" class="lab-search-input" placeholder="{{ t.dashboard_search_placeholder if t and t.dashboard_search_placeholder else 'Filter labs by hostname or OS…  ( press / )' }}" autocomplete="off" oninput="filterLabs(this.value)">
@@ -1548,7 +1548,7 @@ body.edit-mode .widget-block.drop-after {
                     </div>
                     <div class="lab-os">{% if lab.display_name %}{{ lab.hostname }} · {% endif %}{{ lab.os | default('Unknown OS') }} / {{ lab.arch | default('unknown') }}</div>
                 </div>
-                <button class="pin-star{% if pinned_ids is defined and lab.id in pinned_ids %} active{% endif %}" onclick="togglePin(event, '{{ lab.id }}')" title="Pin node">★</button>
+                <button class="pin-star{% if pinned_ids is defined and lab.id in pinned_ids %} active{% endif %}" data-pin-lab="{{ lab.id }}" title="Pin node">★</button>
                 <span class="lab-last-seen {{ 'online' if lab.online else 'offline' }}" data-timestamp="{{ lab.last_seen }}">
                     --
                 </span>
@@ -1669,9 +1669,9 @@ body.edit-mode .widget-block.drop-after {
 <!-- Edit layout save bar -->
 <div class="edit-save-bar" id="edit-save-bar">
     <span class="save-hint">{{ t.dashboard_edit_hint if t and t.dashboard_edit_hint else 'drag to reorder · × to remove · + add widget at bottom' }}</span>
-    <button onclick="resetLayout()">{{ t.dashboard_reset if t and t.dashboard_reset else 'reset' }}</button>
-    <button onclick="cancelEditMode()">{{ t.dashboard_cancel if t and t.dashboard_cancel else 'cancel' }}</button>
-    <button class="primary" onclick="saveLayout()">{{ t.dashboard_save if t and t.dashboard_save else 'save' }}</button>
+    <button data-click="resetLayout">{{ t.dashboard_reset if t and t.dashboard_reset else 'reset' }}</button>
+    <button data-click="cancelEditMode">{{ t.dashboard_cancel if t and t.dashboard_cancel else 'cancel' }}</button>
+    <button class="primary" data-click="saveLayout">{{ t.dashboard_save if t and t.dashboard_save else 'save' }}</button>
 </div>
 
 <!--
@@ -1879,7 +1879,7 @@ function dismissSuggestions() {
         var lsPinned = JSON.parse(localStorage.getItem('labwatch_pinned') || '[]');
         var isPinned = lab.pinned || lsPinned.indexOf(lab.id) !== -1;
         var pinClass = isPinned ? 'pin-star active' : 'pin-star';
-        var pinBtn = '<button class="' + pinClass + '" onclick="togglePin(event, \'' + escapeHtml(lab.id) + '\')" title="Pin node">★</button>';
+        var pinBtn = '<button class="' + pinClass + '" data-pin-lab="' + escapeHtml(lab.id) + '" title="Pin node">★</button>';
         return '<a href="' + labUrl + '" class="lab-card' + (isPinned ? ' pinned' : '') + '" data-lab-id="' + escapeHtml(lab.id) + '" draggable="true">'
             + '<div class="lab-card-header">'
             + '<div>'
@@ -2970,7 +2970,7 @@ function dismissSuggestions() {
             '<span class="digest-grade ' + gradeClass + '">' + grade + '</span>' +
             '</div>' +
             '<div class="digest-summary" id="ds-' + (d.lab_id || '') + '">' + summary + '</div>' +
-            '<button class="digest-expand" onclick="toggleDigest(this)">show more</button>';
+            '<button class="digest-expand" data-click="toggleDigest">show more</button>';
         return card;
     }
     function toggleDigest(btn) {
@@ -2989,5 +2989,75 @@ function dismissSuggestions() {
         loadDigests();
     }
 
-    </script>
+    
+    // === CSP Event Delegation (replaces inline onclick handlers) ===
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-click]');
+        if (btn) {
+            var fn = btn.getAttribute('data-click');
+            if (fn === 'resetLayout') resetLayout();
+            else if (fn === 'cancelEditMode') cancelEditMode();
+            else if (fn === 'saveLayout') saveLayout();
+            else if (fn === 'toggleDigest') toggleDigest(btn);
+            return;
+        }
+
+        // Widget delete buttons
+        if (e.target.closest('.widget-delete-btn')) {
+            removeWidget(e, e.target.closest('.widget-delete-btn'));
+            return;
+        }
+
+        // Query suggestion chips
+        var chip = e.target.closest('.query-chip');
+        if (chip && !chip.classList.contains('query-chip-dismiss')) {
+            suggestQuery(chip);
+            return;
+        }
+
+        // Query chip dismiss
+        if (e.target.closest('.query-chip-dismiss')) {
+            dismissSuggestions();
+            return;
+        }
+
+        // Pin star buttons
+        var pinBtn = e.target.closest('[data-pin-lab]');
+        if (pinBtn) {
+            togglePin(e, pinBtn.getAttribute('data-pin-lab'));
+            return;
+        }
+
+        // Uptime window buttons
+        var winBtn = e.target.closest('.win-btn[data-hours]');
+        if (winBtn) {
+            setUptimeWindow(parseInt(winBtn.getAttribute('data-hours')));
+            return;
+        }
+
+        // Ember toggle
+        if (e.target.closest('.ember-toggle-btn')) {
+            toggleEmberMode();
+            return;
+        }
+
+        // Edit layout toggle
+        if (e.target.closest('.edit-layout-btn')) {
+            toggleEditMode();
+            return;
+        }
+
+        // Query button
+        if (e.target.closest('#query-btn')) {
+            askQuery();
+            return;
+        }
+
+        // Upgrade button
+        if (e.target.closest('#upgrade-pro-btn')) {
+            startUpgradeCheckout();
+            return;
+        }
+    });
+</script>
 {% endblock %}
