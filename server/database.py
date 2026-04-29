@@ -15,7 +15,7 @@ from config import DATABASE_PATH
 logger = logging.getLogger("labwatch.database")
 
 # Schema version — increment when adding migrations
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 def _connect() -> sqlite3.Connection:
@@ -242,6 +242,31 @@ def init_db() -> None:
         conn.commit()
 
         # Stamp current schema version if not yet recorded
+
+        # --- Version 2: Log collection ---
+        log_table_exists = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='logs'"
+        ).fetchone()
+        if not log_table_exists:
+            logger.info("Creating logs table (schema v2)")
+            conn.executescript("""
+                CREATE TABLE IF NOT EXISTS logs (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    lab_id      TEXT NOT NULL REFERENCES labs(id) ON DELETE CASCADE,
+                    ts          TEXT NOT NULL,
+                    source      TEXT NOT NULL,
+                    level       TEXT NOT NULL,
+                    message     TEXT NOT NULL,
+                    unit        TEXT,
+                    created_at  TEXT DEFAULT (datetime('now'))
+                );
+                CREATE INDEX IF NOT EXISTS idx_logs_lab_ts ON logs(lab_id, ts DESC);
+                CREATE INDEX IF NOT EXISTS idx_logs_lab_level ON logs(lab_id, level);
+                CREATE INDEX IF NOT EXISTS idx_logs_lab_source ON logs(lab_id, source);
+            """)
+            conn.commit()
+            logger.info("Logs table created")
+
         row = conn.execute("SELECT MAX(version) FROM schema_version").fetchone()
         current = row[0] if row and row[0] else 0
         if current < SCHEMA_VERSION:
@@ -1614,6 +1639,166 @@ def get_notification_prefs(email: str) -> dict:
     if user_prefs:
         result.update(user_prefs)
     return result
+
+
+# ---------------------------------------------------------------------------
+# Log collection
+# ---------------------------------------------------------------------------
+
+
+def store_logs(lab_id: str, entries: list[dict]) -> int:
+    """Store a batch of log entries. Returns count stored."""
+    if not entries:
+        return 0
+    conn = _connect()
+    try:
+        now = datetime.now(timezone.utc).isoformat()
+        valid_levels = {"debug", "info", "warn", "error"}
+        rows = []
+        for e in entries:
+            level = e.get("level", "info").lower()
+            if level not in valid_levels:
+                level = "info"
+            rows.append((
+                lab_id,
+                e.get("ts", now),
+                e.get("source", "unknown"),
+                level,
+                e.get("message", "")[:4096],
+                e.get("unit"),
+            ))
+        conn.executemany(
+            "INSERT INTO logs (lab_id, ts, source, level, message, unit) VALUES (?, ?, ?, ?, ?, ?)",
+            rows,
+        )
+        conn.commit()
+        update_last_seen(lab_id)
+        return len(rows)
+    finally:
+        conn.close()
+
+
+def get_logs(
+    lab_id: str,
+    limit: int = 100,
+    offset: int = 0,
+    level: str | None = None,
+    source: str | None = None,
+    since: str | None = None,
+    until: str | None = None,
+) -> list[dict]:
+    """Retrieve logs for a lab with optional filters. Returns newest first."""
+    conn = _connect()
+    try:
+        conditions = ["lab_id = ?"]
+        params: list = [lab_id]
+        if level:
+            conditions.append("level = ?")
+            params.append(level.lower())
+        if source:
+            conditions.append("source = ?")
+            params.append(source)
+        if since:
+            conditions.append("ts >= ?")
+            params.append(since)
+        if until:
+            conditions.append("ts <= ?")
+            params.append(until)
+
+        where = " AND ".join(conditions)
+        limit = max(1, min(limit, 1000))
+        offset = max(0, offset)
+
+        rows = conn.execute(
+            f"SELECT id, lab_id, ts, source, level, message, unit, created_at "
+            f"FROM logs WHERE {where} ORDER BY ts DESC LIMIT ? OFFSET ?",
+            params + [limit, offset],
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def search_logs(lab_id: str, query: str, limit: int = 50) -> list[dict]:
+    """Search logs for a lab using LIKE matching. Returns newest matches first."""
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            "SELECT id, lab_id, ts, source, level, message, unit, created_at "
+            "FROM logs WHERE lab_id = ? AND message LIKE ? "
+            "ORDER BY ts DESC LIMIT ?",
+            (lab_id, f"%{query}%", max(1, min(limit, 500))),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def get_log_sources(lab_id: str) -> list[str]:
+    """Get distinct log sources for a lab."""
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            "SELECT DISTINCT source FROM logs WHERE lab_id = ? ORDER BY source",
+            (lab_id,),
+        ).fetchall()
+        return [r[0] for r in rows]
+    finally:
+        conn.close()
+
+
+def count_logs(lab_id: str, level: str | None = None, source: str | None = None) -> int:
+    """Count total log entries for a lab, optionally filtered by level and/or source."""
+    conn = _connect()
+    try:
+        conditions = ['lab_id = ?']
+        params = [lab_id]
+        if level:
+            conditions.append('level = ?')
+            params.append(level.lower())
+        if source:
+            conditions.append('source = ?')
+            params.append(source)
+        where = ' AND '.join(conditions)
+        row = conn.execute(f'SELECT COUNT(*) FROM logs WHERE {where}', params).fetchone()
+        return row[0] if row else 0
+    finally:
+        conn.close()
+
+
+def purge_old_logs(hours: int = 24) -> int:
+    """Remove logs older than the given hours. Returns count deleted."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+    conn = _connect()
+    try:
+        cursor = conn.execute("DELETE FROM logs WHERE created_at < ?", (cutoff,))
+        conn.commit()
+        return cursor.rowcount
+    finally:
+        conn.close()
+
+
+def purge_logs_per_tier(tier_limits: dict, default_plan: str = "free") -> int:
+    """Purge logs per plan tier. tier_limits maps plan name to hours retention."""
+    conn = _connect()
+    total = 0
+    try:
+        labs = conn.execute("SELECT id FROM labs").fetchall()
+        for lab in labs:
+            lid = lab[0]
+            email = get_email_for_lab(lid)
+            plan = get_plan_for_email(email) if email else default_plan
+            hours = tier_limits.get(plan, tier_limits.get(default_plan, 24))
+            cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+            cursor = conn.execute(
+                "DELETE FROM logs WHERE lab_id = ? AND created_at < ?",
+                (lid, cutoff),
+            )
+            total += cursor.rowcount
+        conn.commit()
+        return total
+    finally:
+        conn.close()
 
 
 def vacuum() -> None:
