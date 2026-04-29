@@ -346,20 +346,20 @@
             </div>
 
             <h3><span class="step-num">1</span>Clone the repo</h3>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 git clone https://github.com/labwatch-dev/labwatch.git
 cd labwatch</div>
 
             <h3><span class="step-num">2</span>Set your secrets</h3>
             <p>Create a <code>.env</code> file next to <code>docker-compose.yml</code>:</p>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 ADMIN_SECRET=paste-a-random-string-here
 SESSION_SECRET=paste-a-different-random-string-here
 BASE_URL=http://labwatch.lan:8097</div>
             <p>Generate secrets with <code>openssl rand -hex 24</code> and paste them as values. The admin secret is used to log in and register agents. The session secret signs user cookies (must be stable across restarts).</p>
 
             <h3><span class="step-num">3</span>Start the stack</h3>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 docker compose up -d</div>
             <p>This builds the image from source (takes ~60 seconds the first time) and starts labwatch on port <code>8097</code>. By default it only listens on <code>127.0.0.1</code> &mdash; agents on other machines won't be able to reach it. Either change the port in <code>docker-compose.yml</code> to <code>"8097:8097"</code> or put a reverse proxy in front. Logs: <code>docker compose logs -f labwatch</code>.</p>
 
@@ -421,7 +421,7 @@ docker compose up -d</div>
         <section class="sh-section" id="reverse-proxy">
             <h2>Reverse proxy &amp; HTTPS</h2>
             <p>For anything beyond a single-machine LAN setup you'll want HTTPS. A minimal Caddy example:</p>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 labwatch.example.com {
     reverse_proxy localhost:8097
 }</div>
@@ -432,7 +432,7 @@ labwatch.example.com {
         <section class="sh-section" id="backup">
             <h2>Backups</h2>
             <p>All state lives in a single SQLite file at <code>/app/data/labwatch.db</code> (mapped to the <code>labwatch-data</code> volume). Back it up the same way you back up anything else:</p>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 docker compose exec labwatch \
   python -c "import sqlite3; sqlite3.connect('/app/data/labwatch.db').backup(sqlite3.connect('/app/data/backup.db'))"
 docker cp labwatch:/app/data/backup.db ./labwatch-$(date +%F).db</div>
@@ -443,10 +443,10 @@ docker cp labwatch:/app/data/backup.db ./labwatch-$(date +%F).db</div>
         <section class="sh-section" id="agents">
             <h2>Install agents</h2>
             <p>Once the server is running, install the agent on each machine you want to monitor. The installer pulls the latest binary from your labwatch instance &mdash; no external dependency:</p>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 curl -fsSL http://your-labwatch-host:8097/install.sh | sudo bash</div>
             <p>The script installs the agent to <code>/usr/local/bin/labwatch</code>, creates a systemd unit, and drops an empty config at <code>/etc/labwatch/config.yaml</code>. Prefer to review scripts before running? Download it first:</p>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 curl -fsSL http://your-labwatch-host:8097/install.sh -o install.sh
 less install.sh
 sudo bash install.sh</div>
@@ -456,7 +456,7 @@ sudo bash install.sh</div>
         <section class="sh-section" id="agent-config">
             <h2>Agent config</h2>
             <p>Register the agent with your server in one command. This auto-detects the hostname, contacts the API, and writes <code>/etc/labwatch/config.yaml</code> with the received credentials:</p>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 sudo labwatch --register --server http://your-labwatch-host:8097/api/v1 --secret YOUR_ADMIN_SECRET
 sudo systemctl enable --now labwatch</div>
             <p>That&rsquo;s it. The agent starts collecting metrics within 60 seconds. Docker, GPU, S.M.A.R.T., and ZFS monitoring are enabled by default &mdash; the agent gracefully skips any that aren&rsquo;t available.</p>
@@ -464,7 +464,7 @@ sudo systemctl enable --now labwatch</div>
                 <strong>Multiple nodes?</strong> Repeat the install + register on each node. Each agent gets its own <code>lab_id</code> and token.
             </div>
             <p>To add custom service checks, edit <code>/etc/labwatch/config.yaml</code> after registration:</p>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 # Append to /etc/labwatch/config.yaml
 services:
   - name: "Web"
@@ -481,7 +481,7 @@ services:
         <section class="sh-section" id="upgrade">
             <h2>Upgrading</h2>
             <p>Pull the latest source and rebuild:</p>
-            <div class="code-block"><button class="copy-btn" onclick="copyToClipboard(this.parentElement.lastChild.textContent.trim())">copy</button>
+            <div class="code-block"><button class="copy-btn" data-copy-sibling="true">copy</button>
 cd labwatch
 git pull
 docker compose up -d --build</div>
@@ -550,5 +550,12 @@ function copyToClipboard(text) {
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 })();
+
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-copy-sibling]');
+    if (btn) {
+        copyToClipboard(btn.parentElement.lastChild.textContent.trim());
+    }
+});
 </script>
 {% endblock %}
