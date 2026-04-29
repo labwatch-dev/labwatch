@@ -2970,22 +2970,15 @@ function dismissSuggestions() {
         var container = document.getElementById('digest-cards');
         if (!container) return;
         if (_digestIsDemo) {
-            var demoIds = ['demo-1', 'demo-2', 'demo-3', 'demo-4'];
-            var fetches = demoIds.map(function(id) {
-                return fetch('/api/v1/admin/digest/' + id, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json', 'X-Admin-Secret': 'demo'}
-                }).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
-            });
-            Promise.all(fetches).then(function(results) {
-                container.innerHTML = '';
-                results.forEach(function(d) {
-                    if (!d) return;
-                    container.appendChild(renderDigestCard(d));
-                });
-                if (!container.children.length) {
-                    container.innerHTML = '<span style="color:var(--text-muted);font-size:12px">no digests available</span>';
-                }
+            var demoDigests = [
+                {hostname: 'proxmox-01', lab_id: 'demo-1', grade: 'B+', summary: '**All services healthy.** CPU averaging 34% over 24h with brief spikes to 78% during backup windows. Memory stable at 61%. 14 containers running, all responsive. ZFS pool at 67% capacity — consider cleanup if approaching 80%. No critical alerts in the last 48 hours. **Recommendation:** Schedule a scrub for next maintenance window.'},
+                {hostname: 'docker-01', lab_id: 'demo-2', grade: 'A-', summary: '**Excellent health.** CPU idle at 12%, memory at 43%. All 18 containers healthy with zero restarts in the past week. Network throughput steady at 45 Mbps average. Disk usage at 52% with healthy I/O latency. **Top performer** in your fleet this cycle.'},
+                {hostname: 'storage-01', lab_id: 'demo-3', grade: 'C+', summary: '**Needs attention.** Memory pressure at 89% — trending upward over 72h. Two containers restarted in the last 6 hours (postgres, redis). Disk I/O latency elevated at 12ms (normal: 2-4ms). S.M.A.R.T. shows **194 reallocated sectors** on /dev/sdb — monitor closely. **Action required:** investigate memory leak in postgres container.'},
+                {hostname: 'gpu-01', lab_id: 'demo-4', grade: 'F', summary: '**Node offline.** No heartbeat received for 3h 12m. Last known state: GPU temperature 82C, memory 91%. Likely thermal shutdown or power issue. **Immediate action:** check physical hardware and power supply.'}
+            ];
+            container.innerHTML = '';
+            demoDigests.forEach(function(d) {
+                container.appendChild(renderDigestCard(d));
             });
         } else {
             var cards = document.querySelectorAll('.lab-card');
