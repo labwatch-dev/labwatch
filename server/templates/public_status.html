@@ -6,7 +6,7 @@
 <title>{{ hostname }} — Status</title>
 <meta name="description" content="Public status page for {{ hostname }} — monitored by labwatch.">
 <meta name="robots" content="noindex, nofollow">
-<style>
+<style nonce="{{ csp_nonce }}">
 :root {
     --bg: #0b0c0e;
     --surface: #14161a;
@@ -236,7 +236,7 @@ a:hover { text-decoration: underline; }
     .heartbeat-bar { height: 28px; }
 }
 </style>
-<script defer src="https://labwatch.dev/script.js" data-website-id="cab5253a-aecc-4a16-bdab-e2bb14d48911"></script>
+<script defer src="https://labwatch.dev/script.js" data-website-id="cab5253a-aecc-4a16-bdab-e2bb14d48911" nonce="{{ csp_nonce }}"></script>
 </head>
 <body>
 <div class="container">
@@ -314,7 +314,7 @@ a:hover { text-decoration: underline; }
         monitored by <a href="{{ base_url }}">labwatch</a> &mdash; <a href="{{ base_url }}/self-hosted">self-hostable</a>, open source
     </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function(){
     // Relative "updated" label
     var el = document.getElementById('updated');
