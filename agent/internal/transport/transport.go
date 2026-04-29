@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"math/rand"
+	"net/http"
 	"os"
 	"time"
 
@@ -21,6 +21,12 @@ type Payload struct {
 	Hostname   string                 `json:"hostname"`
 	Timestamp  string                 `json:"timestamp"`
 	Collectors map[string]interface{} `json:"collectors"`
+}
+
+// RegisterResult holds the credentials returned by the API after registration.
+type RegisterResult struct {
+	Token string `json:"token"`
+	LabID string `json:"lab_id"`
 }
 
 // Sender handles authenticated HTTP communication with the API.
@@ -45,8 +51,8 @@ func New(cfg *config.Config, version ...string) (*Sender, error) {
 	}, nil
 }
 
-// Register registers this agent with the API and saves the token.
-func (s *Sender) Register() error {
+// Register registers this agent with the API and returns the credentials.
+func (s *Sender) Register() (*RegisterResult, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "unknown"
@@ -56,12 +62,12 @@ func (s *Sender) Register() error {
 		"hostname": hostname,
 	})
 	if err != nil {
-		return fmt.Errorf("marshaling registration body: %w", err)
+		return nil, fmt.Errorf("marshaling registration body: %w", err)
 	}
 
 	req, err := http.NewRequest("POST", s.cfg.APIEndpoint+"/register", bytes.NewReader(body))
 	if err != nil {
-		return fmt.Errorf("creating request: %w", err)
+		return nil, fmt.Errorf("creating request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	if s.cfg.AdminSecret != "" {
@@ -70,28 +76,21 @@ func (s *Sender) Register() error {
 
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("registration request failed: %w", err)
+		return nil, fmt.Errorf("registration request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		respBody, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("registration failed (HTTP %d): %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("registration failed (HTTP %d): %s", resp.StatusCode, string(respBody))
 	}
 
-	var result struct {
-		Token string `json:"token"`
-		LabID string `json:"lab_id"`
-	}
+	var result RegisterResult
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return fmt.Errorf("parsing registration response: %w", err)
+		return nil, fmt.Errorf("parsing registration response: %w", err)
 	}
 
-	fmt.Printf("Lab ID: %s\n", result.LabID)
-	fmt.Printf("Token: %s\n", result.Token)
-	fmt.Println("Add these to your config file (/etc/labwatch/config.yaml)")
-
-	return nil
+	return &result, nil
 }
 
 // Send transmits a payload to the API with retry and exponential backoff.
