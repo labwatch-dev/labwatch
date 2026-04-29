@@ -165,7 +165,7 @@
         <h1>{{ t.add_node_title if t else 'Add Node' }}</h1>
         <p class="subtitle">{{ t.add_node_subtitle if t else 'Register a new node to your account.' }}</p>
 
-        <form class="add-node-form" onsubmit="handleAddNode(event)">
+        <form class="add-node-form" data-submit="handleAddNode">
             <div class="form-group">
                 <label>{{ t.signup_hostname_label if t else 'Server hostname' }}</label>
                 <input type="text" id="hostname" placeholder="my-server" value="" required>
@@ -190,7 +190,7 @@
                 <span class="step-num" style="background: var(--accent); color: var(--bg);">★</span>
                 <span class="step-title" style="color: var(--accent);">{{ t.add_node_onecommand if t and t.add_node_onecommand else "One-command install" }} <span style="font-size:11px;color:var(--text-dim);font-weight:400;">{{ t.add_node_recommended if t and t.add_node_recommended else "(recommended, expires in 15 min)" }}</span></span>
             </div>
-            <div class="code-block" id="install-command" onclick="copyToClipboard(this.textContent.trim(), this)" title="Click to copy"></div>
+            <div class="code-block" id="install-command" data-copy-self="true" title="Click to copy"></div>
             <p style="font-size:11px;color:var(--text-muted);margin-top:8px;font-family:var(--font-mono);">
                 {{ t.add_node_onecommand_desc if t and t.add_node_onecommand_desc else "Downloads the agent, writes config.yaml with your credentials, and starts the service. No token pasting." }}
             </p>
@@ -203,19 +203,19 @@
             <div class="step" style="margin-top:12px;">
                 <span class="step-num">1</span>
                 <span class="step-title">{{ t.signup_step1 if t else 'Install the agent' }}</span>
-                <div class="code-block" onclick="copyToClipboard(this.textContent.trim(), this)">
+                <div class="code-block" data-copy-self="true">
                     curl -fsSL {{ base_url }}/install.sh | sudo bash
                 </div>
             </div>
             <div class="step">
                 <span class="step-num">2</span>
                 <span class="step-title">{{ t.signup_step2 if t else 'Paste your credentials into /etc/labwatch/config.yaml' }}</span>
-                <div class="config-block" id="config-snippet" onclick="copyToClipboard(this.textContent.trim(), this)"></div>
+                <div class="config-block" id="config-snippet" data-copy-self="true"></div>
             </div>
             <div class="step">
                 <span class="step-num">3</span>
                 <span class="step-title">{{ t.signup_step3 if t else 'Start the agent' }}</span>
-                <div class="code-block" onclick="copyToClipboard(this.textContent.trim(), this)">
+                <div class="code-block" data-copy-self="true">
                     sudo systemctl enable --now labwatch
                 </div>
             </div>
@@ -277,5 +277,14 @@ async function handleAddNode(e) {
         btn.textContent = '{{ t.add_node_submit if t else "Add Node" }}';
     }
 }
+
+    // === CSP Event Delegation (add_node.html) ===
+    document.querySelector('[data-submit="handleAddNode"]').addEventListener('submit', handleAddNode);
+    document.addEventListener('click', function(e) {
+        var copyBtn = e.target.closest('[data-copy-self]');
+        if (copyBtn) {
+            copyToClipboard(copyBtn.textContent.trim(), copyBtn);
+        }
+    });
 </script>
 {% endblock %}
