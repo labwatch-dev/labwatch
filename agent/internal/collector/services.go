@@ -3,7 +3,6 @@ package collector
 import (
 	"context"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"time"
@@ -54,10 +53,6 @@ func (s *ServiceChecker) Collect(ctx context.Context) (interface{}, error) {
 				timeout = d
 			}
 		}
-		// Cap timeout to prevent config mistakes from blocking collection
-		if timeout > 30*time.Second {
-			timeout = 30 * time.Second
-		}
 
 		start := time.Now()
 
@@ -83,15 +78,7 @@ func checkHTTP(svc config.ServiceConfig, timeout time.Duration, start time.Time)
 		Endpoint: svc.Endpoint,
 	}
 
-	client := &http.Client{
-		Timeout: timeout,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 3 {
-				return fmt.Errorf("stopped after 3 redirects")
-			}
-			return nil
-		},
-	}
+	client := &http.Client{Timeout: timeout}
 	resp, err := client.Get(svc.Endpoint)
 	status.ResponseTime = float64(time.Since(start).Milliseconds())
 
@@ -100,7 +87,6 @@ func checkHTTP(svc config.ServiceConfig, timeout time.Duration, start time.Time)
 		return status
 	}
 	defer resp.Body.Close()
-	io.Copy(io.Discard, resp.Body)
 
 	status.StatusCode = resp.StatusCode
 	status.Healthy = resp.StatusCode >= 200 && resp.StatusCode < 400
