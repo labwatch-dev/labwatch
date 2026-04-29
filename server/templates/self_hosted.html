@@ -514,7 +514,7 @@ docker compose up -d --build</div>
             <p>Check logs with <code>docker compose logs labwatch</code>. The most common causes are a port conflict on 8097 (change the left side of the port mapping) or a volume permission issue (remove the volume with <code>docker volume rm labwatch_labwatch-data</code> and restart &mdash; <strong>this wipes data</strong>).</p>
 
             <h3>Agents register but no metrics appear</h3>
-            <p>Check the agent logs: <code>journalctl -u labwatch -f</code>. If you see <code>401 Unauthorized</code>, the token in <code>/etc/labwatch/config.yaml</code> is wrong &mdash; re-run <code>labwatch --register</code>. If you see connection refused, verify <code>api_endpoint</code> is reachable from the agent: <code>curl http://your-labwatch-host:8097/health</code>.</p>
+            <p>Check the agent logs: <code>journalctl -u labwatch -f</code>. If you see <code>401 Unauthorized</code>, the token in <code>/etc/labwatch/config.yaml</code> is wrong &mdash; re-run <code>labwatch --register --server URL --secret SECRET</code>. If you see connection refused, verify <code>api_endpoint</code> is reachable from the agent: <code>curl http://your-labwatch-host:8097/health</code>.</p>
 
             <h3>NLQ returns &ldquo;I didn&rsquo;t quite get that&rdquo;</h3>
             <p>The query bar uses regex pattern matching &mdash; it recognizes ~20 query shapes (fleet overview, alerts, cpu/memory/disk pressure, containers, temperature, network, ZFS pools, nodes needing attention). Rephrase toward one of those shapes, or try clicking a suggested chip. No API key is needed &mdash; if you got an error, check <code>docker compose logs labwatch</code> for a stack trace.</p>
