@@ -14,6 +14,9 @@ from config import DATABASE_PATH
 
 logger = logging.getLogger("labwatch.database")
 
+# Schema version — increment when adding migrations
+SCHEMA_VERSION = 1
+
 
 def _connect() -> sqlite3.Connection:
     conn = sqlite3.connect(DATABASE_PATH)
@@ -32,6 +35,15 @@ def init_db() -> None:
 
     conn = _connect()
     try:
+        # Schema version tracking
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS schema_version (
+                version     INTEGER NOT NULL,
+                applied_at  TEXT NOT NULL
+            )
+        """)
+        conn.commit()
+
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS labs (
                 id          TEXT PRIMARY KEY,
@@ -228,6 +240,33 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_alerts_created_at ON alerts(created_at);
         """)
         conn.commit()
+
+        # Stamp current schema version if not yet recorded
+        row = conn.execute("SELECT MAX(version) FROM schema_version").fetchone()
+        current = row[0] if row and row[0] else 0
+        if current < SCHEMA_VERSION:
+            now = datetime.now(timezone.utc).isoformat()
+            conn.execute(
+                "INSERT INTO schema_version (version, applied_at) VALUES (?, ?)",
+                (SCHEMA_VERSION, now),
+            )
+            conn.commit()
+            logger.info("Schema version set to %d", SCHEMA_VERSION)
+    finally:
+        conn.close()
+
+
+def get_schema_version() -> int:
+    """Return the current schema version, or 0 if not yet tracked."""
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_version'"
+        ).fetchone()
+        if not row:
+            return 0
+        row = conn.execute("SELECT MAX(version) FROM schema_version").fetchone()
+        return row[0] if row and row[0] else 0
     finally:
         conn.close()
 
@@ -1575,3 +1614,12 @@ def get_notification_prefs(email: str) -> dict:
     if user_prefs:
         result.update(user_prefs)
     return result
+
+
+def vacuum() -> None:
+    """Reclaim disk space after large deletes. Run after purge cycles."""
+    conn = _connect()
+    try:
+        conn.execute('VACUUM')
+    finally:
+        conn.close()
