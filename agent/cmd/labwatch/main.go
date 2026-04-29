@@ -133,6 +133,21 @@ func main() {
 		collectors = append(collectors, collector.NewServiceChecker(cfg.Services))
 	}
 
+	// Optionally add log collector
+	var logCollector *collector.LogCollector
+	if cfg.Logs.Enabled {
+		logCollector = collector.NewLogCollector(collector.LogsConfig{
+			Enabled:         cfg.Logs.Enabled,
+			Journald:        cfg.Logs.Journald,
+			Docker:          cfg.Logs.Docker,
+			Files:           cfg.Logs.Files,
+			LevelFilter:     cfg.Logs.LevelFilter,
+			MaxLinesPerPush: cfg.Logs.MaxLinesPerPush,
+			DockerSocket:    cfg.Logs.DockerSocket,
+		})
+		log.Printf("Log collector enabled (filter: %s+)", cfg.Logs.LevelFilter)
+	}
+
 	// Main collection loop
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -151,15 +166,47 @@ func main() {
 
 	// Collect immediately on start
 	collect(ctx, collectors, sender)
+	collectLogs(ctx, logCollector, sender)
 
 	for {
 		select {
 		case <-ticker.C:
 			collect(ctx, collectors, sender)
+			collectLogs(ctx, logCollector, sender)
 		case <-ctx.Done():
 			log.Println("Shutdown complete")
 			return
 		}
+	}
+}
+
+func collectLogs(ctx context.Context, lc *collector.LogCollector, sender *transport.Sender) {
+	if lc == nil {
+		return
+	}
+	entries, err := lc.CollectLogs(ctx)
+	if err != nil {
+		log.Printf("Log collector error: %v", err)
+		return
+	}
+	if len(entries) == 0 {
+		return
+	}
+	// Convert to transport type
+	logEntries := make([]transport.LogEntry, len(entries))
+	for i, e := range entries {
+		logEntries[i] = transport.LogEntry{
+			Timestamp: e.Timestamp,
+			Source:    e.Source,
+			Level:     e.Level,
+			Message:   e.Message,
+			Unit:      e.Unit,
+		}
+	}
+	if err := sender.SendLogs(ctx, logEntries); err != nil {
+		log.Printf("Failed to send logs: %v", err)
+	} else {
+		log.Printf("Shipped %d log entries", len(logEntries))
 	}
 }
 
