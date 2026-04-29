@@ -680,7 +680,79 @@ X-Admin-Secret: your-secret-here</div>
             <h2>Agent Status</h2>
 
             <div class="endpoint" id="ep-status">
+                
                 <div class="endpoint-header"">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/v1/lab/{lab_id}/logs</span>
+                    <span class="endpoint-desc">Submit log entries from an agent</span>
+                    <span class="endpoint-auth">bearer</span>
+                    <span class="endpoint-chevron">&#9654;</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Submit log entries collected by the agent (journald, Docker, file tails). Max 100 entries per request. Level filter and batching are handled agent-side.</p>
+
+                    <h4>Headers</h4>
+                    <table class="param-table">
+                        <tr><th>Header</th><th>Value</th></tr>
+                        <tr><td class="param-name">Authorization</td><td>Bearer &lt;token&gt;</td></tr>
+                    </table>
+
+                    <h4>Request Body</h4>
+                    <table class="param-table">
+                        <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                        <tr>
+                            <td class="param-name">entries</td>
+                            <td class="param-type">array</td>
+                            <td><span class="param-required">required</span></td>
+                            <td>Array of log entry objects (max 100)</td>
+                        </tr>
+                    </table>
+
+                    <h4>Log Entry Fields</h4>
+                    <table class="param-table">
+                        <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                        <tr><td class="param-name">ts</td><td class="param-type">string</td><td><span class="param-required">required</span></td><td>ISO 8601 timestamp</td></tr>
+                        <tr><td class="param-name">source</td><td class="param-type">string</td><td><span class="param-required">required</span></td><td>Log source: "journald", "docker:container_name", "file:/path"</td></tr>
+                        <tr><td class="param-name">level</td><td class="param-type">string</td><td><span class="param-required">required</span></td><td>debug, info, warn, or error</td></tr>
+                        <tr><td class="param-name">message</td><td class="param-type">string</td><td><span class="param-required">required</span></td><td>Log message (max 4096 chars)</td></tr>
+                        <tr><td class="param-name">unit</td><td class="param-type">string</td><td><span class="param-optional">optional</span></td><td>systemd unit name (journald only)</td></tr>
+                    </table>
+
+                    <h4>Example</h4>
+                    <div class="code-block"><code>curl -X POST https://your-server/api/v1/lab/lab_abc123/logs \
+  -H 'Authorization: Bearer lw_abc123...' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "entries": [
+      {"ts": "2026-04-29T16:00:00Z", "source": "journald", "level": "error",
+       "message": "OOM killer invoked", "unit": "nginx.service"},
+      {"ts": "2026-04-29T16:00:01Z", "source": "docker:postgres", "level": "warn",
+       "message": "checkpoint request too frequent"}
+    ]
+  }'</code></div>
+
+                    <h4>Response</h4>
+                    <div class="code-block"><code>{"status": "accepted", "lab_id": "lab_abc123", "stored": 2}</code></div>
+
+                    <h4>Agent Configuration</h4>
+                    <p>Enable log collection in <code>/etc/labwatch/config.yaml</code>:</p>
+                    <div class="code-block"><code>logs:
+  enabled: true
+  journald: true
+  docker: true
+  level_filter: warn    # minimum level to ship
+  max_lines_per_push: 100</code></div>
+
+                    <h4>Retention</h4>
+                    <table class="param-table">
+                        <tr><th>Plan</th><th>Retention</th></tr>
+                        <tr><td>Free</td><td>24 hours</td></tr>
+                        <tr><td>Pro</td><td>7 days</td></tr>
+                        <tr><td>Business</td><td>30 days</td></tr>
+                    </table>
+                </div>
+
+<div class="endpoint-header"">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/api/v1/status/{lab_id}</span>
                     <span class="endpoint-desc">Get current node status</span>
