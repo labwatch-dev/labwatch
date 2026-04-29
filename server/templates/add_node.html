@@ -229,7 +229,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 function copyToClipboard(text, el) {
     navigator.clipboard.writeText(text).then(function(){
         if (el) {
