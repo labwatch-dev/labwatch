@@ -6,6 +6,8 @@ stores them in SQLite, provides REST endpoints and a simple dashboard.
 
 import asyncio
 import collections
+import csv
+import io
 import hmac
 import logging
 import re as _re
@@ -2299,6 +2301,68 @@ def export_my_lab_data(lab_id: str, request: Request, hours: int = 168):
     email = _require_session(request)
     _require_lab_access(email, lab_id)
     return _build_lab_export_response(lab_id, hours)
+
+
+def _build_lab_csv_response(lab_id: str, hours: int) -> Response:
+    """Build a CSV export of system metrics for a lab."""
+    lab = db.get_lab(lab_id)
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+
+    history = db.get_metrics_history(lab_id, hours=hours)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "timestamp", "hostname", "cpu_percent", "memory_percent", "memory_used_bytes",
+        "disk_percent", "load_1m", "load_5m", "load_15m", "uptime_seconds",
+    ])
+
+    for entry in history:
+        if entry.get("metric_type") != "system":
+            continue
+        data = entry.get("data", {})
+        cpu = data.get("cpu", {})
+        mem = data.get("memory", {})
+        load = data.get("load_average", {})
+        disks = data.get("disk", [])
+        disk_pct = disks[0]["used_percent"] if disks else ""
+        writer.writerow([
+            entry.get("timestamp", ""),
+            data.get("hostname", lab.get("hostname", "")),
+            round(cpu.get("total_percent", 0), 2),
+            round(mem.get("used_percent", 0), 2),
+            mem.get("used_bytes", ""),
+            round(disk_pct, 2) if isinstance(disk_pct, (int, float)) else "",
+            load.get("load1", ""),
+            load.get("load5", ""),
+            load.get("load15", ""),
+            data.get("uptime_seconds", ""),
+        ])
+
+    csv_bytes = output.getvalue().encode("utf-8")
+    hostname = lab.get("hostname", "unknown")
+    return Response(
+        content=csv_bytes,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="labwatch-{hostname}-metrics.csv"'
+        },
+    )
+
+
+@app.get("/api/v1/admin/lab/{lab_id}/export.csv")
+def export_lab_csv(lab_id: str, hours: int = 168, _: str = Depends(_require_admin)):
+    """Export system metrics as CSV (timestamp, cpu, memory, disk, load)."""
+    return _build_lab_csv_response(lab_id, hours)
+
+
+@app.get("/api/v1/my/lab/{lab_id}/export.csv")
+def export_my_lab_csv(lab_id: str, request: Request, hours: int = 168):
+    """Export system metrics as CSV for a lab owned by the logged-in user."""
+    email = _require_session(request)
+    _require_lab_access(email, lab_id)
+    return _build_lab_csv_response(lab_id, hours)
 
 
 @app.delete("/api/v1/admin/lab/{lab_id}")
