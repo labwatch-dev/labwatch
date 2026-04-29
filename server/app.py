@@ -199,6 +199,9 @@ def _run_tier_purge(logger: logging.Logger) -> None:
     alert_purged = db.purge_old_alerts(hours=720)
     if alert_purged:
         logger.info(f"Periodic purge: removed {alert_purged} alerts older than 30 days")
+    log_purged = db.purge_logs_per_tier(config.LOG_TIER_LIMITS, config.DEFAULT_PLAN)
+    if log_purged:
+        logger.info(f"Periodic purge: removed {log_purged} log entries (tier-aware retention)")
 
 
 async def _periodic_purge():
