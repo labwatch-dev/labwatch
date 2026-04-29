@@ -12,13 +12,15 @@ Know what's happening across every node in your homelab — without Grafana, wit
 
 ## What it does
 
-labwatch collects system metrics, Docker container status, and service health from every node in your homelab. It stores everything in SQLite, runs rule-based analysis, and generates plain-English intelligence digests about your infrastructure.
+labwatch collects system metrics, Docker container status, service health, GPU stats, S.M.A.R.T. disk data, and ZFS pool health from every node in your homelab. It stores everything in SQLite, runs rule-based analysis, and generates plain-English intelligence digests about your infrastructure.
 
 **Features:**
 - **System metrics** — CPU, memory, disk, load average, network, uptime with inline sparklines
 - **Docker monitoring** — container health, restart loops, resource usage
 - **Service checks** — monitor HTTP and TCP endpoints via config
 - **GPU monitoring** — NVIDIA GPU stats via nvidia-smi
+- **S.M.A.R.T. monitoring** — disk health, temperature, reallocated sectors, power-on hours
+- **ZFS monitoring** — pool health, capacity, fragmentation, scrub status, error counts
 - **Smart alerts** — deduplication, auto-resolution, severity levels (warning/critical)
 - **Push notifications** — 8 channels: webhook, ntfy, Telegram, Discord, Slack, Gotify, Pushover, Apprise
 - **Intelligence digests** — narrative health reports with grades (A through C)
@@ -184,6 +186,7 @@ curl -X POST http://localhost:8097/api/v1/query \
 | Status check | "Is plex running?", "Status of pve-storage" |
 | Diagnostics | "Why is my server slow?", "What's causing high load?" |
 | Capacity | "Am I running out of disk space?" |
+| ZFS pools | "How are my ZFS pools?", "ZFS pool status" |
 | Comparative | "Which server uses the most CPU?" |
 | Time range | "What happened last night?", "Any issues in the last 6 hours?" |
 
@@ -284,6 +287,8 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 | Intelligence digests | Yes (auto-graded) | No | No | No | No |
 | Docker monitoring | Built-in | Separate exporter | No | No | Plugin |
 | GPU monitoring | Built-in (NVIDIA) | Separate exporter | No | No | Plugin |
+| S.M.A.R.T. health | Built-in | Separate exporter | No | No | Plugin |
+| ZFS pool health | Built-in | Separate exporter | No | Partial | No |
 | Alert deduplication | Built-in | Alertmanager needed | Built-in | No | Built-in |
 | Database | SQLite (zero config) | TSDB + Postgres | SQLite | SQLite | Custom DB |
 | Config format | YAML (simple) | YAML (complex) | Web UI | Web UI | Auto |
@@ -299,7 +304,8 @@ labwatch is not a Prometheus replacement for production infrastructure. It's bui
 - [ ] Agent retry with exponential backoff
 - [ ] CSV/JSON data export
 - [ ] Schema version tracking for smoother upgrades
-- [ ] S.M.A.R.T. disk health dashboard widget
+- [x] S.M.A.R.T. disk health monitoring
+- [x] ZFS pool health monitoring
 - [ ] More notification channels
 - [ ] Log collection (syslog/journald)
 - [ ] Mobile-friendly PWA wrapper
