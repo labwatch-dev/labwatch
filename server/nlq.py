@@ -414,8 +414,10 @@ _LANG_KEYWORDS: dict[str, str] = {
     "alles": "everything",
     "gibt": "is",        # "gibt es" = "is there" / "are there"
     "es": "there",       # part of "gibt es"
+    "aufmerksamkeit": "attention",
+    "was": "what",
     "welchen": "which",
-    "braucht": "uses",   # "braucht am meisten" = "uses the most"
+    "braucht": "needs",  # "braucht" = needs; for "am meisten" context, pattern still matches
     # French additional structure
     "montrez-moi": "show me",  # formal imperative + me
     "montrez": "show",   # formal/plural imperative
@@ -461,6 +463,11 @@ _LANG_KEYWORDS: dict[str, str] = {
     "погода": "weather",
     "прогноз": "forecast",
     "зростання": "growth",
+    "працює": "is",        # works/runs → "як працює X" = "how is X"
+    "працюють": "are",      # plural: works/run
+    "є": "any",             # is there / are there → matches attention pattern
+    "проблеми": "problems",
+    "помилки": "errors",
     "заглушити": "silence",
     # connectors (Cyrillic, no English collision):
     "на": "on",
