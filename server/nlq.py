@@ -1371,6 +1371,18 @@ def _handle_fleet_diagnostic(question: str, focus: str) -> dict:
 # Handler: Capacity queries
 # ---------------------------------------------------------------------------
 
+_GPU_PATTERN = re.compile(
+    r"gpu\s+(?:status|usage|utilization|info|stats|health|power|draw|watt)"
+    r"|(?:show|get|display)\s+(?:me\s+)?(?:the\s+)?gpu"
+    r"|vram\s+(?:usage|status|free|used|available)"
+    r"|nvidia\s+(?:status|info|stats|gpu)"
+    r"|gpu\s+(?:memory|vram|ram)"
+    r"|(?:how\s+much\s+)?vram(?:\s+is)?(?:\s+(?:used|free|available|left))?"
+    r"|gpu\s+(?:power|watt|tdp)"
+    r"|^gpu$"
+, re.IGNORECASE)
+
+
 _SMART_PATTERN = re.compile(
     r"(?:smart|s\.m\.a\.r\.t)\.?\s*(?:status|health|data|info|report)"
     r"|(?:disk|drive|hdd|ssd|nvme)\s+health"
@@ -1450,6 +1462,65 @@ def _handle_uptime_capacity(question: str) -> dict:
         lines.append(f"  {lab['hostname']}: {uptime_str} ({status})")
 
     return _build_response(answer="\n".join(lines), query_type="capacity", confidence=0.95, sources=[{"type": "labs", "count": len(labs)}])
+
+
+def _handle_gpu(question: str, match: re.Match) -> dict:
+    """Handle: 'gpu status', 'vram usage', 'gpu power draw', 'show gpu'."""
+    labs = _scoped_list_labs()
+    all_gpus = []
+
+    for lab in labs:
+        metrics = db.get_latest_metrics(lab["id"])
+        gpu_summary = _extract_gpu_summary(metrics)
+        online = _lab_is_online(lab["last_seen"])
+
+        for dev in gpu_summary["gpus"]:
+            mem = dev.get("memory", {})
+            all_gpus.append({
+                "hostname": lab["hostname"],
+                "name": dev.get("name", "Unknown GPU"),
+                "util": dev.get("utilization_percent", 0),
+                "vram_used_pct": mem.get("used_percent", 0),
+                "vram_total_gb": mem.get("total_bytes", 0) / (1024**3),
+                "vram_used_gb": mem.get("used_bytes", 0) / (1024**3),
+                "vram_free_gb": mem.get("free_bytes", 0) / (1024**3),
+                "temp_c": dev.get("temperature_celsius", None),
+                "power_w": dev.get("power_watts", None),
+                "power_limit_w": dev.get("power_limit_watts", None),
+                "fan_pct": dev.get("fan_speed_percent", None),
+                "online": online,
+            })
+
+    if not all_gpus:
+        return _build_response(
+            answer="No GPU data available. None of your nodes have NVIDIA GPUs detected, or nvidia-smi is not installed.",
+            query_type="gpu",
+            confidence=0.8,
+            sources=[],
+        )
+
+    lines = [f"GPU status: {len(all_gpus)} GPU(s) across {len(set(g['hostname'] for g in all_gpus))} nodes"]
+    lines.append("")
+
+    for g in all_gpus:
+        offline = " [OFFLINE]" if not g["online"] else ""
+        lines.append(f"  {g['hostname']}: {g['name']}{offline}")
+        lines.append(f"    Utilization: {g['util']:.0f}%")
+        lines.append(f"    VRAM: {g['vram_used_gb']:.1f} / {g['vram_total_gb']:.1f} GB ({g['vram_used_pct']:.1f}% used)")
+        if g["temp_c"] is not None:
+            lines.append(f"    Temperature: {g['temp_c']}C")
+        if g["power_w"] is not None:
+            limit = f" / {g['power_limit_w']:.0f}W limit" if g.get("power_limit_w") else ""
+            lines.append(f"    Power: {g['power_w']:.1f}W{limit}")
+        if g["fan_pct"] is not None:
+            lines.append(f"    Fan: {g['fan_pct']}%")
+
+    return _build_response(
+        answer="\n".join(lines),
+        query_type="gpu",
+        confidence=0.95,
+        sources=[{"type": "gpu", "count": len(all_gpus)}],
+    )
 
 
 def _handle_smart(question: str, match: re.Match) -> dict:
@@ -2775,7 +2846,19 @@ def _handle_out_of_scope(question: str, match: re.Match) -> dict:
 # Handler: Node capacity / plan limits ('how many more nodes can i add')
 # ---------------------------------------------------------------------------
 
-_NODE_SMART_PATTERN = re.compile(
+_NODE_GPU_PATTERN = re.compile(
+    r"gpu\s+(?:status|usage|utilization|info|stats|health|power|draw|watt)"
+    r"|(?:show|get|display)\s+(?:me\s+)?(?:the\s+)?gpu"
+    r"|vram\s+(?:usage|status|free|used|available)"
+    r"|nvidia\s+(?:status|info|stats|gpu)"
+    r"|gpu\s+(?:memory|vram|ram)"
+    r"|(?:how\s+much\s+)?vram(?:\s+is)?(?:\s+(?:used|free|available|left))?"
+    r"|gpu\s+(?:power|watt|tdp)"
+    r"|^gpu$"
+, re.IGNORECASE)
+
+
+_SMART_PATTERN = re.compile(
     r"(?:smart|s\.m\.a\.r\.t)\.?\s*(?:status|health|data|info|report)"
     r"|(?:disk|drive|hdd|ssd|nvme)\s+health"
     r"|(?:are|is)\s+(?:my|the|our)\s+(?:disks?|drives?)\s+(?:healthy|ok|failing|good|bad)"
@@ -3150,6 +3233,8 @@ HANDLERS = [
     {"pattern": _INVENTORY_PATTERN, "func": _handle_inventory, "name": "inventory"},
     # Generic health pulse — before fleet so 'are we good' / 'sanity check' route here
     {"pattern": _GENERIC_HEALTH_PATTERN, "func": _handle_generic_health, "name": "generic_health"},
+    # GPU queries — before SMART and fleet so "gpu status" routes here
+    {"pattern": _GPU_PATTERN, "func": _handle_gpu, "name": "gpu"},
     # S.M.A.R.T. disk health — before capacity so "any disk failures" routes here
     {"pattern": _SMART_PATTERN, "func": _handle_smart, "name": "smart"},
     # Fleet overview
