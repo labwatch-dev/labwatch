@@ -2875,6 +2875,87 @@ def _try_slash_command(question: str) -> Optional[dict]:
     return handler(args)
 
 
+
+# Log retrieval queries
+_LOG_PATTERN = re.compile(
+    r"(?:show|get|display|view|pull|fetch)\s+(?:me\s+)?(?:the\s+)?logs?\s+(?:from|for|of|on)\s+(.+)"
+    r"|logs?\s+(?:from|for|of|on)\s+(.+)"
+    r"|(?:recent|latest|last)\s+(?:error\s+)?logs?"
+    r"|(?:any|are\s+there)\s+(?:error|warning|critical)\s+logs?"
+    r"|error\s+logs?"
+)
+
+
+def _handle_logs(question: str, match: re.Match) -> dict:
+    """Handle: 'show logs from proxmox-01', 'recent error logs', 'any error logs?'"""
+    # Try to extract a node name from the match groups
+    target = match.group(1) or match.group(2) if match.lastindex and match.lastindex >= 1 else None
+
+    if target:
+        target = target.strip().rstrip("?. ")
+        for noise in ["the", "my", "our", "server", "node"]:
+            target = re.sub(r'\b' + noise + r'\b', '', target).strip()
+
+    # Determine if it's an error-specific query
+    is_error = bool(re.search(r'\b(?:error|warning|critical|fail)\b', question))
+
+    labs = _scoped_list_labs()
+
+    if target:
+        lab = _find_lab(target)
+        if not lab:
+            return _build_response(
+                answer=f"No node found matching \"{target}\". Available nodes: {', '.join(l['hostname'] for l in labs[:10])}.",
+                query_type="logs",
+                confidence=0.5,
+                sources=[],
+            )
+        labs = [lab]
+
+    if not labs:
+        return _build_response(answer="No labs registered yet.", query_type="logs", confidence=0.9, sources=[])
+
+    lines = []
+    total_shown = 0
+    max_per_node = 5 if len(labs) > 1 else 15
+
+    for lab in labs[:5]:  # Limit to 5 nodes
+        level_filter = "error" if is_error else None
+        try:
+            logs = db.get_logs(lab["id"], limit=max_per_node, level=level_filter)
+        except Exception:
+            continue
+
+        if not logs:
+            if len(labs) == 1:
+                level_note = f" {level_filter}" if level_filter else ""
+                lines.append(f"No{level_note} logs found for {lab['hostname']}.")
+            continue
+
+        lines.append(f"**{lab['hostname']}** ({len(logs)} recent{'  error' if is_error else ''} logs):")
+        for log in logs:
+            ts = log.get("ts", "")[:19]
+            level = log.get("level", "info").upper()
+            source = log.get("source", "")
+            msg = log.get("message", "")[:120]
+            lines.append(f"  [{ts}] {level} ({source}): {msg}")
+            total_shown += 1
+        lines.append("")
+
+    if not lines:
+        lines.append("No logs found across the fleet.")
+
+    if total_shown > 0:
+        lines.append(f"Showing {total_shown} log entries. Use the web UI for full log search with filters.")
+
+    return _build_response(
+        answer="\n".join(lines),
+        query_type="logs",
+        confidence=0.85,
+        sources=[{"type": "logs", "nodes": len(labs)}],
+    )
+
+
 HANDLERS = [
     # Out-of-scope decline — first so jokes/weather/trivia don't accidentally
     # match a fleet/status keyword later in the pipeline.
@@ -2916,6 +2997,8 @@ HANDLERS = [
     {"pattern": _COMPARATIVE_TOP_PATTERN, "func": _handle_comparative, "name": "comparative_top"},
     # Diagnostic queries
     {"pattern": _DIAGNOSTIC_PATTERN, "func": _handle_diagnostic, "name": "diagnostic"},
+    # Log retrieval queries
+    {"pattern": _LOG_PATTERN, "func": _handle_logs, "name": "logs"},
     # Status queries — last because pattern is broad
     {"pattern": _STATUS_PATTERN, "func": _handle_status, "name": "status"},
     {"pattern": _STATUS_SIMPLE_PATTERN, "func": _handle_status, "name": "status_simple"},
