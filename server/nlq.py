@@ -871,6 +871,8 @@ def _handle_container_status(container_name: str) -> dict:
 _TIME_PATTERN = re.compile(
     r"(?:what (?:happened|occurred|went (?:on|wrong))|show me|tell me about|anything happen)"
     r".*?(?:last night|overnight|last \d+ (?:hours?|minutes?|mins?|days?)|yesterday|today|this week)"
+
+    r"|(?:cpu|memory|mem|disk|load|ram)\s+(?:usage|use|utilization)\s+(?:over|for|in|during)\s+(?:the\s+)?(?:past|last|previous)\s+(?:hour|day|week|month|\d+\s*(?:h|d|hr|hours?|days?|weeks?|minutes?))"
 )
 
 
@@ -1015,12 +1017,22 @@ _COMPARATIVE_ALT_PATTERN = re.compile(
 
 _COMPARATIVE_TOP_PATTERN = re.compile(
     r"(?:top|rank|compare|sort)\s+(?:by\s+)?(cpu|memory|mem|disk|load|ram|storage|gpu|vram)"
+
+    r"|top\s+\d+\s+(cpu|memory|mem|disk|load|ram|storage|gpu|vram)\s*(?:consumers?|users?|hogs?)?"
 )
 
 
 def _handle_comparative(question: str, match: re.Match) -> dict:
     """Handle: 'Which server uses the most CPU?', 'What node has the highest load?'"""
-    metric_raw = match.group(1).lower()
+    # group(1) may be None if matched by an alt pattern — extract metric from text
+    g1 = match.group(1)
+    if g1 is None:
+        # Try to find a metric keyword in the matched text
+        import re as _re
+        m = _re.search(r'(cpu|memory|mem|disk|load|ram|storage|gpu|vram)', match.group(0))
+        metric_raw = m.group(1) if m else 'cpu'
+    else:
+        metric_raw = g1.lower()
     is_gpu_metric = metric_raw in ("gpu", "vram")
     metric_map = {
         "cpu": "cpu_percent",
@@ -1292,6 +1304,10 @@ _CAPACITY_PATTERN = re.compile(
     r"|(?:running out|low on|out of)\s+(?:disk|storage|space)"
     r"|disk\s+(?:usage|space|capacity|full)"
     r"|storage\s+(?:usage|status|full|capacity)"
+
+    r"|how\s+much\s+(?:ram|memory|mem|disk|storage|space)\s+(?:do\s+)?(?:i|we)\s+have(?:\s+left)?"
+    r"|(?:any|are\s+there)\s+(?:disk|drive|hdd|ssd|nvme)\s+(?:failures?|errors?|problems?|issues?)"
+    r"|^uptime$|^(?:show\s+)?uptime(?:\s+(?:for|of)\s+.+)?$"
 )
 
 
@@ -1375,9 +1391,11 @@ _FLEET_PATTERN = re.compile(
     r"|how(?:'s| is) everything"
     r"|what(?:'s| is) the (?:overall |current )?(?:state|status|health)"
     # Bare 'show me the fleet / my cluster / etc.' — no status keyword needed
-    r"|(?:show|get|display)\s+(?:me\s+)?(?:the|my|our)?\s*(?:fleet|cluster|infra(?:structure)?|setup|environment)"
+    r"|(?:show|get|display)\s+(?:me\s+)?(?:the|my|our)?\s*(?:fleet|cluster|infra(?:structure)?|setup|environment|everything|all\s*(?:nodes|servers)?)"
     # 'memory usage' / 'cpu usage' / 'disk usage' with no target = fleet pulse
     r"|^(?:cpu|memory|disk|network|load)\s+(?:usage|use|utilization|util)$"
+    r"|^(?:show\s+me\s+)?everything$"
+    r"|^all\s+(?:nodes|servers|labs|machines)$"
 )
 
 
@@ -1665,6 +1683,9 @@ _CONTAINER_PATTERN = re.compile(
     r"|(?:most|highest)\s+(?:cpu|memory|mem|ram)\s+containers?"
     r"|running\s+containers?"
     r"|docker\s+(?:status|containers?|ps)"
+
+    r"|(?:any|are\s+there)\s+(?:containers?|dockers?)\s+(?:crashed|failing|failed|down|stopped|dead|unhealthy)"
+    r"|(?:crashed|failing|failed|down|stopped|dead|unhealthy)\s+containers?"
 )
 
 
