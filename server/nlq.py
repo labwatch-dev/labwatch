@@ -378,6 +378,60 @@ _LANG_KEYWORDS: dict[str, str] = {
     "флот": "fleet",
     "флоти": "fleet",
     "кластер": "cluster",
+    # German question structure
+    "welcher": "which",
+    "welche": "which",
+    "welches": "which",
+    "meisten": "most",
+    "verbraucht": "uses",
+    "benutzt": "uses",
+    "verwendet": "uses",
+    "höchste": "highest",
+    "niedrigste": "lowest",
+    "wieviel": "how much",
+    "am": "",  # German filler (am meisten = the most)
+    # French question structure
+    "serveurs": "servers",
+    "quels": "which",
+    "utilisent": "uses",
+    "utilise": "uses",
+    "combien": "how much",
+    # Spanish question structure
+    "cuáles": "which",
+    "servidores": "servers",
+    "utilizan": "uses",
+    "cuánto": "how much",
+    "más": "most",
+    # French additional
+    "plus": "most",  # "le plus de" = "the most"
+    "reste": "left",
+    "disponible": "available",
+    "de": "",  # French filler (du, de la)
+    "espace": "space",
+    # German additional structure
+    "zeig": "show",      # informal imperative (zeig mir = show me)
+    "alle": "all",       # all (zeig mir alle server = show me all servers)
+    "alles": "everything",
+    "gibt": "is",        # "gibt es" = "is there" / "are there"
+    "es": "there",       # part of "gibt es"
+    "welchen": "which",
+    "braucht": "uses",   # "braucht am meisten" = "uses the most"
+    # French additional structure
+    "montrez-moi": "show me",  # formal imperative + me
+    "montrez": "show",   # formal/plural imperative
+    "affichez": "show",  # formal/plural imperative
+    "tous": "all",       # all (masculine)
+    "toutes": "all",     # all (feminine)
+    "quelles": "which",  # feminine plural
+    "lesquels": "which",
+    "lesquelles": "which",
+    # Spanish additional structure
+    "qué": "what",
+    "muéstrame": "show me",
+    "caídos": "down",    # "están caídos" = "are down"
+    "caído": "down",
+    "todos": "all",
+    "todas": "all",
     "використання": "usage",
     "трафік": "traffic",
     "обслуговування": "maintenance",
@@ -1006,7 +1060,7 @@ def _add_metric_anomalies(parts: list, lab: dict, start: datetime, end: datetime
 # ---------------------------------------------------------------------------
 
 _COMPARATIVE_PATTERN = re.compile(
-    r"(?:which|what)\s+(?:server|node|machine|host|lab)\s+"
+    r"(?:which|what)\s+(?:servers?|nodes?|machines?|hosts?|labs?)\s+"
     r"(?:uses?|has|is using|consumes?|shows?)\s+(?:the\s+)?(?:most|highest|lowest|least|worst|best)\s+"
     r"(cpu|memory|mem|disk|load|ram|storage|gpu|vram)"
 )
@@ -1305,7 +1359,7 @@ _CAPACITY_PATTERN = re.compile(
     r"|disk\s+(?:usage|space|capacity|full)"
     r"|storage\s+(?:usage|status|full|capacity)"
 
-    r"|how\s+much\s+(?:ram|memory|mem|disk|storage|space)\s+(?:do\s+)?(?:i|we)\s+have(?:\s+left)?"
+    r"|how\s+much\s+(?:ram|memory|mem|disk|storage|space)\s+(?:(?:do\s+)?(?:i|we)\s+have\s+)?(?:is\s+)?(?:left|free|available|remaining)"
     r"|(?:any|are\s+there)\s+(?:disk|drive|hdd|ssd|nvme)\s+(?:failures?|errors?|problems?|issues?)"
     r"|^uptime$|^(?:show\s+)?uptime(?:\s+(?:for|of)\s+.+)?$"
     r"|^(?:free|available)\s+(?:space|disk|storage)$"
