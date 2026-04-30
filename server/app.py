@@ -2645,7 +2645,7 @@ _DEMO_RESPONSES = [
         "patterns": [
             r"(?:which|what)\s+(?:server|node|machine)?\s*(?:uses?|has)\s+(?:the\s+)?(?:most|highest|lowest|least)\s+(?:cpu|memory|mem|ram|disk|load)",
             r"(?:most|highest|lowest|least)\s+(?:cpu|memory|mem|disk|load)",
-            r"(?:top|rank|compare|sort)\s+(?:by\s+)?(?:cpu|memory|mem|disk|load)",
+            r"(?:top|rank|compare|sort)\s+(?:\d+\s+)?(?:by\s+)?(?:cpu|memory|mem|disk|load)(?:\s+\w+)*",
             r"(?:show|give|get)\s+(?:me\s+)?(?:cpu|memory|mem|ram)\s*(?:usage|stats|info)?",
             r"^cpu\s*(?:usage|stats)?$",
             r"^mem(?:ory)?\s*(?:usage|stats)?$",
@@ -2713,6 +2713,7 @@ _DEMO_RESPONSES = [
         "patterns": [
             r"(?:how much|running out|low on|out of)\s+.*?(?:disk|space)",
             r"disk\s+(?:usage|space|capacity|full)",
+            r"(?:how much|how many)\s+(?:ram|memory|mem)\s+(?:do\s+)?(?:i|we)\s+have(?:\s+left)?",
             r"(?:^|\s)storage\s+(?:usage|full|capacity)",
         ],
         "response": {
@@ -2783,6 +2784,32 @@ _DEMO_RESPONSES = [
             ),
             "query_type": "smart",
             "confidence": 0.95,
+            "demo": True,
+        },
+    },
+    {
+        "patterns": [
+            r"why\s+is\s+\S+\s+(?:slow|using|consuming|taking)",
+            r"what(?:'s|\s+is)\s+wrong\s+with\s+\S+",
+            r"diagnos(?:e|tic)\s+\S+",
+            r"explain\s+(?:the\s+)?(?:high|low|usage|load)\s+(?:on|for)\s+\S+",
+        ],
+        "response": {
+            "answer": (
+                "Diagnostic for nas-storage:\n"
+                "\n"
+                "Memory at 73.2% (5.9 GB of 8 GB):\n"
+                "  ZFS ARC cache: 3.1 GB (adaptive, will release under pressure)\n"
+                "  Samba/NFS services: 1.2 GB\n"
+                "  System + kernel: 0.8 GB\n"
+                "\n"
+                "This is normal for a NAS with ZFS. The ARC cache intentionally uses free RAM\n"
+                "for disk caching. If applications need memory, ZFS will release ARC pages.\n"
+                "\n"
+                "No action needed unless you see OOM kills in the logs."
+            ),
+            "query_type": "diagnostic",
+            "confidence": 0.9,
             "demo": True,
         },
     },
