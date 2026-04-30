@@ -1311,8 +1311,73 @@ _CAPACITY_PATTERN = re.compile(
 )
 
 
+
+def _handle_memory_capacity(question: str) -> dict:
+    """Sub-handler for memory/RAM capacity queries."""
+    labs = _scoped_list_labs()
+    nodes = []
+
+    for lab in labs:
+        metrics = db.get_latest_metrics(lab["id"])
+        sys_summary = _extract_system_summary(metrics)
+        online = _lab_is_online(lab["last_seen"])
+        nodes.append({
+            "hostname": lab["hostname"],
+            "memory_percent": sys_summary["memory_percent"],
+            "memory_total_gb": sys_summary.get("memory_total_bytes", 0) / (1024**3) if sys_summary.get("memory_total_bytes") else 0,
+            "online": online,
+        })
+
+    nodes.sort(key=lambda x: x["memory_percent"], reverse=True)
+
+    if not nodes:
+        return _build_response(answer="No labs registered yet.", query_type="capacity", confidence=0.9, sources=[])
+
+    lines = ["Memory usage across the fleet:"]
+    for nd in nodes:
+        status = "" if nd["online"] else " [OFFLINE]"
+        bar = _metric_color(nd["memory_percent"])
+        total = f" ({nd['memory_total_gb']:.1f} GB total)" if nd["memory_total_gb"] > 0 else ""
+        free_pct = 100 - nd["memory_percent"]
+        lines.append(f"  {nd['hostname']}: {nd['memory_percent']:.1f}% used, {free_pct:.1f}% free{total} ({bar}){status}")
+
+    return _build_response(answer="\n".join(lines), query_type="capacity", confidence=0.95, sources=[{"type": "labs", "count": len(nodes)}])
+
+
+def _handle_uptime_capacity(question: str) -> dict:
+    """Sub-handler for uptime queries."""
+    node_name = _extract_node_name(question)
+    labs = _scoped_list_labs()
+    if node_name:
+        labs = [l for l in labs if l["hostname"].lower() == node_name.lower()]
+
+    if not labs:
+        return _build_response(answer="No matching nodes found.", query_type="capacity", confidence=0.5, sources=[])
+
+    lines = ["Uptime:"]
+    for lab in labs:
+        metrics = db.get_latest_metrics(lab["id"])
+        sys_summary = _extract_system_summary(metrics)
+        uptime_s = sys_summary.get("uptime_seconds", 0)
+        uptime_str = _format_uptime(int(uptime_s)) if uptime_s else "unknown"
+        online = _lab_is_online(lab["last_seen"])
+        status = "online" if online else "OFFLINE"
+        lines.append(f"  {lab['hostname']}: {uptime_str} ({status})")
+
+    return _build_response(answer="\n".join(lines), query_type="capacity", confidence=0.95, sources=[{"type": "labs", "count": len(labs)}])
+
+
 def _handle_capacity(question: str, match: re.Match) -> dict:
-    """Handle: 'How much disk space do I have?', 'Am I running out of storage?'"""
+    """Handle: 'How much disk space do I have?', 'Am I running out of storage?', 'How much RAM left?'"""
+    # Detect if the query is about memory/RAM rather than disk
+    is_memory_query = bool(re.search(r'\b(?:ram|memory|mem)\b', question))
+    is_uptime_query = bool(re.search(r'\buptime\b', question))
+
+    if is_uptime_query:
+        return _handle_uptime_capacity(question)
+    if is_memory_query:
+        return _handle_memory_capacity(question)
+
     labs = _scoped_list_labs()
     node_disks = []
 
