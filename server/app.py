@@ -2754,6 +2754,38 @@ _DEMO_RESPONSES = [
             "demo": True,
         },
     },
+    {
+        "patterns": [
+            r"(?:smart|s\.m\.a\.r\.t)\.?\s*(?:status|health|data|info)",
+            r"(?:disk|drive|hdd|ssd|nvme)\s+health",
+            r"(?:are|is)\s+(?:my|the)\s+(?:disks?|drives?)\s+(?:healthy|ok|failing)",
+            r"(?:any|are\s+there)\s+(?:disk|drive)\s+(?:failures?|errors?|problems?)",
+            r"(?:failing|failed)\s+(?:disks?|drives?)",
+            r"power.on.hours",
+        ],
+        "response": {
+            "answer": (
+                "S.M.A.R.T. health: 8 drives across 3 nodes\n"
+                "All drives report HEALTHY.\n"
+                "\n"
+                "Drive details:\n"
+                "  pve-main:\n"
+                "    /dev/sda: Samsung SSD 870 EVO 500GB [OK, 32C, 12,841h]\n"
+                "    /dev/sdb: WDC WD40EFRX-68N32N0 [OK, 34C, 28,116h]\n"
+                "  docker-host:\n"
+                "    /dev/sda: CT500MX500SSD1 [OK, 29C, 8,432h]\n"
+                "    /dev/sdb: ST2000DM008-2UB102 [OK, 33C, 15,291h]\n"
+                "  nas-storage:\n"
+                "    /dev/sda: ST4000VN008-2DR166 [OK, 35C, 31,204h]\n"
+                "    /dev/sdb: ST4000VN008-2DR166 [OK, 36C, 31,189h]\n"
+                "    /dev/sdc: WDC WD40EFRX-68N32N0 [OK, 33C, 22,847h]\n"
+                "    /dev/sdd: WDC WD40EFRX-68N32N0 [OK, 34C, 22,851h]"
+            ),
+            "query_type": "smart",
+            "confidence": 0.95,
+            "demo": True,
+        },
+    },
 ]
 
 # Demo node-specific status responses
