@@ -697,6 +697,17 @@ def _extract_gpu_summary(metrics: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _extract_smart_summary(metrics: dict[str, Any]) -> dict[str, Any]:
+    """Pull S.M.A.R.T. data from latest smart collector."""
+    smart_entry = metrics.get("smart", {})
+    data = smart_entry.get("data", {}) if isinstance(smart_entry, dict) else {}
+    devices = data.get("devices", [])
+    return {
+        "device_count": len(devices) if isinstance(devices, list) else 0,
+        "devices": devices if isinstance(devices, list) else [],
+    }
+
+
 def _extract_docker_summary(metrics: dict[str, Any]) -> dict[str, Any]:
     """Pull container summary from latest docker metrics."""
     docker_entry = metrics.get("docker", {})
@@ -1360,6 +1371,18 @@ def _handle_fleet_diagnostic(question: str, focus: str) -> dict:
 # Handler: Capacity queries
 # ---------------------------------------------------------------------------
 
+_SMART_PATTERN = re.compile(
+    r"(?:smart|s\.m\.a\.r\.t)\.?\s*(?:status|health|data|info|report)"
+    r"|(?:disk|drive|hdd|ssd|nvme)\s+health"
+    r"|(?:are|is)\s+(?:my|the|our)\s+(?:disks?|drives?)\s+(?:healthy|ok|failing|good|bad)"
+    r"|(?:any|are\s+there)\s+(?:disk|drive|hdd|ssd|nvme)\s+(?:failures?|errors?|problems?|issues?)"
+    r"|drive\s+(?:status|health|condition)"
+    r"|(?:failing|failed)\s+(?:disks?|drives?|hdd|ssd)"
+    r"|power.on.hours"
+    r"|^(?:are\s+)?(?:my\s+)?drives?\s+(?:ok|healthy|good)"
+, re.IGNORECASE)
+
+
 _CAPACITY_PATTERN = re.compile(
     r"(?:how much|am i|are we|is there)\s+.*?(?:disk|storage|space|capacity)"
     r"|(?:running out|low on|out of)\s+(?:disk|storage|space)"
@@ -1367,7 +1390,6 @@ _CAPACITY_PATTERN = re.compile(
     r"|storage\s+(?:usage|status|full|capacity)"
 
     r"|how\s+much\s+(?:ram|memory|mem|disk|storage|space)\s+(?:(?:do\s+)?(?:i|we)\s+have\s+)?(?:is\s+)?(?:left|free|available|remaining)"
-    r"|(?:any|are\s+there)\s+(?:disk|drive|hdd|ssd|nvme)\s+(?:failures?|errors?|problems?|issues?)"
     r"|^uptime$|^(?:show\s+)?uptime(?:\s+(?:for|of)\s+.+)?$"
     r"|^(?:free|available)\s+(?:space|disk|storage)$"
     r"|^(?:ram|memory|mem)$"
@@ -1428,6 +1450,78 @@ def _handle_uptime_capacity(question: str) -> dict:
         lines.append(f"  {lab['hostname']}: {uptime_str} ({status})")
 
     return _build_response(answer="\n".join(lines), query_type="capacity", confidence=0.95, sources=[{"type": "labs", "count": len(labs)}])
+
+
+def _handle_smart(question: str, match: re.Match) -> dict:
+    """Handle: 'disk health', 'smart status', 'are my drives healthy', 'any disk failures'."""
+    labs = _scoped_list_labs()
+    all_drives = []
+
+    for lab in labs:
+        metrics = db.get_latest_metrics(lab["id"])
+        smart = _extract_smart_summary(metrics)
+        online = _lab_is_online(lab["last_seen"])
+
+        if not smart["devices"]:
+            continue
+
+        for dev in smart["devices"]:
+            all_drives.append({
+                "hostname": lab["hostname"],
+                "device": dev.get("device", "?"),
+                "model": dev.get("model", "unknown"),
+                "healthy": dev.get("healthy", None),
+                "temp_c": dev.get("temperature_c", None),
+                "power_hours": dev.get("power_on_hours", None),
+                "online": online,
+            })
+
+    if not all_drives:
+        return _build_response(
+            answer="No S.M.A.R.T. data available. Agents may not have smartmontools installed, or no physical drives are detected (containers don't have direct disk access).",
+            query_type="smart",
+            confidence=0.8,
+            sources=[],
+        )
+
+    healthy_count = sum(1 for d in all_drives if d["healthy"] is True)
+    unhealthy = [d for d in all_drives if d["healthy"] is False]
+    unknown = [d for d in all_drives if d["healthy"] is None]
+
+    lines = [f"S.M.A.R.T. health: {len(all_drives)} drives across {len(set(d['hostname'] for d in all_drives))} nodes"]
+
+    if unhealthy:
+        lines.append("")
+        lines.append(f"FAILING ({len(unhealthy)}):")
+        for d in unhealthy:
+            lines.append(f"  {d['hostname']} {d['device']} ({d['model']}) — UNHEALTHY")
+    
+    if healthy_count == len(all_drives):
+        lines.append("All drives report HEALTHY.")
+    
+    lines.append("")
+    lines.append("Drive details:")
+    
+    # Group by hostname
+    by_host = {}
+    for d in all_drives:
+        by_host.setdefault(d["hostname"], []).append(d)
+    
+    for hostname in sorted(by_host.keys()):
+        drives = by_host[hostname]
+        lines.append(f"  {hostname}:")
+        for d in drives:
+            status = "OK" if d["healthy"] else ("FAIL" if d["healthy"] is False else "?")
+            temp = f", {d['temp_c']}C" if d["temp_c"] is not None else ""
+            hours = f", {d['power_hours']:,}h" if d["power_hours"] is not None else ""
+            lines.append(f"    {d['device']}: {d['model']} [{status}{temp}{hours}]")
+
+    return _build_response(
+        answer="\n".join(lines),
+        query_type="smart",
+        confidence=0.95,
+        sources=[{"type": "smart", "drives": len(all_drives)}],
+    )
 
 
 def _handle_capacity(question: str, match: re.Match) -> dict:
@@ -2681,6 +2775,18 @@ def _handle_out_of_scope(question: str, match: re.Match) -> dict:
 # Handler: Node capacity / plan limits ('how many more nodes can i add')
 # ---------------------------------------------------------------------------
 
+_NODE_SMART_PATTERN = re.compile(
+    r"(?:smart|s\.m\.a\.r\.t)\.?\s*(?:status|health|data|info|report)"
+    r"|(?:disk|drive|hdd|ssd|nvme)\s+health"
+    r"|(?:are|is)\s+(?:my|the|our)\s+(?:disks?|drives?)\s+(?:healthy|ok|failing|good|bad)"
+    r"|(?:any|are\s+there)\s+(?:disk|drive|hdd|ssd|nvme)\s+(?:failures?|errors?|problems?|issues?)"
+    r"|drive\s+(?:status|health|condition)"
+    r"|(?:failing|failed)\s+(?:disks?|drives?|hdd|ssd)"
+    r"|power.on.hours"
+    r"|^(?:are\s+)?(?:my\s+)?drives?\s+(?:ok|healthy|good)"
+, re.IGNORECASE)
+
+
 _NODE_CAPACITY_PATTERN = re.compile(
     r"(?:how\s+many\s+(?:more\s+)?(?:nodes?|hosts?|servers?|labs?)\s+can\s+i\s+(?:add|register|enroll))"
     r"|(?:can\s+i\s+add\s+(?:more|another)\s+(?:nodes?|hosts?|servers?))"
@@ -3044,6 +3150,8 @@ HANDLERS = [
     {"pattern": _INVENTORY_PATTERN, "func": _handle_inventory, "name": "inventory"},
     # Generic health pulse — before fleet so 'are we good' / 'sanity check' route here
     {"pattern": _GENERIC_HEALTH_PATTERN, "func": _handle_generic_health, "name": "generic_health"},
+    # S.M.A.R.T. disk health — before capacity so "any disk failures" routes here
+    {"pattern": _SMART_PATTERN, "func": _handle_smart, "name": "smart"},
     # Fleet overview
     {"pattern": _FLEET_PATTERN, "func": _handle_fleet, "name": "fleet_overview"},
     # Time-range queries
