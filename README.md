@@ -185,10 +185,15 @@ curl -X POST http://localhost:8097/api/v1/query \
 | Diagnostics | "Why is my server slow?", "What's causing high load?" |
 | Capacity | "Am I running out of disk space?" |
 | ZFS pools | "How are my ZFS pools?", "ZFS pool status" |
-| Comparative | "Which server uses the most CPU?" |
+| Comparative | "Which server uses the most CPU?", "Top memory consumers" |
 | Time range | "What happened last night?", "Any issues in the last 6 hours?" |
+| S.M.A.R.T. | "Disk health", "Are my drives healthy?" |
+| GPU | "GPU status", "How hot is the GPU?" |
+| Temperature | "How hot is everything?", "Show temps" |
+| Containers | "What containers are running?", "Restart counts" |
+| Multilingual | "Welcher Server verbraucht am meisten CPU?" (DE), "Quel serveur utilise le plus de CPU?" (FR) |
 
-No LLM required — the engine uses pattern matching and template responses powered by your own metrics.
+No LLM required — the engine uses 350+ regex patterns across 25 categories in 5 languages (English, German, French, Spanish, Ukrainian). Responses are composed from your own live metrics. Zero hallucination.
 
 ## Notifications
 
