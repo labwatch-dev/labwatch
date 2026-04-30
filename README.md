@@ -290,15 +290,15 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 | Agent footprint | ~15 MB RSS | ~40 MB (node_exporter) | N/A (pull) | ~20 MB | ~150 MB |
 | Query language | Plain English | PromQL | N/A | N/A | N/A |
 | Intelligence digests | Yes (auto-graded) | No | No | No | No |
-| Docker monitoring | Built-in | Separate exporter | No | No | Plugin |
-| GPU monitoring | Built-in (NVIDIA) | Separate exporter | No | No | Plugin |
+| Docker monitoring | Built-in | Separate exporter | No | Built-in | Plugin |
+| GPU monitoring | Built-in (NVIDIA) | Separate exporter | No | Built-in (NVIDIA/AMD/Apple) | Plugin |
 | S.M.A.R.T. health | Built-in | Separate exporter | No | No | Plugin |
 | ZFS pool health | Built-in | Separate exporter | No | Partial | No |
 | Centralized logs | Built-in (SQLite) | Loki/Elasticsearch | No | No | No |
 | Alert deduplication | Built-in | Alertmanager needed | Built-in | No | Built-in |
 | Database | SQLite (zero config) | TSDB + Postgres | SQLite | SQLite | Custom DB |
 | Config format | YAML (simple) | YAML (complex) | Web UI | Web UI | Auto |
-| Notification channels | 8 | Via Alertmanager | 90+ | 4 | Cloud only |
+| Notification channels | 8 | Via Alertmanager | 90+ | Email/webhook | Cloud only |
 | Self-contained | Yes | No (3+ services) | Yes | Yes | Partial |
 | License | AGPL + MIT | Apache-2.0 | MIT | MIT | GPL-3.0 |
 
