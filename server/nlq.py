@@ -1308,6 +1308,8 @@ _CAPACITY_PATTERN = re.compile(
     r"|how\s+much\s+(?:ram|memory|mem|disk|storage|space)\s+(?:do\s+)?(?:i|we)\s+have(?:\s+left)?"
     r"|(?:any|are\s+there)\s+(?:disk|drive|hdd|ssd|nvme)\s+(?:failures?|errors?|problems?|issues?)"
     r"|^uptime$|^(?:show\s+)?uptime(?:\s+(?:for|of)\s+.+)?$"
+    r"|^(?:free|available)\s+(?:space|disk|storage)$"
+    r"|^(?:ram|memory|mem)$"
 )
 
 
@@ -1460,6 +1462,7 @@ _FLEET_PATTERN = re.compile(
     # 'memory usage' / 'cpu usage' / 'disk usage' with no target = fleet pulse
     r"|^(?:cpu|memory|disk|network|load)\s+(?:usage|use|utilization|util)$"
     r"|^(?:show\s+me\s+)?everything$"
+    r"|(?:what.?s\s+going\s+on|how\s+are\s+things|what.?s\s+up)"
     r"|^all\s+(?:nodes|servers|labs|machines)$"
 )
 
@@ -1751,6 +1754,7 @@ _CONTAINER_PATTERN = re.compile(
 
     r"|(?:any|are\s+there)\s+(?:containers?|dockers?)\s+(?:crashed|failing|failed|down|stopped|dead|unhealthy)"
     r"|(?:crashed|failing|failed|down|stopped|dead|unhealthy)\s+containers?"
+    r"|^(?:docker\s+)?containers?$"
 )
 
 
