@@ -284,23 +284,21 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 
 ## Comparison
 
-| Feature | labwatch | Prometheus + Grafana | Uptime Kuma | Beszel | Netdata |
-|---------|----------|---------------------|-------------|--------|---------|
-| Setup time | ~2 min | 30+ min | ~5 min | ~5 min | ~5 min |
-| Agent footprint | ~15 MB RSS | ~40 MB (node_exporter) | N/A (pull) | ~20 MB | ~150 MB |
-| Query language | Plain English | PromQL | N/A | N/A | N/A |
+| Feature | labwatch | Beszel + Dozzle | Prometheus + Grafana | Uptime Kuma | Netdata |
+|---------|----------|-----------------|---------------------|-------------|---------|
+| Setup time | ~2 min | ~10 min (2 tools) | 30+ min | ~5 min | ~5 min |
+| Agent footprint | ~15 MB RSS | ~20 MB + 7 MB | ~40 MB (node_exporter) | N/A (pull) | ~150 MB |
+| Query language | Plain English | N/A | PromQL | N/A | N/A |
 | Intelligence digests | Yes (auto-graded) | No | No | No | No |
-| Docker monitoring | Built-in | Separate exporter | No | Built-in | Plugin |
-| GPU monitoring | Built-in (NVIDIA) | Separate exporter | No | Built-in (NVIDIA/AMD/Apple) | Plugin |
-| S.M.A.R.T. health | Built-in | Separate exporter | No | No | Plugin |
-| ZFS pool health | Built-in | Separate exporter | No | Partial | No |
-| Centralized logs | Built-in (SQLite) | Loki/Elasticsearch | No | No | No |
-| Alert deduplication | Built-in | Alertmanager needed | Built-in | No | Built-in |
-| Database | SQLite (zero config) | TSDB + Postgres | SQLite | SQLite | Custom DB |
-| Config format | YAML (simple) | YAML (complex) | Web UI | Web UI | Auto |
-| Notification channels | 8 | Via Alertmanager | 90+ | Email/webhook | Cloud only |
-| Self-contained | Yes | No (3+ services) | Yes | Yes | Partial |
-| License | AGPL + MIT | Apache-2.0 | MIT | MIT | GPL-3.0 |
+| Docker monitoring | Built-in | Beszel: yes | Separate exporter | No | Plugin |
+| GPU monitoring | Built-in (NVIDIA) | Beszel: NVIDIA/AMD/Apple | Separate exporter | No | Plugin |
+| S.M.A.R.T. health | Built-in | No | Separate exporter | No | Plugin |
+| ZFS pool health | Built-in | Partial | Separate exporter | No | No |
+| Centralized logs | Built-in (stored, searchable) | Dozzle: live only (no storage) | Loki/Elasticsearch | No | No |
+| Alert deduplication | Built-in | No | Alertmanager needed | Built-in | Built-in |
+| Notification channels | 8 | Email/webhook | Via Alertmanager | 90+ | Cloud only |
+| Self-contained | Yes (one tool) | No (2 tools) | No (3+ services) | Yes | Partial |
+| License | AGPL + MIT | MIT + MIT | Apache-2.0 | MIT | GPL-3.0 |
 
 labwatch is not a Prometheus replacement for production infrastructure. It's built for homelabs where you want monitoring that works in 2 minutes, not 2 hours.
 
