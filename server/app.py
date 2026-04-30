@@ -2643,6 +2643,31 @@ _DEMO_RESPONSES = [
     },
     {
         "patterns": [
+            r"(?:which|what)\s+(?:server|node|machine)?\s*(?:uses?|has)\s+(?:the\s+)?(?:most|highest|lowest|least)\s+(?:memory|mem|ram)",
+            r"(?:most|highest|lowest|least)\s+(?:memory|mem|ram)",
+            r"memory\s+(?:usage|ranking|comparison|compare)",
+            r"(?:show|give|get)\s+(?:me\s+)?(?:memory|mem|ram)\s*(?:usage|stats|info)?",
+            r"^mem(?:ory)?\s*(?:usage|stats)?$",
+            r"^ram\s*(?:usage|stats)?$",
+        ],
+        "response": {
+            "answer": (
+                "Memory usage ranking (highest first):\n"
+                "  1. pve-main: 18.6 / 32 GB (58.1%)\n"
+                "  2. docker-host: 5.2 / 8 GB (65.0%)\n"
+                "  3. nas-storage: 3.5 / 32 GB (10.9%)\n"
+                "  4. gpu-server: 0 / 16 GB [OFFLINE]\n"
+                "\n"
+                "docker-host has the highest utilization at 65%. "
+                "pve-main has the most absolute usage but plenty of headroom."
+            ),
+            "query_type": "comparative",
+            "confidence": 0.95,
+            "demo": True,
+        },
+    },
+    {
+        "patterns": [
             r"(?:which|what)\s+(?:server|node|machine)?\s*(?:uses?|has)\s+(?:the\s+)?(?:most|highest|lowest|least)\s+(?:cpu|memory|mem|ram|disk|load)",
             r"(?:most|highest|lowest|least)\s+(?:cpu|memory|mem|disk|load)",
             r"(?:top|rank|compare|sort)\s+(?:\d+\s+)?(?:by\s+)?(?:cpu|memory|mem|disk|load)(?:\s+\w+)*",
@@ -3171,7 +3196,28 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "  - [ПОПЕРЕДЖЕННЯ] Сповіщення: диск 78.1% перевищує 75%"
     ),
     # ── Comparative (index 6) ──
+    # -- Memory comparative (index 6) --
     (6, "de"): (
+        "Speichernutzung (absteigend):\n"
+        "  1. pve-main: 18.6 / 32 GB (58.1%)\n"
+        "  2. docker-host: 5.2 / 8 GB (65.0%)\n"
+        "  3. nas-storage: 3.5 / 32 GB (10.9%)\n"
+        "  4. gpu-server: 0 / 16 GB [OFFLINE]\n"
+        "\n"
+        "docker-host hat die h\u00f6chste Auslastung bei 65%.\n"
+        "pve-main hat den h\u00f6chsten Absolutverbrauch, aber gen\u00fcgend Spielraum."
+    ),
+    (6, "fr"): (
+        "Utilisation m\u00e9moire (d\u00e9croissant) :\n"
+        "  1. pve-main: 18.6 / 32 Go (58.1%)\n"
+        "  2. docker-host: 5.2 / 8 Go (65.0%)\n"
+        "  3. nas-storage: 3.5 / 32 Go (10.9%)\n"
+        "  4. gpu-server: 0 / 16 Go [HORS LIGNE]\n"
+        "\n"
+        "docker-host a l'utilisation la plus \u00e9lev\u00e9e \u00e0 65%.\n"
+        "pve-main consomme le plus en absolu mais dispose de marge suffisante."
+    ),
+    (7, "de"): (
         "CPU-Nutzung (absteigend):\n"
         "  1. pve-main: 23.4%\n"
         "  2. docker-host: 8.1%\n"
@@ -3180,7 +3226,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "\n"
         "pve-main ist der aktivste Node, aber im sicheren Bereich."
     ),
-    (6, "fr"): (
+    (7, "fr"): (
         "Utilisation CPU (décroissant) :\n"
         "  1. pve-main: 23.4%\n"
         "  2. docker-host: 8.1%\n"
@@ -3189,7 +3235,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "\n"
         "pve-main est le nœud le plus actif mais dans la plage sûre."
     ),
-    (6, "es"): (
+    (7, "es"): (
         "Uso de CPU (descendente):\n"
         "  1. pve-main: 23.4%\n"
         "  2. docker-host: 8.1%\n"
@@ -3198,7 +3244,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "\n"
         "pve-main es el nodo más activo pero dentro del rango seguro."
     ),
-    (6, "uk"): (
+    (7, "uk"): (
         "Використання CPU (спадання):\n"
         "  1. pve-main: 23.4%\n"
         "  2. docker-host: 8.1%\n"
@@ -3208,7 +3254,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "pve-main — найактивніший вузол, але в безпечному діапазоні."
     ),
     # ── Recent events (index 7) ──
-    (7, "de"): (
+    (8, "de"): (
         "Letzte 12 Stunden:\n"
         "  02:14 — gpu-server ging offline (seitdem keine Metriken)\n"
         "  02:14 — KRITISCHER Alarm: gpu-server offline\n"
@@ -3218,7 +3264,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "Zusammenfassung: 1 Node offline, 1 Last-Spitze (gelöst), 1 neue Disk-Warnung.\n"
         "gpu-server braucht Untersuchung — seit 5+ Stunden nicht erholt."
     ),
-    (7, "fr"): (
+    (8, "fr"): (
         "Dernières 12 heures :\n"
         "  02:14 — gpu-server est passé hors ligne (aucune métrique depuis)\n"
         "  02:14 — Alerte CRITIQUE: gpu-server hors ligne\n"
@@ -3228,7 +3274,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "Résumé: 1 nœud hors ligne, 1 pic de charge (résolu), 1 nouvel avertissement disque.\n"
         "gpu-server nécessite une investigation — pas de récupération depuis 5h+."
     ),
-    (7, "es"): (
+    (8, "es"): (
         "Últimas 12 horas:\n"
         "  02:14 — gpu-server se desconectó (sin métricas desde entonces)\n"
         "  02:14 — Alerta CRÍTICA: gpu-server fuera de línea\n"
@@ -3238,7 +3284,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "Resumen: 1 nodo fuera de línea, 1 pico de carga (resuelto), 1 nueva advertencia de disco.\n"
         "gpu-server necesita investigación — sin recuperación hace 5h+."
     ),
-    (7, "uk"): (
+    (8, "uk"): (
         "Останні 12 годин:\n"
         "  02:14 — gpu-server перейшов офлайн (з тих пір немає метрик)\n"
         "  02:14 — КРИТИЧНЕ сповіщення: gpu-server офлайн\n"
@@ -3249,7 +3295,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "gpu-server потребує розслідування — не відновився 5+ годин."
     ),
     # ── Network (index 8) ──
-    (8, "de"): (
+    (9, "de"): (
         "Netzwerk-Nutzung aller Nodes:\n"
         "  proxmox-01: 12.4 Mbps rx / 8.2 Mbps tx\n"
         "  docker-01: 45.8 Mbps rx / 32.1 Mbps tx\n"
@@ -3258,7 +3304,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "\n"
         "docker-01 hat den höchsten Durchsatz — wahrscheinlich Container-Traffic."
     ),
-    (8, "fr"): (
+    (9, "fr"): (
         "Utilisation réseau de tous les nœuds :\n"
         "  proxmox-01: 12.4 Mbps rx / 8.2 Mbps tx\n"
         "  docker-01: 45.8 Mbps rx / 32.1 Mbps tx\n"
@@ -3267,7 +3313,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "\n"
         "docker-01 a le débit le plus élevé — probablement du trafic conteneur."
     ),
-    (8, "es"): (
+    (9, "es"): (
         "Uso de red de todos los nodos:\n"
         "  proxmox-01: 12.4 Mbps rx / 8.2 Mbps tx\n"
         "  docker-01: 45.8 Mbps rx / 32.1 Mbps tx\n"
@@ -3276,7 +3322,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "\n"
         "docker-01 tiene el mayor rendimiento — probablemente tráfico de contenedores."
     ),
-    (8, "uk"): (
+    (9, "uk"): (
         "Використання мережі всіх вузлів:\n"
         "  proxmox-01: 12.4 Mbps rx / 8.2 Mbps tx\n"
         "  docker-01: 45.8 Mbps rx / 32.1 Mbps tx\n"
@@ -3286,7 +3332,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "docker-01 має найвищу пропускну здатність — ймовірно трафік контейнерів."
     ),
     # ── Disk (index 9) ──
-    (9, "de"): (
+    (10, "de"): (
         "Disk-Nutzung der gesamten Flotte:\n"
         "  nas-storage: 78.1% (hoch)\n"
         "    /mnt/data: 78.1% (412.3 GB frei von 1862.6 GB)\n"
@@ -3299,7 +3345,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "Warnungen:\n"
         "  nas-storage nähert sich dem Schwellwert bei 78.1%."
     ),
-    (9, "fr"): (
+    (10, "fr"): (
         "Utilisation disque de toute la flotte :\n"
         "  nas-storage: 78.1% (élevé)\n"
         "    /mnt/data: 78.1% (412.3 Go libres sur 1862.6 Go)\n"
@@ -3312,7 +3358,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "Avertissements :\n"
         "  nas-storage approche du seuil à 78.1%."
     ),
-    (9, "es"): (
+    (10, "es"): (
         "Uso de disco de toda la flota:\n"
         "  nas-storage: 78.1% (alto)\n"
         "    /mnt/data: 78.1% (412.3 GB libres de 1862.6 GB)\n"
@@ -3325,7 +3371,7 @@ _DEMO_RESPONSE_I18N: dict[tuple, str] = {
         "Advertencias:\n"
         "  nas-storage acercándose al umbral en 78.1%."
     ),
-    (9, "uk"): (
+    (10, "uk"): (
         "Використання диску всього флоту:\n"
         "  nas-storage: 78.1% (високе)\n"
         "    /mnt/data: 78.1% (412.3 ГБ вільно з 1862.6 ГБ)\n"
@@ -3410,25 +3456,29 @@ _DEMO_I18N_PATTERNS = [
     (r"(?:atención|qué (?:está mal|pasa)|problema)", 5),  # ES
     (r"(?:уваг[аиі]|потребує|що не так|проблем)", 5),  # UK
     # Comparative (index 6)
-    (r"(?:welch|höchst|meiste|niedrigst|vergleich).+(?:cpu|speicher|ram|disk|last)", 6),  # DE
-    (r"(?:quel|plus|moins|comparer).+(?:cpu|mémoire|ram|disque|charge)", 6),  # FR
-    (r"(?:cuál|más|menos|comparar).+(?:cpu|memoria|ram|disco|carga)", 6),  # ES
-    (r"(?:який|найбільш|найменш|порівн).+(?:cpu|пам|диск|навант)", 6),  # UK
+    (r"(?:welch|meiste|höchst).+(?:speicher|ram|arbeitsspeicher)", 6),  # DE memory
+    (r"(?:quel|plus|moins).+(?:mémoire|ram)", 6),  # FR memory
+    (r"(?:cuál|más|menos).+(?:memoria|ram)", 6),  # ES memory
+    (r"(?:який|найбільш).+(?:пам|озу)", 6),  # UK memory
+    (r"(?:welch|höchst|meiste|niedrigst|vergleich).+(?:cpu|speicher|ram|disk|last)", 7),  # DE
+    (r"(?:quel|plus|moins|comparer).+(?:cpu|mémoire|ram|disque|charge)", 7),  # FR
+    (r"(?:cuál|más|menos|comparar).+(?:cpu|memoria|ram|disco|carga)", 7),  # ES
+    (r"(?:який|найбільш|найменш|порівн).+(?:cpu|пам|диск|навант)", 7),  # UK
     # Recent events (index 7)
-    (r"(?:letzte|gestern|über nacht|was ist passiert|kürzlich)", 7),  # DE
-    (r"(?:dernier|hier|cette nuit|que s.est.il passé|récent)", 7),  # FR
-    (r"(?:último|ayer|anoche|qué pasó|reciente)", 7),  # ES
-    (r"(?:останн|вчора|що сталося|нещодавно)", 7),  # UK
+    (r"(?:letzte|gestern|über nacht|was ist passiert|kürzlich)", 8),  # DE
+    (r"(?:dernier|hier|cette nuit|que s.est.il passé|récent)", 8),  # FR
+    (r"(?:último|ayer|anoche|qué pasó|reciente)", 8),  # ES
+    (r"(?:останн|вчора|що сталося|нещодавно)", 8),  # UK
     # Network (index 8)
-    (r"(?:netzwerk|bandbreite|datenverkehr|durchsatz)", 8),  # DE
-    (r"(?:réseau|bande passante|trafic|débit)", 8),  # FR
-    (r"(?:red|ancho de banda|tráfico|rendimiento)", 8),  # ES
-    (r"(?:мережа|пропускна|трафік)", 8),  # UK
+    (r"(?:netzwerk|bandbreite|datenverkehr|durchsatz)", 9),  # DE
+    (r"(?:réseau|bande passante|trafic|débit)", 9),  # FR
+    (r"(?:red|ancho de banda|tráfico|rendimiento)", 9),  # ES
+    (r"(?:мережа|пропускна|трафік)", 9),  # UK
     # Disk (index 9)
-    (r"(?:festplatte|speicherplatz|platte voll|speicher(?:nutzung|kapazität))", 9),  # DE
-    (r"(?:disque|espace|stockage|capacité)", 9),  # FR
-    (r"(?:disco|espacio|almacenamiento|capacidad)", 9),  # ES
-    (r"(?:диск|місце|сховищ|ємніст)", 9),  # UK
+    (r"(?:festplatte|speicherplatz|platte voll|speicher(?:nutzung|kapazität))", 10),  # DE
+    (r"(?:disque|espace|stockage|capacité)", 10),  # FR
+    (r"(?:disco|espacio|almacenamiento|capacidad)", 10),  # ES
+    (r"(?:диск|місце|сховищ|ємніст)", 10),  # UK
 ]
 
 _DEMO_FALLBACK_I18N = {
@@ -3708,7 +3758,7 @@ _DEMO_DIGESTS = {
 @app.post("/api/v1/admin/digest/{lab_id}")
 def generate_lab_digest(lab_id: str, hours: int = 168, x_admin_secret: Optional[str] = Header(None)):
     """Generate an intelligence digest for a specific lab."""
-    hours = max(1, min(hours, 8760))  # cap to 1 year
+    hours = max(1, min(hours, 8761))  # cap to 1 year
     # Demo mode: return synthetic digest
     if x_admin_secret == "demo" and lab_id.startswith("demo-"):
         d = _DEMO_DIGESTS.get(lab_id)
@@ -3728,7 +3778,7 @@ def generate_lab_digest(lab_id: str, hours: int = 168, x_admin_secret: Optional[
 @app.post("/api/v1/admin/digest")
 def generate_fleet_digest_endpoint(hours: int = 168, _: str = Depends(_require_admin)):
     """Generate an intelligence digest for the entire fleet."""
-    hours = max(1, min(hours, 8760))  # cap to 1 year
+    hours = max(1, min(hours, 8761))  # cap to 1 year
     from digest import generate_fleet_digest
     return generate_fleet_digest(hours=hours)
 
