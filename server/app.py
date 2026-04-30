@@ -2789,6 +2789,34 @@ _DEMO_RESPONSES = [
     },
     {
         "patterns": [
+            r"gpu\s+(?:status|usage|utilization|info|stats|power)",
+            r"vram\s+(?:usage|status|free|used)",
+            r"(?:show|get)\s+(?:me\s+)?(?:the\s+)?gpu",
+            r"^gpu$",
+        ],
+        "response": {
+            "answer": (
+                "GPU status: 2 GPU(s) across 2 nodes\n"
+                "\n"
+                "  pve-main: NVIDIA GeForce RTX 3060\n"
+                "    Utilization: 12%\n"
+                "    VRAM: 2.1 / 12.0 GB (17.5% used)\n"
+                "    Temperature: 42C\n"
+                "    Power: 45.2W / 170W limit\n"
+                "    Fan: 35%\n"
+                "  gpu-server: NVIDIA GeForce GTX 1080 Ti [OFFLINE]\n"
+                "    Utilization: 0%\n"
+                "    VRAM: 0.0 / 11.0 GB (0.0% used)\n"
+                "    Temperature: 0C\n"
+                "    Power: 0.0W / 250W limit"
+            ),
+            "query_type": "gpu",
+            "confidence": 0.95,
+            "demo": True,
+        },
+    },
+    {
+        "patterns": [
             r"why\s+is\s+\S+\s+(?:slow|using|consuming|taking)",
             r"what(?:'s|\s+is)\s+wrong\s+with\s+\S+",
             r"diagnos(?:e|tic)\s+\S+",
