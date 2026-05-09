@@ -132,7 +132,7 @@ git clone https://github.com/labwatch-dev/labwatch && cd labwatch
 docker compose up -d
 
 # Install the agent on each node
-curl -fsSL https://labwatch.dev/install.sh | sudo bash</code></pre>
+curl -fsSL {{ base_url }}/install.sh | sudo bash</code></pre>
 
     <p>The agent is a single Go binary (~8 MB, ~15 MB RSS). It collects CPU, memory, disk, network, load average, Docker containers, systemd services, GPU stats (NVIDIA), and S.M.A.R.T. disk health — then ships everything to your server every 60 seconds over HTTPS.</p>
 

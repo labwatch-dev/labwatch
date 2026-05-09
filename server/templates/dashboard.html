@@ -1707,7 +1707,7 @@ body.edit-mode .widget-block.drop-after {
         <a href="/my/add-node" class="empty-cta">+ add your first node</a>
         <p style="font-size:13px;color:var(--text-muted);margin-top:8px;">The setup wizard gives you a one-command install with your credentials baked in.</p>
         {% else %}
-        <div class="install-cmd">curl -fsSL https://labwatch.dev/install.sh | bash</div>
+        <div class="install-cmd">curl -fsSL {{ base_url }}/install.sh | bash</div>
         {% endif %}
     </div>
     {% endif %}
