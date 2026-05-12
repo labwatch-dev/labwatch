@@ -2,6 +2,8 @@
 {% block title %}{{ t.alerts_title if t and t.alerts_title else "Alerts" }}{% endblock %}
 
 {% block extra_styles %}
+.hint { color: var(--text-muted); font-size: 11px; margin-top: 12px; font-family: var(--font-mono); }
+.hint { color: var(--text-muted); font-size: 11px; margin-top: 12px; font-family: var(--font-mono); }
 .alerts-page {
     padding: 80px 24px;
     max-width: 760px;
@@ -184,7 +186,7 @@
     <div class="current-panel">
         <h2>{{ t.alerts_current if t and t.alerts_current else "Current thresholds" }}</h2>
         <div id="current-list"></div>
-        <p class="hint" style="color:var(--text-muted);font-size:11px;margin-top:12px;font-family:var(--font-mono);">{{ t.alerts_hint if t and t.alerts_hint else "Green = customized by you. Applying a rule updates the matching threshold here." }}</p>
+        <p class="hint">{{ t.alerts_hint if t and t.alerts_hint else "Green = customized by you. Applying a rule updates the matching threshold here." }}</p>
     </div>
 </div>
 

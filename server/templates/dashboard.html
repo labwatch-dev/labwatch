@@ -3,6 +3,20 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block extra_styles %}
+/* CSP compliance — replaces inline styles */
+.demo-banner { background: var(--accent-glow); border-bottom: 1px solid var(--accent); padding: 12px 24px; text-align: center; font-size: 14px; color: var(--text-dim); }
+.demo-banner strong { color: var(--accent); }
+.demo-banner-link { color: var(--accent); text-decoration: underline; margin-left: 8px; }
+.demo-banner-sep { margin: 0 6px; }
+.stat-unit { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+.widget-title-flex { display: flex; align-items: center; gap: 12px; }
+.skeleton-bar-full { width: 100%; }
+.skeleton-bar-80 { width: 80%; }
+.net-val { font-size: 11px; }
+.hint-muted { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+.err-text { color: var(--red); }
+.feed-empty-sm { color: var(--text-muted); font-size: 12px; }
+
 /* Skeleton loading */
 @keyframes skeleton-shimmer {
     0% { background-position: -200px 0; }
@@ -1350,11 +1364,11 @@ body.edit-mode .widget-block.drop-after {
 
 {% block content %}
 {% if is_demo %}
-<div style="background: var(--accent-glow); border-bottom: 1px solid var(--accent); padding: 12px 24px; text-align: center; font-size: 14px; color: var(--text-dim);">
-    <strong style="color: var(--accent);">{{ t.dashboard_demo_banner }}</strong>
-    <span style="margin: 0 6px;">&mdash;</span>
+<div class="demo-banner">
+    <strong>{{ t.dashboard_demo_banner }}</strong>
+    <span class="demo-banner-sep">&mdash;</span>
     Monitor every node in your homelab from one dashboard. Ask questions in plain English, get intelligence digests, and never miss an alert.
-    <a href="/#install" style="color: var(--accent); text-decoration: underline; margin-left: 8px;">{{ t.dashboard_demo_install }}</a>
+    <a href="/#install" class="demo-banner-link">{{ t.dashboard_demo_install }}</a>
 </div>
 {% endif %}
 <div class="container">
@@ -1428,11 +1442,11 @@ body.edit-mode .widget-block.drop-after {
             <div class="fleet-stat-label">{{ t.dashboard_avg_disk if t and t.dashboard_avg_disk else 'avg disk' }}</div>
         </div>
         <div class="fleet-stat">
-            <div class="fleet-stat-value dim" id="fs-net-rx">{% if ns.online_count > 0 %}{{ "%.1f" | format(ns.net_rx_sum) }}<span style="font-size:11px;color:var(--text-muted);font-weight:400"> Mbps</span>{% else %}—{% endif %}</div>
+            <div class="fleet-stat-value dim" id="fs-net-rx">{% if ns.online_count > 0 %}{{ "%.1f" | format(ns.net_rx_sum) }}<span class="stat-unit"> Mbps</span>{% else %}—{% endif %}</div>
             <div class="fleet-stat-label">↓ {{ t.dashboard_fleet_net_rx if t and t.dashboard_fleet_net_rx else 'total rx' }}</div>
         </div>
         <div class="fleet-stat">
-            <div class="fleet-stat-value dim" id="fs-net-tx">{% if ns.online_count > 0 %}{{ "%.1f" | format(ns.net_tx_sum) }}<span style="font-size:11px;color:var(--text-muted);font-weight:400"> Mbps</span>{% else %}—{% endif %}</div>
+            <div class="fleet-stat-value dim" id="fs-net-tx">{% if ns.online_count > 0 %}{{ "%.1f" | format(ns.net_tx_sum) }}<span class="stat-unit"> Mbps</span>{% else %}—{% endif %}</div>
             <div class="fleet-stat-label">↑ {{ t.dashboard_fleet_net_tx if t and t.dashboard_fleet_net_tx else 'total tx' }}</div>
         </div>
     </div>
@@ -1442,7 +1456,7 @@ body.edit-mode .widget-block.drop-after {
     {% if labs %}
     <div class="widget widget-block" id="widget-uptime" data-widget="uptime" data-widget-label="uptime">
         <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
-        <div class="widget-title" style="display: flex; align-items: center; gap: 12px;">
+        <div class="widget-title widget-title-flex">
             <span id="uptime-title-label">{{ t.dashboard_widget_uptime }}</span>
             <div class="uptime-window-toggle" role="tablist" aria-label="Time window">
                 <button type="button" class="win-btn" data-hours="24">24h</button>
@@ -1450,7 +1464,7 @@ body.edit-mode .widget-block.drop-after {
                 <button type="button" class="win-btn" data-hours="720">30d</button>
             </div>
         </div>
-        <div id="uptime-content"><div class="skeleton-bar" style="width:100%"></div><div class="skeleton-bar" style="width:100%"></div><div class="skeleton-bar" style="width:80%"></div></div>
+        <div id="uptime-content"><div class="skeleton-bar skeleton-bar-full"></div><div class="skeleton-bar skeleton-bar-full"></div><div class="skeleton-bar skeleton-bar-80"></div></div>
     </div>
     <div class="widget widget-block" id="widget-alerts" data-widget="alerts" data-widget-label="alerts">
         <div class="widget-drag-handle" title="drag to reorder">⋮⋮</div><button type="button" class="widget-delete-btn" title="remove widget">×</button>
@@ -1505,7 +1519,7 @@ body.edit-mode .widget-block.drop-after {
                 <a href="{% if is_demo %}/demo/lab/{{ lab.id }}{% elif user_email %}/my/lab/{{ lab.id }}{% else %}/dashboard/lab/{{ lab.id }}?secret={{ secret }}{% endif %}" class="disk-pressure-row">
                     <span class="disk-pressure-host">{{ lab.hostname or lab.name or lab.id }}</span>
                     <div class="disk-pressure-bar-outer" aria-hidden="true">
-                        <div class="disk-pressure-bar-inner {{ cls }}" style="width:{{ '%.0f' | format(dp) }}%"></div>
+                        <div class="disk-pressure-bar-inner {{ cls }}" data-pct="{{ '%.0f' | format(dp) }}"></div>
                     </div>
                     <span class="disk-pressure-pct {{ cls if cls != 'ok' else '' }}">{{ '%.0f' | format(dp_raw) }}%</span>
                 </a>
@@ -1617,7 +1631,7 @@ body.edit-mode .widget-block.drop-after {
                     <span class="metric-label">CPU</span>
                     <div class="metric-bar-wrap">
                         <div class="metric-bar">
-                            <div class="metric-fill" style="width: {% if has_data %}{{ cpu }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif cpu >= 85 %}--red{% elif cpu >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                            <div class="metric-fill" data-pct="{% if has_data %}{{ cpu }}{% else %}0{% endif %}" data-color="{% if not has_data %}border{% elif cpu >= 85 %}red{% elif cpu >= 60 %}amber{% else %}green{% endif %}"></div>
                         </div>
                         <svg class="metric-spark" viewBox="0 0 48 16"></svg>
                         <span class="metric-value">{% if has_data %}{{ "%.1f" | format(cpu) }}%{% else %}—{% endif %}</span>
@@ -1627,7 +1641,7 @@ body.edit-mode .widget-block.drop-after {
                     <span class="metric-label">MEM</span>
                     <div class="metric-bar-wrap">
                         <div class="metric-bar">
-                            <div class="metric-fill" style="width: {% if has_data %}{{ mem }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif mem >= 85 %}--red{% elif mem >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                            <div class="metric-fill" data-pct="{% if has_data %}{{ mem }}{% else %}0{% endif %}" data-color="{% if not has_data %}border{% elif mem >= 85 %}red{% elif mem >= 60 %}amber{% else %}green{% endif %}"></div>
                         </div>
                         <svg class="metric-spark" viewBox="0 0 48 16"></svg>
                         <span class="metric-value">{% if has_data %}{{ "%.1f" | format(mem) }}%{% else %}—{% endif %}</span>
@@ -1637,7 +1651,7 @@ body.edit-mode .widget-block.drop-after {
                     <span class="metric-label">DISK</span>
                     <div class="metric-bar-wrap">
                         <div class="metric-bar">
-                            <div class="metric-fill" style="width: {% if has_data %}{{ disk }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif disk >= 85 %}--red{% elif disk >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                            <div class="metric-fill" data-pct="{% if has_data %}{{ disk }}{% else %}0{% endif %}" data-color="{% if not has_data %}border{% elif disk >= 85 %}red{% elif disk >= 60 %}amber{% else %}green{% endif %}"></div>
                         </div>
                         <svg class="metric-spark" viewBox="0 0 48 16"></svg>
                         <span class="metric-value">{% if has_data %}{{ "%.1f" | format(disk) }}%{% else %}—{% endif %}</span>
@@ -1647,7 +1661,7 @@ body.edit-mode .widget-block.drop-after {
                 <div class="metric-row">
                     <span class="metric-label">NET</span>
                     <div class="metric-bar-wrap">
-                        <span class="metric-value" style="font-size:11px">{{ "%.1f" | format(lab.net_rx_mbps) }}↓ {{ "%.1f" | format(lab.net_tx_mbps | default(0)) }}↑ Mbps</span>
+                        <span class="metric-value net-val">{{ "%.1f" | format(lab.net_rx_mbps) }}↓ {{ "%.1f" | format(lab.net_tx_mbps | default(0)) }}↑ Mbps</span>
                     </div>
                 </div>
                 {% endif %}
@@ -1658,7 +1672,7 @@ body.edit-mode .widget-block.drop-after {
                     <span class="metric-label" title="{{ gpu.name | default('GPU') }}">GPU</span>
                     <div class="metric-bar-wrap">
                         <div class="metric-bar">
-                            <div class="metric-fill" style="width: {{ gpu_util }}%; background: var({% if gpu_util >= 90 %}--red{% elif gpu_util >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                            <div class="metric-fill" data-pct="{{ gpu_util }}" data-color="{% if gpu_util >= 90 %}red{% elif gpu_util >= 60 %}amber{% else %}green{% endif %}"></div>
                         </div>
                         <span class="metric-value">{{ "%.0f" | format(gpu_util) }}% {{ "%.0f" | format(gpu.temperature_celsius | default(0)) }}°C</span>
                     </div>
@@ -1705,9 +1719,9 @@ body.edit-mode .widget-block.drop-after {
         <p>{{ t.dashboard_no_labs_desc }}</p>
         {% if user_email and not is_demo %}
         <a href="/my/add-node" class="empty-cta">+ add your first node</a>
-        <p style="font-size:13px;color:var(--text-muted);margin-top:8px;">The setup wizard gives you a one-command install with your credentials baked in.</p>
+        <p class="hint-muted">The setup wizard gives you a one-command install with your credentials baked in.</p>
         {% else %}
-        <div class="install-cmd">curl -fsSL {{ base_url }}/install.sh | bash</div>
+        <div class="install-cmd">curl -fsSL https://labwatch.dev/install.sh | bash</div>
         {% endif %}
     </div>
     {% endif %}
@@ -1809,7 +1823,7 @@ function askQuery() {
         responseDiv.innerHTML = escapeHtml(answer).replace(/\n/g, '<br>') + meta;
     })
     .catch(function(e) {
-        responseDiv.innerHTML = '<span style="color:var(--red)">Error: ' + escapeHtml(e.message) + '</span>';
+        responseDiv.innerHTML = '<span class="err-text">Error: ' + escapeHtml(e.message) + '</span>';
     })
     .finally(function() {
         btn.disabled = false;
@@ -1904,6 +1918,12 @@ function dismissSuggestions() {
         return 'var(--green)';
     }
 
+    function barColorName(value) {
+        if (value >= 85) return 'red';
+        if (value >= 60) return 'amber';
+        return 'green';
+    }
+
     function renderLabCard(lab) {
         var statusClass = getStatusClass(lab.last_seen);
         var cpu = lab.cpu_percent || 0;
@@ -1923,7 +1943,7 @@ function dismissSuggestions() {
             gpuHtml = '<div class="metric-row">'
                 + '<span class="metric-label" title="' + escapeHtml(gpu.name || 'GPU') + '">GPU</span>'
                 + '<div class="metric-bar-wrap">'
-                + '<div class="metric-bar"><div class="metric-fill" style="width:' + gpuUtil.toFixed(0) + '%;background:' + barColor(gpuUtil) + '"></div></div>'
+                + '<div class="metric-bar"><div class="metric-fill" data-pct="' + gpuUtil.toFixed(0) + '" data-color="' + barColorName(gpuUtil) + '"></div></div>'
                 + '<span class="metric-value">' + gpuUtil.toFixed(0) + '% ' + gpuTemp.toFixed(0) + '°C</span>'
                 + '</div></div>';
         }
@@ -1946,7 +1966,7 @@ function dismissSuggestions() {
             + renderMetric('CPU', cpu, 'cpu', hasData)
             + renderMetric('MEM', mem, 'memory', hasData)
             + renderMetric('DISK', disk, 'disk', hasData)
-            + (lab.net_rx_mbps != null ? '<div class="metric-row"><span class="metric-label">NET</span><div class="metric-bar-wrap"><span class="metric-value" style="font-size:11px">' + (lab.net_rx_mbps || 0).toFixed(1) + '↓ ' + (lab.net_tx_mbps || 0).toFixed(1) + '↑ Mbps</span></div></div>' : '')
+            + (lab.net_rx_mbps != null ? '<div class="metric-row"><span class="metric-label">NET</span><div class="metric-bar-wrap"><span class="metric-value net-val">' + (lab.net_rx_mbps || 0).toFixed(1) + '↓ ' + (lab.net_tx_mbps || 0).toFixed(1) + '↑ Mbps</span></div></div>' : '')
             + gpuHtml
             + '</div>'
             + renderHeartbeat(lab.heartbeat)
@@ -1962,11 +1982,12 @@ function dismissSuggestions() {
         var staleCls = hasData === false ? ' metric-row-stale' : '';
         var width = hasData === false ? 0 : value;
         var color = hasData === false ? 'var(--border)' : barColor(value);
+        var colorName = hasData === false ? 'border' : barColorName(value);
         var display = hasData === false ? '—' : (value.toFixed(1) + '%');
         return '<div class="metric-row' + staleCls + '"' + sparkId + '>'
             + '<span class="metric-label">' + label + '</span>'
             + '<div class="metric-bar-wrap">'
-            + '<div class="metric-bar"><div class="metric-fill" style="width:' + width.toFixed(1) + '%;background:' + color + '"></div></div>'
+            + '<div class="metric-bar"><div class="metric-fill" data-pct="' + width.toFixed(1) + '" data-color="' + colorName + '"></div></div>'
             + '<svg class="metric-spark" viewBox="0 0 48 16"></svg>'
             + '<span class="metric-value">' + display + '</span>'
             + '</div></div>';
@@ -2067,6 +2088,7 @@ function dismissSuggestions() {
                     });
                 }
                 gridEl.innerHTML = labs.map(renderLabCard).join('');
+                initFills(gridEl);
                 updateTimestamps();
                 updateFleetSummary(labs);
                 initDragAndDrop();
@@ -2439,7 +2461,7 @@ function dismissSuggestions() {
     }
 
     function loadUptime() {
-        if (uptimeEl) uptimeEl.innerHTML = '<div class="skeleton-bar" style="width:100%"></div><div class="skeleton-bar" style="width:100%"></div><div class="skeleton-bar" style="width:80%"></div>';
+        if (uptimeEl) uptimeEl.innerHTML = '<div class="skeleton-bar skeleton-bar-full"></div><div class="skeleton-bar skeleton-bar-full"></div><div class="skeleton-bar skeleton-bar-80"></div>';
         fetch('/api/v1/widgets/uptime?hours=' + _uptimeHours, {
             headers: {% if user_email %}{}{% else %}{'x-admin-secret': {{ secret | tojson }}}{% endif %}
         })
@@ -2479,7 +2501,7 @@ function dismissSuggestions() {
                 var pct = Math.max(0.3, (duration / windowMs) * 100);
                 var title = seg.status;
                 if (seg.status === 'no-data') title = 'no data — lab not yet registered';
-                barHtml += '<div class="uptime-seg ' + seg.status + '" style="width:' + pct.toFixed(2) + '%" title="' + title + '"></div>';
+                barHtml += '<div class="uptime-seg ' + seg.status + '" data-w="' + pct.toFixed(2) + '" title="' + title + '"></div>';
                 if (seg.status === 'online') { totalOnline += duration; measuredMs += duration; }
                 else if (seg.status === 'offline' || seg.status === 'stale') { measuredMs += duration; }
             }
@@ -2496,6 +2518,7 @@ function dismissSuggestions() {
                 + '</div>';
         }
         uptimeEl.innerHTML = html || '<span class="alert-feed-empty">no nodes yet</span>';
+        initFills(uptimeEl);
     }
 
     function renderAlerts(alerts) {
@@ -2987,7 +3010,7 @@ function dismissSuggestions() {
             var cards = document.querySelectorAll('.lab-card');
             var labIds = [];
             cards.forEach(function(c) { var id = c.getAttribute('data-lab-id'); if (id) labIds.push(id); });
-            if (!labIds.length) { container.innerHTML = '<span style="color:var(--text-muted);font-size:12px">add labs to see digests</span>'; return; }
+            if (!labIds.length) { container.innerHTML = '<span class="feed-empty-sm">add labs to see digests</span>'; return; }
             var fetches = labIds.map(function(id) {
                 return fetch('/api/v1/admin/digest/' + id, {
                     headers: {% if user_email %}{}{% else %}{'X-Admin-Secret': {{ secret | tojson }}}{% endif %}
@@ -3000,7 +3023,7 @@ function dismissSuggestions() {
                     container.appendChild(renderDigestCard(d));
                 });
                 if (!container.children.length) {
-                    container.innerHTML = '<span style="color:var(--text-muted);font-size:12px">no digests yet &mdash; generate one from a lab detail page</span>';
+                    container.innerHTML = '<span class="feed-empty-sm">no digests yet &mdash; generate one from a lab detail page</span>';
                 }
             });
         }

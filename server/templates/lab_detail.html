@@ -3,6 +3,33 @@
 {% block title %}{{ lab.display_name or lab.hostname }}{% endblock %}
 
 {% block extra_styles %}
+/* CSP compliance — replaces inline styles */
+.lab-demo-banner { display: inline-block; background: rgba(70, 130, 200, 0.12); border: 1px solid rgba(70, 130, 200, 0.4); color: #7ab7ff; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; padding: 4px 12px; border-radius: 4px; margin-bottom: 12px; }
+.lab-demo-banner a { color: inherit; text-decoration: underline; }
+.lab-title-wrap { display: inline-flex; align-items: center; gap: 10px; }
+.text-muted-label { color: var(--text-muted); }
+.lab-actions-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.status-pill-maint { background: rgba(240, 160, 48, 0.12); color: var(--amber); border: 1px solid rgba(240, 160, 48, 0.45); }
+.dot-amber { background: var(--amber); box-shadow: 0 0 8px rgba(240, 160, 48, 0.55); }
+.count-muted { opacity: 0.5; margin-left: 8px; }
+.danger-label { margin-left: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.smart-error { margin-top: 10px; font-size: 12px; color: var(--text-dim); }
+.section-note { font-size: 13px; color: var(--text-dim); padding: 12px 0; }
+.log-sep { color: var(--text-muted); font-size: 12px; }
+.log-source-select { padding: 4px 8px; font-size: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); }
+.log-pagination-wrap { display: none; }
+.threshold-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+.threshold-grid { gap: 12px; }
+.threshold-row { display: flex; align-items: center; gap: 12px; }
+.threshold-label { width: 120px; font-size: 13px; color: var(--text-dim); }
+.threshold-input { width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; }
+.threshold-unit { font-size: 12px; color: var(--text-muted); }
+.threshold-actions { display: flex; gap: 8px; margin-top: 16px; }
+.btn-save { background: var(--accent); color: var(--bg); padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 600; }
+.btn-reset { padding: 8px 16px; }
+.threshold-msg { font-size: 12px; margin-top: 8px; color: var(--green); }
+.token-hidden { display: none; }
+
 /* Back link */
 .back-link {
     display: inline-flex;
@@ -673,19 +700,19 @@
     </a>
 
     {% if is_demo %}
-    <div style="display: inline-block; background: rgba(70, 130, 200, 0.12); border: 1px solid rgba(70, 130, 200, 0.4); color: #7ab7ff; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; padding: 4px 12px; border-radius: 4px; margin-bottom: 12px;">{{ t.lab_demo_banner if t and t.lab_demo_banner else "Demo — synthetic data." }} <a href="/signup" style="color: inherit; text-decoration: underline;">{{ t.lab_demo_banner_signup if t and t.lab_demo_banner_signup else "Sign up" }}</a> {{ t.lab_demo_banner_suffix if t and t.lab_demo_banner_suffix else "to monitor your own." }}</div>
+    <div class="lab-demo-banner">{{ t.lab_demo_banner if t and t.lab_demo_banner else "Demo — synthetic data." }} <a href="/signup">{{ t.lab_demo_banner_signup if t and t.lab_demo_banner_signup else "Sign up" }}</a> {{ t.lab_demo_banner_suffix if t and t.lab_demo_banner_suffix else "to monitor your own." }}</div>
     {% endif %}
     <!-- Lab Header -->
     <div class="lab-header">
         <div class="lab-header-left">
-            <h1 id="lab-title" style="display: inline-flex; align-items: center; gap: 10px;">
+            <h1 id="lab-title" class="lab-title-wrap">
                 <span id="lab-display-name">{{ lab.display_name or lab.hostname }}</span>
                 {# rename button — backend not yet implemented, hidden until display-name endpoint is built #}
             </h1>
             <div class="lab-meta-row">
                 {% if lab.display_name %}
                 <span class="lab-meta-item" title="Real system hostname">
-                    <span style="color: var(--text-muted);">{{ t.lab_hostname if t and t.lab_hostname else "hostname" }}</span>
+                    <span class="text-muted-label">{{ t.lab_hostname if t and t.lab_hostname else "hostname" }}</span>
                     <span class="value">{{ lab.hostname }}</span>
                 </span>
                 {% endif %}
@@ -705,10 +732,10 @@
                 </span>
             </div>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <div class="lab-actions-row">
             {% if maintenance_active %}
-            <span class="status-pill" title="Alerts are currently silenced" style="background: rgba(240, 160, 48, 0.12); color: var(--amber); border: 1px solid rgba(240, 160, 48, 0.45);">
-                <span class="dot" style="background: var(--amber); box-shadow: 0 0 8px rgba(240, 160, 48, 0.55);"></span>
+            <span class="status-pill status-pill-maint" title="Alerts are currently silenced">
+                <span class="dot dot-amber"></span>
                 {{ t.lab_maintenance if t and t.lab_maintenance else "Maintenance" }}
             </span>
             {% endif %}
@@ -740,7 +767,7 @@
                                 {% if has_data %}{{ "%.1f" | format(cpu) }}%{% else %}—{% endif %}
                             </div>
                             <div class="metric-card-bar">
-                                <div class="metric-card-fill" style="width: {% if has_data %}{{ cpu }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif cpu >= 85 %}--red{% elif cpu >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                                <div class="metric-card-fill" data-pct="{% if has_data %}{{ cpu }}{% else %}0{% endif %}" data-color="{% if not has_data %}border{% elif cpu >= 85 %}red{% elif cpu >= 60 %}amber{% else %}green{% endif %}"></div>
                             </div>
                             {% if sys.cpu_count %}
                             <div class="metric-card-detail">{{ sys.cpu_count }} cores</div>
@@ -754,7 +781,7 @@
                                 {% if has_data %}{{ "%.1f" | format(mem) }}%{% else %}—{% endif %}
                             </div>
                             <div class="metric-card-bar">
-                                <div class="metric-card-fill" style="width: {% if has_data %}{{ mem }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif mem >= 85 %}--red{% elif mem >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                                <div class="metric-card-fill" data-pct="{% if has_data %}{{ mem }}{% else %}0{% endif %}" data-color="{% if not has_data %}border{% elif mem >= 85 %}red{% elif mem >= 60 %}amber{% else %}green{% endif %}"></div>
                             </div>
                             {% if sys.memory_total_gb %}
                             <div class="metric-card-detail">{{ "%.1f" | format(sys.memory_total_gb) }} GB total</div>
@@ -768,7 +795,7 @@
                                 {% if has_data %}{{ "%.1f" | format(disk) }}%{% else %}—{% endif %}
                             </div>
                             <div class="metric-card-bar">
-                                <div class="metric-card-fill" style="width: {% if has_data %}{{ disk }}{% else %}0{% endif %}%; background: var({% if not has_data %}--border{% elif disk >= 85 %}--red{% elif disk >= 60 %}--amber{% else %}--green{% endif %})"></div>
+                                <div class="metric-card-fill" data-pct="{% if has_data %}{{ disk }}{% else %}0{% endif %}" data-color="{% if not has_data %}border{% elif disk >= 85 %}red{% elif disk >= 60 %}amber{% else %}green{% endif %}"></div>
                             </div>
                             {% if sys.disk_total_gb %}
                             <div class="metric-card-detail">{{ "%.1f" | format(sys.disk_total_gb) }} GB total</div>
@@ -854,7 +881,7 @@
             <div class="detail-section">
                 <div class="section-title">
                     {{ t.lab_gpu }}
-                    <span style="opacity: 0.5; margin-left: 8px;">{{ gpu.gpu_count }}</span>
+                    <span class="count-muted">{{ gpu.gpu_count }}</span>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -902,9 +929,9 @@
             <div class="detail-section">
                 <div class="section-title">
                     {{ t.lab_disk_health if t and t.lab_disk_health else "Disk health" }}
-                    <span style="opacity: 0.5; margin-left: 8px;">{{ smart.device_count }}</span>
+                    <span class="count-muted">{{ smart.device_count }}</span>
                     {% if smart.unhealthy_count and smart.unhealthy_count > 0 %}
-                    <span class="danger" style="margin-left: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <span class="danger danger-label">
                         {{ smart.unhealthy_count }} {{ t.lab_disk_unhealthy if t and t.lab_disk_unhealthy else "unhealthy" }}
                     </span>
                     {% endif %}
@@ -960,13 +987,13 @@
                     </tbody>
                 </table>
                 {% if smart.error %}
-                <div style="margin-top: 10px; font-size: 12px; color: var(--text-dim);">{{ smart.error }}</div>
+                <div class="smart-error">{{ smart.error }}</div>
                 {% endif %}
             </div>
             {% elif smart is defined and smart.error %}
             <div class="detail-section">
                 <div class="section-title">{{ t.lab_disk_health if t and t.lab_disk_health else "Disk health" }}</div>
-                <div style="font-size: 13px; color: var(--text-dim); padding: 12px 0;">
+                <div class="section-note">
                     SMART data unavailable: {{ smart.error }}
                 </div>
             </div>
@@ -978,7 +1005,7 @@
                     {{ t.lab_docker }}
                     {% set docker_data = metrics.docker.data if metrics.docker and metrics.docker.data else {} %}
                     {% set containers = docker_data.containers | default([]) %}
-                    {% if containers %}<span style="opacity: 0.5; margin-left: 8px;">{{ containers | length }}</span>{% endif %}
+                    {% if containers %}<span class="count-muted">{{ containers | length }}</span>{% endif %}
                 </div>
                 {% if containers %}
                 <table class="data-table">
@@ -1033,7 +1060,7 @@
                 <div class="section-title">
                     {{ t.lab_services }}
                     {% set services = metrics.services.data.services if metrics.services and metrics.services.data else [] %}
-                    {% if services %}<span style="opacity: 0.5; margin-left: 8px;">{{ services | length }}</span>{% endif %}
+                    {% if services %}<span class="count-muted">{{ services | length }}</span>{% endif %}
                 </div>
                 {% if services %}
                 <table class="data-table">
@@ -1090,7 +1117,7 @@
             <div class="detail-section">
                 <div class="section-title">
                     {{ t.lab_alerts }}
-                    {% if alerts %}<span style="opacity: 0.5; margin-left: 8px;">{{ alerts | length }}</span>{% endif %}
+                    {% if alerts %}<span class="count-muted">{{ alerts | length }}</span>{% endif %}
                 </div>
                 {% if alerts %}
                 <ul class="alerts-list">
@@ -1128,8 +1155,8 @@
             <button class="log-filter-btn" data-log-level="warn">Warn</button>
             <button class="log-filter-btn" data-log-level="info">Info</button>
             <button class="log-filter-btn" data-log-level="debug">Debug</button>
-            <span style="color: var(--text-muted); font-size: 12px;">|</span>
-            <select id="log-source-filter" style="padding: 4px 8px; font-size: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text);">
+            <span class="log-sep">|</span>
+            <select id="log-source-filter" class="log-source-select">
                 <option value="">All sources</option>
             </select>
             <input class="log-search" id="log-search" type="text" placeholder="Search logs...">
@@ -1137,7 +1164,7 @@
         <div class="log-entries" id="log-entries">
             <div class="log-empty">Loading logs...</div>
         </div>
-        <div class="log-pagination" id="log-pagination" style="display:none;">
+        <div class="log-pagination log-pagination-wrap" id="log-pagination">
             <button id="log-prev" disabled>Prev</button>
             <span id="log-page-info"></span>
             <button id="log-next">Next</button>
@@ -1148,39 +1175,39 @@
     {% if user_email %}
     <div class="admin-section" id="thresholds-section">
         <h2>{{ t.lab_alert_thresholds if t and t.lab_alert_thresholds else "Alert Thresholds" }}</h2>
-        <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 16px;">{{ t.lab_alert_thresholds_desc if t and t.lab_alert_thresholds_desc else "Customize when alerts trigger for this node. Values are percentages." }}. Leave blank to use defaults.</p>
-        <div class="admin-grid" id="threshold-controls" style="gap: 12px;">
-            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label for="th-cpu_warning" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_cpu_warn if t and t.lab_threshold_cpu_warn else "CPU warning" }}</label>
-                <input type="number" id="th-cpu_warning" min="1" max="100" placeholder="90" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
-                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+        <p class="threshold-desc">{{ t.lab_alert_thresholds_desc if t and t.lab_alert_thresholds_desc else "Customize when alerts trigger for this node. Values are percentages." }}. Leave blank to use defaults.</p>
+        <div class="admin-grid threshold-grid" id="threshold-controls">
+            <div class="threshold-row">
+                <label for="th-cpu_warning" class="threshold-label">{{ t.lab_threshold_cpu_warn if t and t.lab_threshold_cpu_warn else "CPU warning" }}</label>
+                <input type="number" id="th-cpu_warning" min="1" max="100" placeholder="90" class="threshold-input">
+                <span class="threshold-unit">%</span>
             </div>
-            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label for="th-memory_warning" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_mem_warn if t and t.lab_threshold_mem_warn else "Memory warning" }}</label>
-                <input type="number" id="th-memory_warning" min="1" max="100" placeholder="85" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
-                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+            <div class="threshold-row">
+                <label for="th-memory_warning" class="threshold-label">{{ t.lab_threshold_mem_warn if t and t.lab_threshold_mem_warn else "Memory warning" }}</label>
+                <input type="number" id="th-memory_warning" min="1" max="100" placeholder="85" class="threshold-input">
+                <span class="threshold-unit">%</span>
             </div>
-            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label for="th-memory_critical" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_mem_crit if t and t.lab_threshold_mem_crit else "Memory critical" }}</label>
-                <input type="number" id="th-memory_critical" min="1" max="100" placeholder="95" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
-                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+            <div class="threshold-row">
+                <label for="th-memory_critical" class="threshold-label">{{ t.lab_threshold_mem_crit if t and t.lab_threshold_mem_crit else "Memory critical" }}</label>
+                <input type="number" id="th-memory_critical" min="1" max="100" placeholder="95" class="threshold-input">
+                <span class="threshold-unit">%</span>
             </div>
-            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label for="th-disk_warning" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_disk_warn if t and t.lab_threshold_disk_warn else "Disk warning" }}</label>
-                <input type="number" id="th-disk_warning" min="1" max="100" placeholder="80" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
-                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+            <div class="threshold-row">
+                <label for="th-disk_warning" class="threshold-label">{{ t.lab_threshold_disk_warn if t and t.lab_threshold_disk_warn else "Disk warning" }}</label>
+                <input type="number" id="th-disk_warning" min="1" max="100" placeholder="80" class="threshold-input">
+                <span class="threshold-unit">%</span>
             </div>
-            <div class="threshold-row" style="display: flex; align-items: center; gap: 12px;">
-                <label for="th-disk_critical" style="width: 120px; font-size: 13px; color: var(--text-dim);">{{ t.lab_threshold_disk_crit if t and t.lab_threshold_disk_crit else "Disk critical" }}</label>
-                <input type="number" id="th-disk_critical" min="1" max="100" placeholder="90" style="width: 70px; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px;">
-                <span style="font-size: 12px; color: var(--text-muted);">%</span>
+            <div class="threshold-row">
+                <label for="th-disk_critical" class="threshold-label">{{ t.lab_threshold_disk_crit if t and t.lab_threshold_disk_crit else "Disk critical" }}</label>
+                <input type="number" id="th-disk_critical" min="1" max="100" placeholder="90" class="threshold-input">
+                <span class="threshold-unit">%</span>
             </div>
         </div>
-        <div style="display: flex; gap: 8px; margin-top: 16px;">
-            <button class="copy-btn" data-click="saveThresholds" style="background: var(--accent); color: var(--bg); padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 600;">{{ t.lab_threshold_save if t and t.lab_threshold_save else "Save" }}</button>
-            <button class="copy-btn" data-click="resetThresholds" style="padding: 8px 16px;">{{ t.lab_threshold_reset if t and t.lab_threshold_reset else "Reset to defaults" }}</button>
+        <div class="threshold-actions">
+            <button class="copy-btn btn-save" data-click="saveThresholds">{{ t.lab_threshold_save if t and t.lab_threshold_save else "Save" }}</button>
+            <button class="copy-btn btn-reset" data-click="resetThresholds">{{ t.lab_threshold_reset if t and t.lab_threshold_reset else "Reset to defaults" }}</button>
         </div>
-        <div id="threshold-msg" style="font-size: 12px; margin-top: 8px; color: var(--green);"></div>
+        <div id="threshold-msg" class="threshold-msg"></div>
     </div>
     {% endif %}
 
@@ -1194,7 +1221,7 @@
                 <div class="admin-field-value">
                     <code>
                         <span class="masked" id="api-token-masked">&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;</span>
-                        <span id="api-token-plain" style="display:none;">{{ lab.api_token | default('--') }}</span>
+                        <span id="api-token-plain" class="token-hidden">{{ lab.api_token | default('--') }}</span>
                     </code>
                     <button class="copy-btn" data-click="toggleToken">{{ t.lab_admin_reveal }}</button>
                     <button class="copy-btn" data-copy="{{ lab.api_token | default('') }}">{{ t.lab_admin_copy }}</button>

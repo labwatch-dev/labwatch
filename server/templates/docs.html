@@ -3,6 +3,12 @@
 {% block title %}API Docs{% endblock %}
 
 {% block extra_styles %}
+/* CSP compliance */
+.roadmap-tag { font-size: 0.7em; color: #e67e22; }
+.docs-link { color: var(--accent); }
+.roadmap-heading-tag { color: #e67e22; font-size: 0.7em; }
+.roadmap-note { color: #e67e22; margin-bottom: 1rem; }
+.mt16 { margin-top: 16px; }
 .docs-hero {
     padding: 60px 0 40px;
     text-align: center;
@@ -360,7 +366,7 @@
 
         <h3>Intelligence</h3>
         <a href="#query">Natural Language Query</a>
-        <a href="#nlq-stats">NLQ Stats <span style="font-size:0.7em;color:#e67e22">(roadmap)</span></a>
+        <a href="#nlq-stats">NLQ Stats <span class="roadmap-tag">(roadmap)</span></a>
         <a href="#digest-lab">Lab Digest</a>
         <a href="#digest-fleet">Fleet Digest</a>
 
@@ -389,7 +395,7 @@
                 <strong>API v1:</strong> Endpoints are stable. Response shapes may gain new fields in minor releases but existing fields won't be removed without a major version bump.
             </div>
 
-            <p style="margin-top:16px;">Running your own server? See <a href="/self-hosted" style="color:var(--accent);">Self-Hosted labwatch</a> for the docker-compose quickstart, environment reference, and agent config pointing at a local instance.</p>
+            <p class="mt16">Running your own server? See <a href="/self-hosted" class="docs-link">Self-Hosted labwatch</a> for the docker-compose quickstart, environment reference, and agent config pointing at a local instance.</p>
         </section>
 
         <!-- Authentication -->
@@ -413,7 +419,7 @@ X-Admin-Secret: your-secret-here</div>
             <p>Endpoints under <code>/api/v1/my/*</code> are used by the dashboard UI and authenticate with a signed session cookie set by <code>POST /login</code>. They are not intended for server-to-server use — prefer the admin-secret endpoints for integrations.</p>
 
             <h3>MCP Token (roadmap)</h3>
-            <p>MCP integration is on the roadmap. See the <a href="#mcp-token" style="color:var(--accent);">MCP section</a> for details.</p>
+            <p>MCP integration is on the roadmap. See the <a href="#mcp-token" class="docs-link">MCP section</a> for details.</p>
         </section>
 
         <!-- Quick Start -->
@@ -1273,8 +1279,8 @@ X-Admin-Secret: your-secret-here</div>
 
         <!-- NLQ Stats (roadmap) -->
         <section class="docs-section" id="nlq-stats">
-            <h2>NLQ Stats &amp; Misses <span style="color: #e67e22; font-size: 0.7em;">(roadmap)</span></h2>
-            <p style="color: #e67e22; margin-bottom: 1rem;">These endpoints are on the roadmap for v1.1.</p>
+            <h2>NLQ Stats &amp; Misses <span class="roadmap-heading-tag">(roadmap)</span></h2>
+            <p class="roadmap-note">These endpoints are on the roadmap for v1.1.</p>
 
             <div class="endpoint">
                 <div class="endpoint-header"">

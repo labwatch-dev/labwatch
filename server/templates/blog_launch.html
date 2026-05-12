@@ -4,6 +4,10 @@
 {% block og_title %}Why we built labwatch — monitoring without the YAML hell{% endblock %}
 
 {% block extra_styles %}
+/* CSP compliance */
+.blog-cta-note { margin: 0 0 8px; font-size: 15px; }
+.blog-or { margin: 0 8px; color: var(--text-muted); }
+.blog-gh-link { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 .blog-container {
     max-width: 720px;
     margin: 0 auto;
@@ -132,7 +136,7 @@ git clone https://github.com/labwatch-dev/labwatch && cd labwatch
 docker compose up -d
 
 # Install the agent on each node
-curl -fsSL {{ base_url }}/install.sh | sudo bash</code></pre>
+curl -fsSL https://labwatch.dev/install.sh | sudo bash</code></pre>
 
     <p>The agent is a single Go binary (~8 MB, ~15 MB RSS). It collects CPU, memory, disk, network, load average, Docker containers, systemd services, GPU stats (NVIDIA), and S.M.A.R.T. disk health — then ships everything to your server every 60 seconds over HTTPS.</p>
 
@@ -199,10 +203,10 @@ curl -fsSL {{ base_url }}/install.sh | sudo bash</code></pre>
     <p>But it works today, it's stable, and it's been running on my cluster for weeks. I'd rather ship something useful than wait for perfection.</p>
 
     <div class="blog-cta">
-        <p style="margin:0 0 8px; font-size: 15px;">Try the live demo — no account needed</p>
+        <p class="blog-cta-note">Try the live demo — no account needed</p>
         <a href="/demo">Open demo dashboard</a>
-        <span style="margin: 0 8px; color: var(--text-muted);">or</span>
-        <a href="https://github.com/labwatch-dev/labwatch" style="background: transparent; color: var(--accent); border: 1px solid var(--accent);">View on GitHub</a>
+        <span class="blog-or">or</span>
+        <a href="https://github.com/labwatch-dev/labwatch" class="blog-gh-link">View on GitHub</a>
     </div>
 </article>
 {% endblock %}

@@ -3,6 +3,9 @@
 {% block title %}{{ t.about_title if t and t.about_title else 'About' }}{% endblock %}
 
 {% block extra_styles %}
+/* CSP compliance */
+.about-cta-box { text-align: center; padding: 32px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); }
+.about-cta-note { margin-bottom: 16px; }
 .about-page {
     max-width: 800px;
     margin: 0 auto;
@@ -179,9 +182,9 @@
         </div>
     </div>
 
-    <div class="about-section" style="text-align: center; padding: 32px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border);">
+    <div class="about-section about-cta-box">
         <h2>Support the project</h2>
-        <p style="margin-bottom: 16px;">labwatch is free for self-hosters and open source. If it's useful to you, consider supporting development.</p>
+        <p class="about-cta-note">labwatch is free for self-hosters and open source. If it's useful to you, consider supporting development.</p>
         <div class="about-cta">
             <a href="https://github.com/sponsors/labwatch-dev" class="btn-primary">Sponsor on GitHub</a>
             <a href="/support" class="btn-outline">Other ways to help</a>

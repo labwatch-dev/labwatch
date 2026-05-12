@@ -2,6 +2,8 @@
 {% block title %}{{ t.notif_title if t and t.notif_title else "Notifications" }}{% endblock %}
 
 {% block extra_styles %}
+.field-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.field-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 .notif-page {
     padding: 80px 24px;
     max-width: 760px;
@@ -313,7 +315,7 @@ function renderConfigFields() {
             + '<label for="cfg-' + f.key + '">' + f.label + '</label>'
             + '<input type="text" id="cfg-' + f.key + '" placeholder="' + (f.placeholder || '') + '" value="' + (f.default || '') + '"'
             + (f.required ? ' required' : '') + '>'
-            + (f.hint ? '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + f.hint + '</div>' : '')
+            + (f.hint ? '<div class="field-hint">' + f.hint + '</div>' : '')
             + '</div>'
         ).join("");
 }

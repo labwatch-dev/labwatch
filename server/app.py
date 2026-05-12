@@ -2505,6 +2505,26 @@ def admin_delete_lab(lab_id: str, _: str = Depends(_require_admin)):
 _DEMO_RESPONSES = [
     {
         "patterns": [
+            r"^(?:help|hi|hey|hello|yo|what can (?:you|u) do|what do you do|who are you|what are you)\s*[!?.]*$",
+        ],
+        "response": {
+            "answer": (
+                "hi \u2014 I'm labwatch. ask me about your fleet in plain english. things i understand:\n"
+                '  - "fleet status" / "how\'s everything" / "are we good"\n'
+                '  - "what needs attention?" / "show me all alerts"\n'
+                '  - "which node uses the most cpu?"\n'
+                '  - "disk health" / "gpu status" / "cpu temperature"\n'
+                '  - "what containers are running?"\n'
+                '  - "why is nas-storage slow?"\n'
+                '  - try asking in German, French, Spanish, or Ukrainian too'
+            ),
+            "query_type": "greeting",
+            "confidence": 0.95,
+            "demo": True,
+        },
+    },
+    {
+        "patterns": [
             r"fleet", r"summary", r"overview", r"sitrep", r"rundown",
             r"(?:fleet|overall|lab)\s+(?:status|health)",
             r"^(?:status|health)$",

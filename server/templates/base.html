@@ -10,8 +10,8 @@
     <!-- Open Graph -->
     <meta property="og:title" content="{% block og_title %}labwatch — smart monitoring for homelabs{% endblock %}">
     <meta property="og:description" content="Monitor your homelab infrastructure with a lightweight Go agent and intelligence server. CPU, memory, disk, Docker, GPU, alerts, and natural language queries.">
-    <meta property="og:image" content="{{ base_url }}/static/og-image.png">
-    <meta property="og:url" content="{{ base_url }}{{ request.url.path }}">
+    <meta property="og:image" content="https://labwatch.dev/static/og-image.png">
+    <meta property="og:url" content="https://labwatch.dev{{ request.url.path }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="labwatch">
 
@@ -19,9 +19,9 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% block twitter_title %}labwatch — smart monitoring for homelabs{% endblock %}">
     <meta name="twitter:description" content="Monitor your homelab infrastructure with a lightweight Go agent and intelligence server. CPU, memory, disk, Docker, GPU, alerts, and natural language queries.">
-    <meta name="twitter:image" content="{{ base_url }}/static/og-image.png">
+    <meta name="twitter:image" content="https://labwatch.dev/static/og-image.png">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%23f0a030'/></svg>">
-    <link rel="canonical" href="{{ base_url }}{{ request.url.path }}">
+    <link rel="canonical" href="https://labwatch.dev{{ request.url.path }}">
     <title>{% block title %}labwatch{% endblock %} — homelab intelligence</title>
     <style nonce="{{ csp_nonce }}">
         :root, [data-theme="dark"] {
@@ -895,8 +895,14 @@
             display: none;
         }
 
+        /* CSP compliance: position helpers for nav */
+        .account-menu-wrap { position: relative; }
+        .settings-wrap { position: relative; }
+        .nav-dropdown-arrow { margin-left: 4px; opacity: 0.5; }
+
         {% block extra_styles %}{% endblock %}
     </style>
+<script defer src="https://labwatch.dev/script.js" data-website-id="cab5253a-aecc-4a16-bdab-e2bb14d48911" nonce="{{ csp_nonce }}"></script>
 </head>
 <body>
     <nav>
@@ -920,11 +926,11 @@
                 <li><a href="/support" {% if active_page == 'support' %}class="active"{% endif %}>{{ t.nav_support if t else 'Support' }}</a></li>
                 <li><a href="/about" {% if active_page == 'about' %}class="active"{% endif %}>{{ t.about_title if t and t.about_title else 'About' }}</a></li>
                 {% if user_email %}
-                <li class="account-menu-wrap" style="position:relative;">
+                <li class="account-menu-wrap">
                     <button class="account-toggle">
                         <span class="account-avatar">{{ user_email[0]|upper }}</span>
                         <span class="account-email">{{ user_email }}</span>
-                        <svg width="10" height="6" viewBox="0 0 10 6" fill="currentColor" style="margin-left:4px;opacity:0.5;"><path d="M1 1l4 4 4-4"/></svg>
+                        <svg width="10" height="6" viewBox="0 0 10 6" fill="currentColor" class="nav-dropdown-arrow"><path d="M1 1l4 4 4-4"/></svg>
                     </button>
                     <div class="account-dropdown" id="account-dropdown">
                         <div class="account-dropdown-header">
@@ -946,7 +952,7 @@
                 </li>
                 {% else %}
                 <li><a href="/login" {% if active_page == 'login' %}class="active"{% endif %}>{{ t.nav_login if t else 'Log in' }}</a></li>
-                <li><a href="/signup" class="btn btn-primary btn-sm" style="color:#0a0a0f">{{ t.nav_get_started if t else 'Get Started' }}</a></li>
+                <li><a href="/signup" class="btn btn-primary btn-sm">{{ t.nav_get_started if t else 'Get Started' }}</a></li>
                 {% endif %}
                 {% if languages %}
                 <li class="lang-switcher">
@@ -957,7 +963,7 @@
                     </select>
                 </li>
                 {% endif %}
-                <li style="position:relative;">
+                <li class="settings-wrap">
                     <button class="settings-toggle" aria-label="Settings" title="{{ t.settings_title if t else 'Settings' }}">&#9881;</button>
                     <div class="settings-panel" id="settings-panel">
                         <div class="settings-section">
@@ -970,12 +976,12 @@
                         <div class="settings-section">
                             <div class="settings-label">{{ t.settings_accent if t else 'Accent Color' }}</div>
                             <div class="accent-options">
-                                <div class="accent-dot" data-color="default"" title="Amber"></div>
-                                <div class="accent-dot" data-color="blue"" title="Blue"></div>
-                                <div class="accent-dot" data-color="green"" title="Green"></div>
-                                <div class="accent-dot" data-color="purple"" title="Purple"></div>
-                                <div class="accent-dot" data-color="red"" title="Red"></div>
-                                <div class="accent-dot" data-color="cyan"" title="Cyan"></div>
+                                <div class="accent-dot" data-color="default" title="Amber"></div>
+                                <div class="accent-dot" data-color="blue" title="Blue"></div>
+                                <div class="accent-dot" data-color="green" title="Green"></div>
+                                <div class="accent-dot" data-color="purple" title="Purple"></div>
+                                <div class="accent-dot" data-color="red" title="Red"></div>
+                                <div class="accent-dot" data-color="cyan" title="Cyan"></div>
                             </div>
                         </div>
                         <div class="settings-section">
@@ -1310,5 +1316,29 @@
 </script>
 
     {% block extra_scripts %}{% endblock %}
+
+    <script nonce="{{ csp_nonce }}">
+    // Initialize data-pct / data-w elements (CSP-safe replacement for inline styles)
+    (function() {
+        function initFills(root) {
+            (root || document).querySelectorAll('[data-pct]').forEach(function(el) {
+                var pct = parseFloat(el.dataset.pct) || 0;
+                el.style.width = pct.toFixed(1) + '%';
+                if (el.dataset.color) {
+                    el.style.background = 'var(--' + el.dataset.color + ')';
+                }
+            });
+            (root || document).querySelectorAll('[data-w]').forEach(function(el) {
+                el.style.width = el.dataset.w + '%';
+            });
+        }
+        window.initFills = initFills;
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { initFills(); });
+        } else {
+            initFills();
+        }
+    })();
+    </script>
 </body>
 </html>

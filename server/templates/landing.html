@@ -3,6 +3,17 @@
 {% block title %}labwatch{% endblock %}
 
 {% block extra_styles %}
+/* CSP compliance */
+.hero-terminal-clickable { cursor: pointer; }
+.script-review-link { color: var(--text-muted); font-size: 12px; margin-left: 4px; }
+.screenshots-section { padding: 60px 24px 40px; max-width: 1100px; margin: 0 auto; }
+.screenshot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+.screenshot-link { display: block; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); transition: transform 0.2s; }
+.screenshot-img { width: 100%; height: auto; display: block; }
+.screenshots-caption { text-align: center; margin-top: 12px; font-size: 13px; color: var(--text-muted); }
+.no-llm-badge { display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--accent); border: 1px solid var(--accent); opacity: 0.85; }
+.td-note { color: var(--text-muted); font-size: 11px; }
+.demo-sub-note { font-size: 13px; color: var(--text-muted); }
 /* Hero */
 .hero {
     text-align: center;
@@ -993,7 +1004,7 @@
             <a href="/signup" class="btn btn-primary">{{ t.landing_btn_install }}</a>
             <a href="/demo" class="btn btn-secondary">{{ t.landing_btn_demo }}</a>
         </div>
-        <div class="hero-terminal" title="Click to copy" style="cursor: pointer;">
+        <div class="hero-terminal hero-terminal-clickable" title="Click to copy">
             <span class="prompt">$</span>
             <code>curl -fsSL {{ base_url }}/install.sh | sudo bash</code>
             <span class="hero-terminal-copy">copy</span>
@@ -1001,31 +1012,31 @@
         <p class="install-note">
             {{ t.landing_install_note }} <a href="/download/labwatch-linux-amd64">amd64</a> / <a href="/download/labwatch-linux-arm64">arm64</a>.
             {{ t.landing_install_note2 if t and t.landing_install_note2 else 'Open source — AGPL-3.0 server, MIT agent.' }} <a href="https://github.com/labwatch-dev/labwatch" target="_blank" rel="noopener">{{ t.landing_install_github if t and t.landing_install_github else 'Source on GitHub' }}</a>.
-            <a href="https://github.com/labwatch-dev/labwatch/blob/main/install.sh" target="_blank" rel="noopener" style="color:var(--text-muted);font-size:12px;margin-left:4px;">(review the script first)</a>
+            <a href="https://github.com/labwatch-dev/labwatch/blob/main/install.sh" target="_blank" rel="noopener" class="script-review-link">(review the script first)</a>
         </p>
     </div>
 </section>
 
 <!-- Dashboard Screenshots -->
-<section style="padding:60px 24px 40px;max-width:1100px;margin:0 auto;">
+<section class="screenshots-section">
     <div class="section-header">
         <h2>See your lab at a glance</h2>
     </div>
-    <div class="screenshot-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;">
-        <a href="/static/screenshots-dashboard.png" target="_blank" rel="noopener" style="display:block;border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:transform 0.2s;">
+    <div class="screenshot-grid">
+        <a href="/static/screenshots-dashboard.png" target="_blank" rel="noopener" class="screenshot-link">
             <picture>
                 <source srcset="/static/screenshots-dashboard.webp" type="image/webp">
-                <img src="/static/screenshots-dashboard.png" alt="labwatch fleet dashboard" loading="lazy" style="width:100%;height:auto;display:block;">
+                <img src="/static/screenshots-dashboard.png" alt="labwatch fleet dashboard" loading="lazy" class="screenshot-img">
             </picture>
         </a>
-        <a href="/static/screenshots-detail.png" target="_blank" rel="noopener" style="display:block;border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:transform 0.2s;">
+        <a href="/static/screenshots-detail.png" target="_blank" rel="noopener" class="screenshot-link">
             <picture>
                 <source srcset="/static/screenshots-detail.webp" type="image/webp">
-                <img src="/static/screenshots-detail.png" alt="labwatch node detail view" loading="lazy" style="width:100%;height:auto;display:block;">
+                <img src="/static/screenshots-detail.png" alt="labwatch node detail view" loading="lazy" class="screenshot-img">
             </picture>
         </a>
     </div>
-    <p style="text-align:center;margin-top:12px;font-size:13px;color:var(--text-muted);">Fleet overview (left) and node detail (right) — real data from a 5-node Proxmox cluster.</p>
+    <p class="screenshots-caption">Fleet overview (left) and node detail (right) — real data from a 5-node Proxmox cluster.</p>
 </section>
 
 <!-- How It Works -->
@@ -1066,7 +1077,7 @@
             </div>
             <h3>{{ t.landing_feat_nlq_title }}</h3>
             <p>{{ t.landing_feat_nlq_desc }}</p>
-            <span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.5px;color:var(--accent);border:1px solid var(--accent);opacity:0.85;">NO LLM — pure regex + rules</span>
+            <span class="no-llm-badge">NO LLM — pure regex + rules</span>
         </div>
         <div class="feature-card">
             <div class="feature-icon" aria-hidden="true">
@@ -1129,7 +1140,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>Natural-language queries <span style="color:var(--text-muted);font-size:11px">("why is pve slow?")</span></td>
+                    <td>Natural-language queries <span class="td-note">("why is pve slow?")</span></td>
                     <td class="cm-us"><span class="yes">&#10003;</span></td>
                     <td><span class="no">&#10005;</span></td>
                     <td><span class="no">&#10005;</span></td>
@@ -1144,7 +1155,7 @@
                     <td><span class="yes">&#10003;</span></td>
                 </tr>
                 <tr>
-                    <td>Per-user dashboard layout <span style="color:var(--text-muted);font-size:11px">(drag, pin, reorder)</span></td>
+                    <td>Per-user dashboard layout <span class="td-note">(drag, pin, reorder)</span></td>
                     <td class="cm-us"><span class="yes">&#10003;</span></td>
                     <td><span class="no">&#10005;</span></td>
                     <td><span class="partial">basic</span></td>
@@ -1179,7 +1190,7 @@
                     <td><span class="no">&#10005;</span></td>
                 </tr>
                 <tr>
-                    <td>Agent RAM <span style="color:var(--text-muted);font-size:11px">(typical steady-state)</span></td>
+                    <td>Agent RAM <span class="td-note">(typical steady-state)</span></td>
                     <td class="cm-us"><span class="num">~45 MB</span></td>
                     <td><span class="num best">~15 MB</span></td>
                     <td><span class="num">(server only)</span></td>
@@ -1208,35 +1219,35 @@
                     <td><span class="yes">&#10003;</span></td>
                 </tr>
                 <tr>
-                    <td>S.M.A.R.T. disk health <span style="color:var(--text-muted);font-size:11px">(temp, reallocated sectors, pass/fail)</span></td>
+                    <td>S.M.A.R.T. disk health <span class="td-note">(temp, reallocated sectors, pass/fail)</span></td>
                     <td class="cm-us"><span class="yes">&#10003;</span></td>
                     <td><span class="yes">&#10003;</span></td>
                     <td><span class="no">&#10005;</span></td>
                     <td><span class="yes">&#10003;</span></td>
                 </tr>
                 <tr>
-                    <td>ZFS pool health <span style="color:var(--text-muted);font-size:11px">(capacity, scrub status, errors)</span></td>
+                    <td>ZFS pool health <span class="td-note">(capacity, scrub status, errors)</span></td>
                     <td class="cm-us"><span class="yes">&#10003;</span></td>
                     <td><span class="partial">partial</span></td>
                     <td><span class="no">&#10005;</span></td>
                     <td><span class="yes">&#10003;</span></td>
                 </tr>
                 <tr>
-                    <td>Notification channels <span style="color:var(--text-muted);font-size:11px">(integrations)</span></td>
+                    <td>Notification channels <span class="td-note">(integrations)</span></td>
                     <td class="cm-us"><span class="num">ntfy, Discord, Slack, Telegram + Apprise</span></td>
                     <td><span class="num">Shoutrrr (~20)</span></td>
                     <td><span class="num">90+</span></td>
                     <td><span class="num">~15</span></td>
                 </tr>
                 <tr>
-                    <td>Prometheus / Grafana export <span style="color:var(--text-muted);font-size:11px">(/metrics endpoint)</span></td>
+                    <td>Prometheus / Grafana export <span class="td-note">(/metrics endpoint)</span></td>
                     <td class="cm-us"><span class="yes">&#10003;</span></td>
                     <td><span class="yes">&#10003;</span></td>
                     <td><span class="no">&#10005;</span></td>
                     <td><span class="yes">&#10003;</span></td>
                 </tr>
                 <tr>
-                    <td>HTTP / TCP uptime checks <span style="color:var(--text-muted);font-size:11px">(external probe)</span></td>
+                    <td>HTTP / TCP uptime checks <span class="td-note">(external probe)</span></td>
                     <td class="cm-us"><span class="partial">local</span></td>
                     <td><span class="no">&#10005;</span></td>
                     <td><span class="yes">&#10003;</span></td>
@@ -1265,7 +1276,7 @@
 <section class="nlq-demo">
     <div class="section-header">
         <h2>{{ t.landing_demo_title }}</h2>
-        <p>{{ t.landing_demo_sub }}<br><span style="font-size:13px;color:var(--text-muted);">No LLM, no API keys, no data leaves your server. 100% rule-based engine.</span></p>
+        <p>{{ t.landing_demo_sub }}<br><span class="demo-sub-note">No LLM, no API keys, no data leaves your server. 100% rule-based engine.</span></p>
     </div>
     <div class="demo-terminal">
         <div class="demo-bar">

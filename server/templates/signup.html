@@ -2,6 +2,19 @@
 {% block title %}Get Started{% endblock %}
 
 {% block extra_styles %}
+/* CSP compliance */
+.gh-stars-badge { height: 14px; vertical-align: middle; }
+.bullet-link { color: var(--accent); }
+.terms-group { display: flex; align-items: flex-start; gap: 10px; }
+.terms-checkbox { margin-top: 3px; accent-color: var(--accent); min-width: 16px; }
+.terms-label { font-size: 13px; font-weight: 400; color: var(--text-dim); cursor: pointer; }
+.terms-link { color: var(--accent); }
+.install-note { color: var(--text-dim); font-size: 12px; margin-top: 8px; }
+.step-note { color: var(--text-dim); font-size: 13px; margin-top: 8px; }
+.auto-login-form { margin-top: 12px; }
+.btn-full-login { width: 100%; justify-content: center; padding: 14px; }
+.free-note-spaced { margin-top: 24px; }
+
 .signup-page {
     padding: 40px 24px 80px;
     max-width: 560px;
@@ -262,7 +275,7 @@
             <a class="badge" href="https://github.com/labwatch-dev/labwatch" target="_blank" rel="noopener">
                 <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
                 <span>Star on GitHub</span>
-                <img src="https://img.shields.io/github/stars/labwatch-dev/labwatch?style=flat-square&label=&color=f0a030&labelColor=12121a" alt="GitHub stars" style="height:14px; vertical-align:middle;"">
+                <img src="https://img.shields.io/github/stars/labwatch-dev/labwatch?style=flat-square&label=&color=f0a030&labelColor=12121a" alt="GitHub stars" class="gh-stars-badge">
             </a>
             <span class="badge">
                 <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 3h12v2H2V3zm0 4h12v2H2V7zm0 4h12v2H2v-2z"/></svg>
@@ -284,7 +297,7 @@
             </div>
             <div class="bullet">
                 <svg class="bullet-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 3h12v3H2V3zm0 4h12v3H2V7zm0 4h12v2H2v-2zm2-6.5a.5.5 0 100 1 .5.5 0 000-1zm0 4a.5.5 0 100 1 .5.5 0 000-1z"/></svg>
-                <div><strong>Self-hosted or cloud.</strong> 8MB Go agent, <a href="/self-hosted" style="color:var(--accent);">docker-compose quickstart</a>, your data on your hardware.</div>
+                <div><strong>Self-hosted or cloud.</strong> 8MB Go agent, <a href="/self-hosted" class="bullet-link">docker-compose quickstart</a>, your data on your hardware.</div>
             </div>
         </div>
 
@@ -307,10 +320,10 @@
                 <div class="hint">{{ t.signup_hostname_hint }}</div>
             </div>
 
-            <div class="form-group" style="display: flex; align-items: flex-start; gap: 10px;">
-                <input type="checkbox" id="accept-terms" required style="margin-top: 3px; accent-color: var(--accent); min-width: 16px;">
-                <label for="accept-terms" style="font-size: 13px; font-weight: 400; color: var(--text-dim); cursor: pointer;">
-                    I agree to the <a href="/terms" target="_blank" rel="noopener" style="color: var(--accent);">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener" style="color: var(--accent);">Privacy Policy</a>
+            <div class="form-group terms-group">
+                <input type="checkbox" id="accept-terms" required class="terms-checkbox">
+                <label for="accept-terms" class="terms-label">
+                    I agree to the <a href="/terms" target="_blank" rel="noopener" class="terms-link">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener" class="terms-link">Privacy Policy</a>
                 </label>
             </div>
 
@@ -335,7 +348,7 @@
                 loading…
             </div>
             <p class="copy-hint">{{ t.signup_copy_hint if t and t.signup_copy_hint else "↑ click anywhere on the command to copy" }}</p>
-            <p style="color: var(--text-dim); font-size: 12px; margin-top: 8px;">
+            <p class="install-note">
                 {{ t.signup_link_expires if t and t.signup_link_expires else "link expires in 15 minutes — if it does, come back and we'll regenerate." }}
             </p>
         </div>
@@ -343,18 +356,18 @@
         <div class="step">
             <span class="step-num">2</span>
             <span class="step-title">{{ t.signup_step4 }}</span>
-            <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">
+            <p class="step-note">
                 {{ t.signup_step4_note }}
             </p>
-            <form id="auto-login-form" method="POST" action="/login" style="margin-top: 12px;">
+            <form id="auto-login-form" method="POST" action="/login" class="auto-login-form">
                 <input type="hidden" id="auto-login-token" name="token" value="">
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px;">
+                <button type="submit" class="btn btn-primary btn-full-login">
                     {{ t.signup_dashboard_btn }} &rarr;
                 </button>
             </form>
         </div>
 
-        <p class="free-note" style="margin-top: 24px;">
+        <p class="free-note free-note-spaced">
             {{ t.signup_need_help }} <a href="mailto:support@labwatch.dev">support@labwatch.dev</a>
         </p>
     </div>
