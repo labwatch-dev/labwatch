@@ -94,10 +94,12 @@ Wants=network-online.target
 
 [Service]
 Type=simple
+Environment=GOMEMLIMIT=96MiB
 ExecStart=${INSTALL_DIR}/labwatch --config ${CONFIG_DIR}/config.yaml
 Restart=always
 RestartSec=10
-MemoryMax=64M
+MemoryHigh=64M
+MemoryMax=256M
 
 # Security hardening
 NoNewPrivileges=true
