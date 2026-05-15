@@ -3132,18 +3132,27 @@ def _try_slash_command(question: str) -> Optional[dict]:
 
 # Log retrieval queries
 _LOG_PATTERN = re.compile(
-    r"(?:show|get|display|view|pull|fetch)\s+(?:me\s+)?(?:the\s+)?logs?\s+(?:from|for|of|on)\s+(.+)"
+    r"(?:show|get|display|view|pull|fetch)\s+(?:me\s+)?(?:the\s+)?(?:error\s+|warning\s+)?logs?\s+(?:from|for|of|on)\s+(.+)"
+    r"|(?:show|get|display|view|pull|fetch)\s+(?:me\s+)?(?:the\s+)?(?:errors?|warnings?)\s+(?:from|for|of|on)\s+(.+)"
     r"|logs?\s+(?:from|for|of|on)\s+(.+)"
-    r"|(?:recent|latest|last)\s+(?:error\s+)?logs?"
-    r"|(?:any|are\s+there)\s+(?:error|warning|critical)\s+logs?"
-    r"|error\s+logs?"
+    r"|(?:errors?|warnings?)\s+(?:from|for|of|on)\s+(.+)"
+    r"|(?:recent|latest|last)\s+(?:error|warning)\s*s?"
+    r"|(?:any|are\s+there)\s+(?:error|warning|critical)s?\s*(?:logs?)?\s*(?:(?:from|for|of|on)\s+(.+))?"
+    r"|(?:error|warning)\s+logs?"
+    r"|(?:recent|latest|last)\s+logs?"
+    r"|(?:show|get)\s+(?:me\s+)?(?:recent\s+)?(?:errors?|warnings?)"
 )
 
 
 def _handle_logs(question: str, match: re.Match) -> dict:
     """Handle: 'show logs from proxmox-01', 'recent error logs', 'any error logs?'"""
     # Try to extract a node name from the match groups
-    target = match.group(1) or match.group(2) if match.lastindex and match.lastindex >= 1 else None
+    target = None
+    if match.lastindex:
+        for i in range(1, match.lastindex + 1):
+            if match.group(i):
+                target = match.group(i)
+                break
 
     if target:
         target = target.strip().rstrip("?. ")
