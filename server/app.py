@@ -2945,6 +2945,56 @@ _DEMO_RESPONSES = [
     },
     {
         "patterns": [
+            r"disk\s+(?:io|i/o|throughput|bandwidth|speed|performance)",
+            r"(?:read|write)\s+(?:speed|throughput|rate)",
+            r"(?:how busy|how fast)\s+(?:are|is)\s+(?:my|the|our)\s+(?:disks?|drives?|storage)",
+            r"disk\s+(?:read|write)",
+            r"iops",
+        ],
+        "response": {
+            "answer": (
+                "Disk I/O across the fleet:\n"
+                "  nas-storage: 12.4 MB/s read / 8.7 MB/s write\n"
+                "  docker-host: 3.2 MB/s read / 1.8 MB/s write\n"
+                "  pve-main: 1.1 MB/s read / 0.4 MB/s write\n"
+                "  gpu-server: OFFLINE\n"
+                "\n"
+                "nas-storage has the highest I/O \u2014 consistent with NFS/Samba serving."
+            ),
+            "query_type": "disk_io",
+            "confidence": 0.92,
+            "demo": True,
+        },
+    },
+    {
+        "patterns": [
+            r"(?:show|get|display|view)\s+(?:me\s+)?(?:the\s+)?(?:error\s+|warning\s+)?logs?\s+(?:from|for|of|on)",
+            r"(?:recent|latest|last)\s+(?:error|warning)s?",
+            r"(?:any|are\s+there)\s+(?:error|warning|critical)s?\s*(?:logs?)?",
+            r"(?:error|warning)\s+logs?",
+            r"(?:recent|latest|last)\s+logs?",
+        ],
+        "response": {
+            "answer": (
+                "Recent error logs across the fleet:\n"
+                "\n"
+                "nas-storage (3 errors):\n"
+                "  [14:23:11] ERROR (docker:nextcloud): OOM killed worker process (RSS 512MB)\n"
+                "  [14:22:58] ERROR (docker:nextcloud): Failed to allocate memory for image preview\n"
+                "  [06:00:14] WARNING (systemd): Unit zfs-scrub.timer failed to start\n"
+                "\n"
+                "pve-main (1 error):\n"
+                "  [03:30:42] ERROR (docker:prometheus): WAL corruption detected, repairing\n"
+                "\n"
+                "Showing 4 log entries. Use the web UI for full log search with filters."
+            ),
+            "query_type": "logs",
+            "confidence": 0.85,
+            "demo": True,
+        },
+    },
+    {
+        "patterns": [
             r"why\s+is\s+\S+\s+(?:slow|using|consuming|taking)",
             r"what(?:'s|\s+is)\s+wrong\s+with\s+\S+",
             r"diagnos(?:e|tic)\s+\S+",
