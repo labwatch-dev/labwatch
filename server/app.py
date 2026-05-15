@@ -1673,7 +1673,7 @@ def register_agent(body: RegisterRequest, x_admin_secret: Optional[str] = Header
 
 
 @app.post("/api/v1/ingest")
-def ingest_metrics(body: MetricPayload, lab: dict = Depends(_require_agent_auth)):
+def ingest_metrics(body: MetricPayload, lab: dict = Depends(_require_agent_auth), user_agent: Optional[str] = Header(None)):
     # Verify the lab_id in the payload matches the authenticated lab
     if body.lab_id != lab["id"]:
         raise HTTPException(
@@ -1681,9 +1681,14 @@ def ingest_metrics(body: MetricPayload, lab: dict = Depends(_require_agent_auth)
             detail="Token does not match the provided lab_id",
         )
 
+    # Parse agent version from User-Agent header (e.g. "labwatch/0.3.2")
+    agent_ver = None
+    if user_agent and user_agent.startswith("labwatch/"):
+        agent_ver = user_agent.split("/", 1)[1].strip()
+
     # Store all collector types + update last_seen in a single transaction
     collectors = body.collectors or {}
-    stored_types = db.store_metrics_batch(lab["id"], collectors)
+    stored_types = db.store_metrics_batch(lab["id"], collectors, agent_version=agent_ver)
 
     # Run analysis
     alerts = analyze_metrics(lab["id"], collectors)

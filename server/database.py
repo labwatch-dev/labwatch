@@ -554,7 +554,7 @@ def store_metrics(lab_id: str, metric_type: str, data: Any) -> None:
         conn.close()
 
 
-def store_metrics_batch(lab_id: str, collectors: dict[str, Any]) -> list[str]:
+def store_metrics_batch(lab_id: str, collectors: dict[str, Any], agent_version: str | None = None) -> list[str]:
     """Store multiple collector types in a single transaction. Returns stored types."""
     now = datetime.now(timezone.utc).isoformat()
     conn = _connect()
@@ -568,7 +568,10 @@ def store_metrics_batch(lab_id: str, collectors: dict[str, Any]) -> list[str]:
                 (lab_id, now, metric_type, data_json, now),
             )
             stored.append(metric_type)
-        conn.execute("UPDATE labs SET last_seen = ? WHERE id = ?", (now, lab_id))
+        if agent_version:
+            conn.execute("UPDATE labs SET last_seen = ?, agent_version = ? WHERE id = ?", (now, agent_version, lab_id))
+        else:
+            conn.execute("UPDATE labs SET last_seen = ? WHERE id = ?", (now, lab_id))
         conn.commit()
         return stored
     except Exception:
