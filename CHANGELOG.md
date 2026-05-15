@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Disk I/O metrics**: agent now collects per-device read/write bytes, IOPS counts, and I/O time from `/proc/diskstats` via gopsutil. Data included in the `system` collector payload as `disk_io` array. Cumulative counters — server can compute rates between intervals.
 - **Disk I/O dashboard**: server computes read/write MB/s rates from consecutive samples. New metric card on node detail page + time-series chart with read (purple) and write (yellow) lines. Counter-reset spike filtering applied.
+- **NLQ: disk I/O queries**: "disk throughput", "I/O on pve-storage", "read/write speed" — fleet-wide or per-node
+- **NLQ: ZFS pool queries**: "zfs pool status", "how are my zfs pools" — reports health, capacity, fragmentation, scrub status per pool
 
 ## [0.3.2] — 2026-05-15
 

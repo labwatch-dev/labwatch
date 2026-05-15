@@ -16,7 +16,7 @@ Know what's happening across every node in your homelab — without Grafana, wit
 labwatch collects system metrics, Docker container status, service health, GPU stats, S.M.A.R.T. disk data, ZFS pool health, and centralized logs from every node in your homelab. It stores everything in SQLite, runs rule-based analysis, and generates plain-English intelligence digests about your infrastructure.
 
 **Features:**
-- **System metrics** — CPU, memory, disk, load average, network, uptime with inline sparklines
+- **System metrics** — CPU, memory, disk, load average, network, disk I/O throughput, uptime with inline sparklines
 - **Docker monitoring** — container health, restart loops, resource usage
 - **Service checks** — monitor HTTP and TCP endpoints via config
 - **GPU monitoring** — NVIDIA GPU stats via nvidia-smi
