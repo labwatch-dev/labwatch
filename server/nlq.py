@@ -1595,6 +1595,78 @@ def _handle_smart(question: str, match: re.Match) -> dict:
     )
 
 
+# ---------------------------------------------------------------------------
+# Handler: ZFS pool queries
+# ---------------------------------------------------------------------------
+
+_ZFS_PATTERN = re.compile(
+    r"zfs\s+(?:pool|status|health|info|capacity|scrub)"
+    r"|(?:how|what).*zfs"
+    r"|zfs\s+pools?"
+    r"|(?:pool|zpool)\s+(?:status|health|info)"
+    r"|(?:show|list|get)\s+(?:zfs|pools?|zpools?)"
+, re.IGNORECASE)
+
+
+def _handle_zfs(question: str, match: re.Match) -> dict:
+    """Handle: 'zfs pool status', 'how are my zfs pools', 'show zfs pools'."""
+    labs = _scoped_list_labs()
+    all_pools = []
+
+    for lab in labs:
+        metrics = db.get_latest_metrics(lab["id"])
+        zfs_entry = metrics.get("zfs", {})
+        data = zfs_entry.get("data", {}) if isinstance(zfs_entry, dict) else {}
+        pools = data.get("pools", [])
+        online = _lab_is_online(lab["last_seen"])
+
+        for pool in pools:
+            all_pools.append({
+                "hostname": lab["hostname"],
+                "name": pool.get("name", "?"),
+                "health": pool.get("health", "UNKNOWN"),
+                "used_percent": pool.get("used_percent", 0),
+                "fragmentation": pool.get("fragmentation", 0),
+                "last_scrub": pool.get("last_scrub", ""),
+                "errors": pool.get("errors", 0),
+                "online": online,
+            })
+
+    if not all_pools:
+        return _build_response(
+            answer="No ZFS pools found. Either no nodes have ZFS, or agents need the ZFS collector enabled.",
+            query_type="zfs",
+            confidence=0.85,
+            sources=[],
+        )
+
+    degraded = [p for p in all_pools if p["health"] not in ("ONLINE", "")]
+    lines = [f"ZFS: {len(all_pools)} pool{'s' if len(all_pools) != 1 else ''} across {len(set(p['hostname'] for p in all_pools))} nodes"]
+
+    if degraded:
+        lines.append("")
+        for p in degraded:
+            lines.append(f"WARNING: {p['hostname']}/{p['name']} — {p['health']}")
+
+    lines.append("")
+    for p in all_pools:
+        status = "OK" if p["health"] == "ONLINE" else p["health"]
+        frag = f", {p['fragmentation']}% frag" if p["fragmentation"] else ""
+        scrub = f", scrub: {p['last_scrub']}" if p["last_scrub"] else ""
+        errs = f", {p['errors']} errors" if p["errors"] else ""
+        lines.append(f"  {p['hostname']}/{p['name']}: {p['used_percent']:.1f}% used ({status}{frag}{scrub}{errs})")
+
+    if not degraded:
+        lines.append("\nAll pools healthy.")
+
+    return _build_response(
+        answer="\n".join(lines),
+        query_type="zfs",
+        confidence=0.92,
+        sources=[{"type": "zfs", "pools": len(all_pools)}],
+    )
+
+
 def _handle_capacity(question: str, match: re.Match) -> dict:
     """Handle: 'How much disk space do I have?', 'Am I running out of storage?', 'How much RAM left?'"""
     # Detect if the query is about memory/RAM rather than disk
@@ -3366,6 +3438,8 @@ HANDLERS = [
     {"pattern": _GPU_PATTERN, "func": _handle_gpu, "name": "gpu"},
     # S.M.A.R.T. disk health — before capacity so "any disk failures" routes here
     {"pattern": _SMART_PATTERN, "func": _handle_smart, "name": "smart"},
+    # ZFS pool health — before fleet so "zfs status" doesn't match fleet_overview
+    {"pattern": _ZFS_PATTERN, "func": _handle_zfs, "name": "zfs"},
     # Fleet overview
     {"pattern": _FLEET_PATTERN, "func": _handle_fleet, "name": "fleet_overview"},
     # Time-range queries
