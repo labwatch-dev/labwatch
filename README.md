@@ -8,6 +8,7 @@ Know what's happening across every node in your homelab — without Grafana, wit
 **[Live demo](https://labwatch.dev/demo)** | **[Docs](https://labwatch.dev/docs)**
 
 ![labwatch dashboard](screenshots/dashboard.png)
+![labwatch NLQ](screenshots/nlq.png)
 ![labwatch node detail](screenshots/detail.png)
 
 ## What it does
