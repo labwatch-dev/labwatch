@@ -415,7 +415,8 @@ _LANG_KEYWORDS: dict[str, str] = {
     "gibt": "is",        # "gibt es" = "is there" / "are there"
     "es": "there",       # part of "gibt es"
     "aufmerksamkeit": "attention",
-    "was": "what",
+    # "was" omitted — German "was" = "what" but collides with English past-tense
+    # "be". German queries still work via other keyword mappings.
     "welchen": "which",
     "braucht": "needs",  # "braucht" = needs; for "am meisten" context, pattern still matches
     # French additional structure
@@ -945,6 +946,8 @@ _TIME_PATTERN = re.compile(
     r".*?(?:last night|overnight|last \d+ (?:hours?|minutes?|mins?|days?)|yesterday|today|this week)"
 
     r"|(?:cpu|memory|mem|disk|load|ram)\s+(?:usage|use|utilization)\s+(?:over|for|in|during)\s+(?:the\s+)?(?:past|last|previous)\s+(?:hour|day|week|month|\d+\s*(?:h|d|hr|hours?|days?|weeks?|minutes?))"
+
+    r"|(?:what was|how was|how did)\s+(?:cpu|memory|mem|disk|load|ram|network)\s+(?:like|doing|looking)\s+(?:yesterday|last night|today|this week|last \d+ (?:hours?|days?))"
 )
 
 
@@ -2904,6 +2907,7 @@ _TREND_PATTERN = re.compile(
     r"|(?:compare\b.{1,40}\b(?:vs|versus|to|against|with))"
     r"|(?:\b(?:today|yesterday|tomorrow)\s+(?:vs|versus|against|compared))"
     r"|(?:predict|forecast|projection|extrapolate|estimated|when will)"
+    r"|(?:will\s+(?:cpu|memory|disk|usage|load)\s+(?:keep|continue|keep on)\s+(?:growing|increasing|rising|going up))"
     r"|(?:growth\s+rate|burn\s+rate)"
     r"|(?:yesterday(?:'s)?|last (?:night|week|month))\s+(?:cpu|memory|disk|alerts?|incidents?)"
 )
