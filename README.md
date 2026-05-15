@@ -31,6 +31,7 @@ labwatch collects system metrics, Docker container status, service health, GPU s
 - **Drag-and-drop layout** — reorder node cards with mouse or touch (long-press on mobile)
 - **Demo mode** — try everything without an account at `/demo`
 - **Multi-user accounts** — sign up, pin nodes, set custom alert thresholds
+- **i18n** — NLQ accepts English, German, French, Spanish, Ukrainian queries
 - **Fleet overview** — all nodes at a glance with health indicators
 
 ## Quick start
