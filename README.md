@@ -298,8 +298,8 @@ All alerts deduplicate automatically. When a condition clears, the alert resolve
 | Intelligence digests | Yes (auto-graded) | No | No | No | No |
 | Docker monitoring | Built-in | Beszel: yes | Separate exporter | No | Plugin |
 | GPU monitoring | Built-in (NVIDIA) | Beszel: NVIDIA/AMD/Apple | Separate exporter | No | Plugin |
-| S.M.A.R.T. health | Built-in | No | Separate exporter | No | Plugin |
-| ZFS pool health | Built-in | Partial | Separate exporter | No | No |
+| S.M.A.R.T. health | Built-in | Yes (incl. eMMC, mdraid) | Separate exporter | No | Plugin |
+| ZFS pool health | Built-in (capacity, scrub, errors) | ARC stats only | Separate exporter | No | No |
 | Centralized logs | Built-in (stored, searchable) | Dozzle: live only (no storage) | Loki/Elasticsearch | No | No |
 | Alert deduplication | Built-in | No | Alertmanager needed | Built-in | Built-in |
 | Notification channels | 8 | Email/webhook | Via Alertmanager | 90+ | Cloud only |
@@ -318,6 +318,7 @@ labwatch is not a Prometheus replacement for production infrastructure. It's bui
 - [x] ZFS pool health monitoring
 - [ ] More notification channels
 - [x] Centralized log collection (journald + Docker, level filters, full-text search, tier-based retention)
+- [ ] Disk I/O metrics (utilization, throughput, queue depth)
 - [ ] Mobile-friendly PWA wrapper
 
 See [open issues](https://github.com/labwatch-dev/labwatch/issues) for feature requests.
