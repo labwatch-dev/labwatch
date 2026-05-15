@@ -194,7 +194,7 @@ curl -X POST http://localhost:8097/api/v1/query \
 | Containers | "What containers are running?", "Restart counts" |
 | Multilingual | "Welcher Server verbraucht am meisten CPU?" (DE), "Quel serveur utilise le plus de CPU?" (FR) |
 
-No LLM required — the engine uses 120+ regex patterns across 28 handlers in 5 languages (English, German, French, Spanish, Ukrainian). Responses are composed from your own live metrics. Zero hallucination.
+No LLM required — the engine uses 200+ regex patterns across 28 handlers in 5 languages (English, German, French, Spanish, Ukrainian). Responses are composed from your own live metrics. Zero hallucination.
 
 ## Notifications
 
