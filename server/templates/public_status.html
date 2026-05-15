@@ -307,6 +307,16 @@ a:hover { text-decoration: underline; }
             </div>
         </div>
         {% endif %}
+        {% if online and (disk_read_mbs is not none or disk_write_mbs is not none) %}
+        <div class="network-row">
+            <div class="net-label">Disk I/O</div>
+            <div class="net-values">
+                <span class="net-item"><span class="net-arrow down">↓</span>{{ (disk_read_mbs or 0)|round(1) }}<span class="unit">MB/s</span></span>
+                <span class="net-sep">·</span>
+                <span class="net-item"><span class="net-arrow up">↑</span>{{ (disk_write_mbs or 0)|round(1) }}<span class="unit">MB/s</span></span>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <div class="footer">

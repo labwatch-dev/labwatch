@@ -518,6 +518,7 @@ def _extract_system_summary(metrics: dict[str, Any]) -> dict[str, Any]:
         "net_tx_bytes": total_tx,
         "temperatures": data.get("temperatures", []),
         "processes": data.get("processes", []),
+        "disk_io": data.get("disk_io", []),
     }
 
 
@@ -548,6 +549,35 @@ def _enrich_network_rate(system_summary: dict, lab_id: str) -> None:
         system_summary["net_tx_mbps"] = min(round(tx_delta * 8 / delta_s / 1_000_000, 2), 1000)
     except Exception:
         logging.getLogger("labwatch").debug("Network rate enrichment failed", exc_info=True)
+
+
+def _enrich_disk_io_rate(system_summary: dict, lab_id: str) -> None:
+    """Compute disk I/O MB/s by comparing the two most recent system samples."""
+    samples = db.get_recent_system_samples(lab_id, count=2)
+    if len(samples) < 2:
+        return
+    cur, prev = samples[0], samples[1]
+    try:
+        from datetime import datetime as _dt
+        t_cur = _dt.fromisoformat(cur["timestamp"])
+        t_prev = _dt.fromisoformat(prev["timestamp"])
+        delta_s = (t_cur - t_prev).total_seconds()
+        if delta_s <= 0:
+            return
+        cur_io = cur["data"].get("disk_io", [])
+        prev_io = prev["data"].get("disk_io", [])
+        if not cur_io:
+            return
+        prev_map = {d["device"]: d for d in prev_io}
+        read_delta = write_delta = 0
+        for dev in cur_io:
+            p = prev_map.get(dev["device"], {})
+            read_delta += max(0, dev.get("read_bytes", 0) - p.get("read_bytes", 0))
+            write_delta += max(0, dev.get("write_bytes", 0) - p.get("write_bytes", 0))
+        system_summary["disk_read_mbs"] = min(round(read_delta / delta_s / 1_000_000, 2), 10000)
+        system_summary["disk_write_mbs"] = min(round(write_delta / delta_s / 1_000_000, 2), 10000)
+    except Exception:
+        logging.getLogger("labwatch").debug("Disk I/O rate enrichment failed", exc_info=True)
 
 
 def _extract_gpu_summary(metrics: dict[str, Any]) -> dict[str, Any]:
@@ -1167,6 +1197,7 @@ def user_dashboard(request: Request):
         docker_summary = _extract_docker_summary(metrics)
         gpu_summary = _extract_gpu_summary(metrics)
         _enrich_network_rate(system_summary, lab["id"])
+        _enrich_disk_io_rate(system_summary, lab["id"])
         alerts = db.get_active_alerts(lab["id"])
         lab_safe = {k: v for k, v in lab.items() if k != "token"}
         lab_data.append({
@@ -1317,6 +1348,7 @@ def user_lab_detail(request: Request, lab_id: str):
     stats = db.get_lab_stats(lab_id)
     system_summary = _extract_system_summary(metrics)
     _enrich_network_rate(system_summary, lab_id)
+    _enrich_disk_io_rate(system_summary, lab_id)
     docker_summary = _extract_docker_summary(metrics)
     gpu_summary = _extract_gpu_summary(metrics)
     digest = db.get_latest_digest(lab_id)
@@ -1346,6 +1378,7 @@ def user_dashboard_api(request: Request):
         docker_summary = _extract_docker_summary(metrics)
         gpu_summary = _extract_gpu_summary(metrics)
         _enrich_network_rate(system_summary, lab["id"])
+        _enrich_disk_io_rate(system_summary, lab["id"])
         alerts = db.get_active_alerts(lab["id"])
         total_alerts += len(alerts)
         lab_safe = {k: v for k, v in lab.items() if k != "token"}
@@ -1945,18 +1978,21 @@ def demo_dashboard(request: Request):
          "cpu_percent": 23.4, "memory_percent": 61.2, "disk_percent": 44.8, "load_1m": 1.82,
          "container_count": 12, "os": "Debian 12", "arch": "x86_64",
          "net_rx_mbps": 99.2, "net_tx_mbps": 24.8,
+         "disk_read_mbs": 12.4, "disk_write_mbs": 5.8,
          "alert_count": 1, "critical_count": 0,
          "last_seen": datetime.now(timezone.utc).isoformat()},
         {"id": "demo-2", "name": "docker-host", "hostname": "docker-01", "online": True,
          "cpu_percent": 8.1, "memory_percent": 38.7, "disk_percent": 29.3, "load_1m": 0.45,
          "container_count": 22, "os": "Ubuntu 24.04", "arch": "x86_64",
          "net_rx_mbps": 45.6, "net_tx_mbps": 12.3,
+         "disk_read_mbs": 2.1, "disk_write_mbs": 45.3,
          "alert_count": 0, "critical_count": 0,
          "last_seen": datetime.now(timezone.utc).isoformat()},
         {"id": "demo-3", "name": "nas-storage", "hostname": "storage-01", "online": True,
          "cpu_percent": 4.2, "memory_percent": 72.8, "disk_percent": 78.1, "load_1m": 3.21,
          "container_count": 0, "os": "TrueNAS SCALE", "arch": "x86_64",
          "net_rx_mbps": 210.5, "net_tx_mbps": 185.2,
+         "disk_read_mbs": 89.7, "disk_write_mbs": 112.3,
          "alert_count": 2, "critical_count": 1,
          "last_seen": datetime.now(timezone.utc).isoformat()},
         {"id": "demo-4", "name": "gpu-server", "hostname": "gpu-01", "online": False,
@@ -2062,6 +2098,7 @@ def demo_lab_detail(request: Request, lab_id: str):
         "disk_total_gb": 500.0, "disk_used_gb": 500.0 * detail["_disk"] / 100,
         "uptime_seconds": 604800, "net_rx_rate": "12.4 MB/s", "net_tx_rate": "3.1 MB/s",
         "net_rx_mbps": 99.2, "net_tx_mbps": 24.8,
+        "disk_read_mbs": 12.4, "disk_write_mbs": 5.8,
         "load_average": f"{detail['_load']:.2f} / {detail['_load'] * 0.9:.2f} / {detail['_load'] * 0.8:.2f}",
     }
     docker = {
@@ -2116,10 +2153,13 @@ def demo_lab_history(request: Request, lab_id: str):
         load_data.append(round(max(0, (detail["_load"] or 0.5) + 0.3 * math.sin(phase) + random.uniform(-0.1, 0.1)), 2))
         net_rx_data.append(round(random.uniform(0.5, 15.0), 2))
         net_tx_data.append(round(random.uniform(0.1, 5.0), 2))
+    disk_read_data = [round(random.uniform(0.0, 25.0), 2) for _ in range(points)]
+    disk_write_data = [round(random.uniform(0.5, 40.0), 2) for _ in range(points)]
     return {
         "timestamps": timestamps, "cpu": cpu_data, "memory": memory_data,
         "disk": disk_data, "load": load_data,
         "net_rx": net_rx_data, "net_tx": net_tx_data,
+        "disk_read": disk_read_data, "disk_write": disk_write_data,
     }
 
 
@@ -2142,6 +2182,7 @@ def dashboard(request: Request, x_admin_secret: Optional[str] = Header(None)):
         docker_summary = _extract_docker_summary(metrics)
         gpu_summary = _extract_gpu_summary(metrics)
         _enrich_network_rate(system_summary, lab["id"])
+        _enrich_disk_io_rate(system_summary, lab["id"])
         alerts = db.get_active_alerts(lab["id"])
         lab_data.append({
             **lab,
@@ -2198,6 +2239,7 @@ def dashboard_lab_detail(request: Request, lab_id: str, x_admin_secret: Optional
     stats = db.get_lab_stats(lab_id)
     system_summary = _extract_system_summary(metrics)
     _enrich_network_rate(system_summary, lab_id)
+    _enrich_disk_io_rate(system_summary, lab_id)
     docker_summary = _extract_docker_summary(metrics)
     gpu_summary = _extract_gpu_summary(metrics)
     digest = db.get_latest_digest(lab_id)
@@ -2231,6 +2273,8 @@ def lab_metrics_history(request: Request, lab_id: str, hours: int = 24, x_admin_
     load_data = []
     net_rx_data = []
     net_tx_data = []
+    disk_read_data = []
+    disk_write_data = []
 
     # GPU history (keyed by timestamp for alignment)
     gpu_timestamps = []
@@ -2311,12 +2355,43 @@ def lab_metrics_history(request: Request, lab_id: str, hours: int = 24, x_admin_
             net_rx_data.append(0)
             net_tx_data.append(0)
 
+    # Compute disk I/O rates from consecutive system samples (MB/s)
+    for i in range(len(system_entries)):
+        if i == 0:
+            disk_read_data.append(0)
+            disk_write_data.append(0)
+            continue
+        try:
+            from datetime import datetime as _dt
+            cur = system_entries[i]
+            prev = system_entries[i - 1]
+            t_cur = _dt.fromisoformat(cur["timestamp"])
+            t_prev = _dt.fromisoformat(prev["timestamp"])
+            delta_s = (t_cur - t_prev).total_seconds()
+            if delta_s <= 0:
+                disk_read_data.append(0)
+                disk_write_data.append(0)
+                continue
+            cur_io = cur["data"].get("disk_io", [])
+            prev_io = prev["data"].get("disk_io", [])
+            prev_map = {d["device"]: d for d in prev_io}
+            rd = wd = 0
+            for dev in cur_io:
+                p = prev_map.get(dev["device"], {})
+                rd += max(0, dev.get("read_bytes", 0) - p.get("read_bytes", 0))
+                wd += max(0, dev.get("write_bytes", 0) - p.get("write_bytes", 0))
+            disk_read_data.append(min(round(rd / delta_s / 1_000_000, 2), 10000))
+            disk_write_data.append(min(round(wd / delta_s / 1_000_000, 2), 10000))
+        except Exception:
+            disk_read_data.append(0)
+            disk_write_data.append(0)
+
     # Remove counter-reset spikes: replace values > 10x median with 0
-    for arr in (net_rx_data, net_tx_data):
+    for arr in (net_rx_data, net_tx_data, disk_read_data, disk_write_data):
         nonzero = sorted(v for v in arr if v > 0)
         if len(nonzero) >= 3:
             median = nonzero[len(nonzero) // 2]
-            threshold = max(median * 10, 100)  # at least 100 Mbps
+            threshold = max(median * 10, 100)  # at least 100 Mbps / MB/s
             for i in range(len(arr)):
                 if arr[i] > threshold:
                     arr[i] = 0
@@ -2329,6 +2404,8 @@ def lab_metrics_history(request: Request, lab_id: str, hours: int = 24, x_admin_
         "load": load_data,
         "net_rx": net_rx_data,
         "net_tx": net_tx_data,
+        "disk_read": disk_read_data,
+        "disk_write": disk_write_data,
     }
 
     # Include GPU data if available
@@ -2372,6 +2449,7 @@ def admin_dashboard_data(_: str = Depends(_require_admin)):
         docker_summary = _extract_docker_summary(metrics)
         gpu_summary = _extract_gpu_summary(metrics)
         _enrich_network_rate(system_summary, lab["id"])
+        _enrich_disk_io_rate(system_summary, lab["id"])
         alerts = db.get_active_alerts(lab["id"])
         total_alerts += len(alerts)
         lab_safe = {k: v for k, v in lab.items() if k != "token"}

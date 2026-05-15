@@ -24,6 +24,7 @@ type SystemMetrics struct {
 	CPU          CPUMetrics      `json:"cpu"`
 	Memory       MemoryMetrics   `json:"memory"`
 	Disk         []DiskMetrics   `json:"disk"`
+	DiskIO       []DiskIOMetrics `json:"disk_io,omitempty"`
 	Network      []NetMetrics    `json:"network"`
 	LoadAverage  LoadMetrics     `json:"load_average"`
 	Temperatures []TempMetric    `json:"temperatures"`
@@ -53,6 +54,15 @@ type DiskMetrics struct {
 	UsedBytes   uint64  `json:"used_bytes"`
 	FreeBytes   uint64  `json:"free_bytes"`
 	UsedPercent float64 `json:"used_percent"`
+}
+
+type DiskIOMetrics struct {
+	Device     string `json:"device"`
+	ReadBytes  uint64 `json:"read_bytes"`
+	WriteBytes uint64 `json:"write_bytes"`
+	ReadCount  uint64 `json:"read_count"`
+	WriteCount uint64 `json:"write_count"`
+	IoTime     uint64 `json:"io_time_ms"`
 }
 
 type NetMetrics struct {
@@ -150,6 +160,23 @@ func (s *SystemCollector) Collect(ctx context.Context) (interface{}, error) {
 				})
 			}
 		}
+	}
+
+	// Disk I/O
+	if ioCounters, err := disk.IOCountersWithContext(ctx); err == nil {
+		for dev, c := range ioCounters {
+			metrics.DiskIO = append(metrics.DiskIO, DiskIOMetrics{
+				Device:     dev,
+				ReadBytes:  c.ReadBytes,
+				WriteBytes: c.WriteBytes,
+				ReadCount:  c.ReadCount,
+				WriteCount: c.WriteCount,
+				IoTime:     c.IoTime,
+			})
+		}
+		sort.Slice(metrics.DiskIO, func(i, j int) bool {
+			return metrics.DiskIO[i].Device < metrics.DiskIO[j].Device
+		})
 	}
 
 	// Network

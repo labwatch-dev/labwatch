@@ -318,7 +318,7 @@ labwatch is not a Prometheus replacement for production infrastructure. It's bui
 - [x] ZFS pool health monitoring
 - [ ] More notification channels
 - [x] Centralized log collection (journald + Docker, level filters, full-text search, tier-based retention)
-- [ ] Disk I/O metrics (utilization, throughput, queue depth)
+- [x] Disk I/O metrics (per-device read/write throughput, IOPS, I/O time — dashboard chart + metric card)
 - [ ] Mobile-friendly PWA wrapper
 
 See [open issues](https://github.com/labwatch-dev/labwatch/issues) for feature requests.

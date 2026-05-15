@@ -819,6 +819,22 @@
                         </div>
 
                         <div class="metric-card">
+                            <div class="metric-card-label">Disk I/O</div>
+                            <div class="metric-card-value dim">
+                                {% if system.disk_read_mbs is defined %}
+                                {{ "%.1f" | format(system.disk_read_mbs) }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </div>
+                            {% if system.disk_read_mbs is defined %}
+                            <div class="metric-card-detail">MB/s read / {{ "%.1f" | format(system.disk_write_mbs | default(0)) }} write</div>
+                            {% else %}
+                            <div class="metric-card-detail">No data</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="metric-card">
                             <div class="metric-card-label">{{ t.lab_load_average }}</div>
                             <div class="metric-card-value dim">
                                 {{ sys.load_average | default('--') }}
@@ -848,6 +864,10 @@
                     <div class="chart-card">
                         <h3>{{ t.lab_network if t.lab_network else 'Network' }} (Mbps)</h3>
                         <canvas id="netChart" height="200"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Disk I/O (MB/s)</h3>
+                        <canvas id="diskIoChart" height="200"></canvas>
                     </div>
                 </div>
             </div>
@@ -1392,6 +1412,52 @@ document.addEventListener('DOMContentLoaded', function() {
                                 data: data.net_tx,
                                 borderColor: '#f07030',
                                 backgroundColor: 'rgba(240, 112, 48, 0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 0,
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: chartDefaults.responsive,
+                        maintainAspectRatio: chartDefaults.maintainAspectRatio,
+                        interaction: chartDefaults.interaction,
+                        plugins: chartDefaults.plugins,
+                        scales: {
+                            x: chartDefaults.scales.x,
+                            y: {
+                                min: 0,
+                                ticks: { color: '#666', callback: function(v) { return v.toFixed(1); }, font: { size: 10 } },
+                                grid: { color: '#222' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Disk I/O chart
+            if (data.disk_read && data.disk_write) {
+                new Chart(document.getElementById('diskIoChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Read (MB/s)',
+                                data: data.disk_read,
+                                borderColor: '#a070f0',
+                                backgroundColor: 'rgba(160, 112, 240, 0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 0,
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Write (MB/s)',
+                                data: data.disk_write,
+                                borderColor: '#f0c030',
+                                backgroundColor: 'rgba(240, 192, 48, 0.1)',
                                 fill: true,
                                 tension: 0.3,
                                 pointRadius: 0,

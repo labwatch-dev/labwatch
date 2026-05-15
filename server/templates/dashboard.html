@@ -1665,6 +1665,14 @@ body.edit-mode .widget-block.drop-after {
                     </div>
                 </div>
                 {% endif %}
+                {% if lab.disk_read_mbs is defined and lab.disk_read_mbs is not none %}
+                <div class="metric-row">
+                    <span class="metric-label">I/O</span>
+                    <div class="metric-bar-wrap">
+                        <span class="metric-value net-val">{{ "%.1f" | format(lab.disk_read_mbs) }}↓ {{ "%.1f" | format(lab.disk_write_mbs | default(0)) }}↑ MB/s</span>
+                    </div>
+                </div>
+                {% endif %}
                 {% if lab.gpu_count | default(0) > 0 and lab.gpus | default([]) | length > 0 %}
                 {% set gpu = lab.gpus[0] %}
                 {% set gpu_util = gpu.utilization_percent | default(0) %}
@@ -1967,6 +1975,7 @@ function dismissSuggestions() {
             + renderMetric('MEM', mem, 'memory', hasData)
             + renderMetric('DISK', disk, 'disk', hasData)
             + (lab.net_rx_mbps != null ? '<div class="metric-row"><span class="metric-label">NET</span><div class="metric-bar-wrap"><span class="metric-value net-val">' + (lab.net_rx_mbps || 0).toFixed(1) + '↓ ' + (lab.net_tx_mbps || 0).toFixed(1) + '↑ Mbps</span></div></div>' : '')
+            + (lab.disk_read_mbs != null ? '<div class="metric-row"><span class="metric-label">I/O</span><div class="metric-bar-wrap"><span class="metric-value net-val">' + (lab.disk_read_mbs || 0).toFixed(1) + '↓ ' + (lab.disk_write_mbs || 0).toFixed(1) + '↑ MB/s</span></div></div>' : '')
             + gpuHtml
             + '</div>'
             + renderHeartbeat(lab.heartbeat)
