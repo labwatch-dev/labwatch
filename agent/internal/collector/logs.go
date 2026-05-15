@@ -2,6 +2,7 @@
 package collector
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -52,7 +53,7 @@ func NewLogCollector(cfg LogsConfig) *LogCollector {
 	}
 	return &LogCollector{
 		cfg:      cfg,
-		lastTime: time.Now().UTC(),
+		lastTime: time.Now(), // local time — journalctl --since interprets as local
 	}
 }
 
@@ -83,7 +84,7 @@ func (lc *LogCollector) CollectLogs(ctx context.Context) ([]LogEntry, error) {
 		}
 	}
 
-	lc.lastTime = time.Now().UTC()
+	lc.lastTime = time.Now()
 
 	// Apply level filter
 	minLevel := levelPriority(lc.cfg.LevelFilter)
@@ -103,13 +104,30 @@ func (lc *LogCollector) CollectLogs(ctx context.Context) ([]LogEntry, error) {
 }
 
 // collectJournald reads new entries from systemd journal.
+// Streams output line-by-line to avoid buffering the entire output in memory.
 func (lc *LogCollector) collectJournald(ctx context.Context, maxLines int) ([]LogEntry, string, error) {
-	// Check if journalctl is available
 	if _, err := exec.LookPath("journalctl"); err != nil {
 		return nil, "", fmt.Errorf("journalctl not found: %w", err)
 	}
 
-	args := []string{"--no-pager", "-o", "json", fmt.Sprintf("-n%d", maxLines)}
+	// Use -p to filter at journalctl level (much more efficient than post-filtering).
+	// Maps our level names to journalctl priority ranges.
+	priFlag := "warning" // default: warn and above
+	switch strings.ToLower(lc.cfg.LevelFilter) {
+	case "debug":
+		priFlag = "debug"
+	case "info":
+		priFlag = "info"
+	case "error", "fatal", "critical":
+		priFlag = "err"
+	}
+
+	args := []string{
+		"--no-pager", "-o", "json",
+		fmt.Sprintf("-n%d", maxLines),
+		"-p", priFlag,
+		"--output-fields=MESSAGE,PRIORITY,_SYSTEMD_UNIT,__CURSOR,__REALTIME_TIMESTAMP",
+	}
 
 	if lc.lastCursor != "" {
 		args = append(args, "--after-cursor="+lc.lastCursor)
@@ -119,25 +137,30 @@ func (lc *LogCollector) collectJournald(ctx context.Context, maxLines int) ([]Lo
 	}
 
 	cmd := exec.CommandContext(ctx, "journalctl", args...)
-	out, err := cmd.Output()
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, "", fmt.Errorf("journalctl failed: %w", err)
+		return nil, "", fmt.Errorf("journalctl pipe: %w", err)
+	}
+	if err := cmd.Start(); err != nil {
+		return nil, "", fmt.Errorf("journalctl start: %w", err)
 	}
 
 	var entries []LogEntry
 	var lastCursor string
 
-	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
-		if line == "" {
+	scanner := bufio.NewScanner(stdout)
+	scanner.Buffer(make([]byte, 0, 64*1024), 256*1024)
+	for scanner.Scan() {
+		line := scanner.Bytes()
+		if len(line) == 0 {
 			continue
 		}
 
 		var jEntry map[string]interface{}
-		if err := json.Unmarshal([]byte(line), &jEntry); err != nil {
+		if err := json.Unmarshal(line, &jEntry); err != nil {
 			continue
 		}
 
-		// Extract fields
 		msg := getString(jEntry, "MESSAGE")
 		if msg == "" {
 			continue
@@ -152,7 +175,6 @@ func (lc *LogCollector) collectJournald(ctx context.Context, maxLines int) ([]Lo
 			lastCursor = cursor
 		}
 
-		// Convert realtime timestamp (microseconds) to ISO8601
 		var isoTS string
 		if ts != "" {
 			var usec int64
@@ -171,31 +193,34 @@ func (lc *LogCollector) collectJournald(ctx context.Context, maxLines int) ([]Lo
 		})
 	}
 
+	// Wait for process to finish (ignore exit code — partial output is OK)
+	cmd.Wait()
+
 	return entries, lastCursor, nil
 }
 
 // collectDocker reads recent logs from running Docker containers.
+// Streams output line-by-line and copies strings to avoid holding buffers.
 func (lc *LogCollector) collectDocker(ctx context.Context, maxLines int) ([]LogEntry, error) {
-	// Check if docker is available
 	if _, err := exec.LookPath("docker"); err != nil {
 		return nil, fmt.Errorf("docker not found: %w", err)
 	}
 
-	// List running containers
 	cmd := exec.CommandContext(ctx, "docker", "ps", "--format", "{{.ID}} {{.Names}}", "--no-trunc")
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("docker ps failed: %w", err)
 	}
 
+	containerLines := strings.Split(strings.TrimSpace(string(out)), "\n")
 	since := lc.lastTime.Format(time.RFC3339)
 	var entries []LogEntry
-	linesPerContainer := maxLines / max(1, strings.Count(strings.TrimSpace(string(out)), "\n")+1)
+	linesPerContainer := maxLines / max(1, len(containerLines))
 	if linesPerContainer < 10 {
 		linesPerContainer = 10
 	}
 
-	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+	for _, line := range containerLines {
 		if line == "" {
 			continue
 		}
@@ -204,7 +229,7 @@ func (lc *LogCollector) collectDocker(ctx context.Context, maxLines int) ([]LogE
 			continue
 		}
 		containerID := parts[0]
-		containerName := parts[1]
+		containerName := strings.Clone(parts[1])
 
 		logCmd := exec.CommandContext(ctx, "docker", "logs",
 			"--since", since,
@@ -212,10 +237,18 @@ func (lc *LogCollector) collectDocker(ctx context.Context, maxLines int) ([]LogE
 			"--tail", fmt.Sprintf("%d", linesPerContainer),
 			containerID,
 		)
-		// docker logs writes to both stdout and stderr
-		logOut, _ := logCmd.CombinedOutput()
+		stdout, err := logCmd.StdoutPipe()
+		if err != nil {
+			continue
+		}
+		logCmd.Stderr = logCmd.Stdout // merge stderr into stdout pipe
+		if err := logCmd.Start(); err != nil {
+			continue
+		}
 
-		for _, logLine := range strings.Split(strings.TrimSpace(string(logOut)), "\n") {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			logLine := scanner.Text()
 			if logLine == "" {
 				continue
 			}
@@ -225,17 +258,20 @@ func (lc *LogCollector) collectDocker(ctx context.Context, maxLines int) ([]LogE
 				continue
 			}
 
+			// Copy strings to break references to scanner buffer
 			entries = append(entries, LogEntry{
-				Timestamp: ts,
+				Timestamp: strings.Clone(ts),
 				Source:    "docker:" + containerName,
 				Level:     guessLogLevel(msg),
-				Message:   truncate(msg, 4096),
+				Message:   truncate(strings.Clone(msg), 4096),
 			})
 
 			if len(entries) >= maxLines {
+				logCmd.Wait()
 				return entries, nil
 			}
 		}
+		logCmd.Wait()
 	}
 
 	return entries, nil

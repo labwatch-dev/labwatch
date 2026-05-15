@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.2] — 2026-05-15
+
+### Fixed
+- **Log collector memory leak**: streaming journalctl/docker output line-by-line instead of buffering entire output (was causing OOM under cgroup limits)
+- Server-side priority filtering (`-p warning`) for journalctl — no longer fetches all entries then filters in Go
+- Added `--output-fields` to journalctl to limit JSON output to 5 needed fields (was emitting 50+)
+- Fixed UTC/local timezone mismatch in `--since` flag (was scanning 2h of journal on first run instead of seconds)
+- Docker log string references now copied to prevent holding entire output buffer in memory
+- systemd service: `MemoryHigh=64M` (soft) + `MemoryMax=256M` (hard) + `GOMEMLIMIT=96MiB` for proper page cache management
+
+## [0.3.1] — 2026-05-12
+
+### Added
+- Demo greeting/help response — typing "help", "hi", or "what can you do?" in NLQ returns a usage guide
+- `barColorName()` function for dynamic metric bar colors in dashboard
+
+### Fixed
+- CSP compliance: migrated inline `style=""` attributes to CSS classes + `data-pct`/`data-w`/`data-color` attributes across 13 templates
+- `initFills()` no longer overrides CSS-class severity colors on disk-pressure bars (was forcing green on all bars)
+- Removed duplicate `initFills()` calls in dashboard rendering
+- Fixed double-quote HTML attribute bug on accent-dot elements
+
+## [0.3.0] — 2026-04-29
+
+### Added
+- **Centralized log collection**: agents ship journald + Docker container logs to server
+- Server schema v2 with `logs` table (indexed by lab+timestamp, lab+level, lab+source)
+- Log viewer in node detail page with level/source filters and full-text search
+- Log retention follows tier-based purge (free: 24h, pro: 7 days, business: 30 days)
+- NLQ log queries: "show me errors from pve-docker", "recent warnings"
+
 ## [0.2.5] — 2026-04-29
 
 ### Added
