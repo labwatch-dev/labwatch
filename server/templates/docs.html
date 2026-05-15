@@ -634,7 +634,7 @@ X-Admin-Secret: your-secret-here</div>
                     <p>The <code>collectors</code> object can contain the following keys:</p>
                     <table class="param-table">
                         <tr><th>Key</th><th>Description</th></tr>
-                        <tr><td class="param-name">system</td><td>CPU, memory, disk, network, load, uptime, temperatures</td></tr>
+                        <tr><td class="param-name">system</td><td>CPU, memory, disk, network, disk I/O (read/write bytes, IOPS), load, uptime, temperatures</td></tr>
                         <tr><td class="param-name">docker</td><td>Container list with health, restarts, CPU/memory per container</td></tr>
                         <tr><td class="param-name">services</td><td>HTTP/TCP health check results with response times</td></tr>
                         <tr><td class="param-name">gpu</td><td>GPU utilization, memory, temperature per device</td></tr>
@@ -1151,7 +1151,7 @@ X-Admin-Secret: your-secret-here</div>
                     <span class="endpoint-chevron">&#9654;</span>
                 </div>
                 <div class="endpoint-body">
-                    <p>Ask questions about your infrastructure in natural language. The engine analyzes your metrics data and returns a plain-English answer with supporting data.</p>
+                    <p>Ask questions about your infrastructure in natural language. The engine analyzes your metrics data and returns a plain-English answer with supporting data. Queries in German, French, Spanish, and Ukrainian are also supported.</p>
 
                     <h4>Request Body</h4>
                     <table class="param-table">
@@ -1167,11 +1167,15 @@ X-Admin-Secret: your-secret-here</div>
                     <h4>Example Questions</h4>
                     <div class="code-block"><code>"How's my lab?"
 "Why is pve-storage slow?"
-"Is caddy running?"
 "Which server uses the most CPU?"
 "Am I running out of disk?"
+"Disk I/O throughput"
+"Any disk failures?"
 "How are my ZFS pools?"
-"What happened last night?"</code></div>
+"GPU status"
+"Show me recent error logs"
+"What happened last night?"
+"Wie geht es der Flotte?" (German)</code></div>
 
                     <h4>Example</h4>
                     <div class="code-block"><code>curl -X POST https://your-server/api/v1/query \
