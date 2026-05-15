@@ -2530,6 +2530,126 @@ def _get_network_rates(lab_id: str) -> Optional[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Handler: Disk I/O queries
+# ---------------------------------------------------------------------------
+
+_DISK_IO_PATTERN = re.compile(
+    r"disk\s+(?:io|i/o|throughput|bandwidth|speed|performance)"
+    r"|(?:io|i/o)\s+(?:on|for|of)\s+\S+"
+    r"|(?:read|write)\s+(?:speed|throughput|rate|bandwidth)"
+    r"|(?:how busy|how fast)\s+(?:are|is)\s+(?:my|the|our)\s+(?:disks?|drives?|storage)"
+    r"|disk\s+(?:read|write)\s+(?:speed|rate)"
+    r"|(?:iops|io\s+time|io\s+wait)"
+, re.IGNORECASE)
+
+
+def _get_disk_io_rates(lab_id: str) -> Optional[dict]:
+    """Compute current disk read/write MB/s for a lab from two most recent samples."""
+    samples = db.get_recent_system_samples(lab_id, count=2)
+    if len(samples) < 2:
+        return None
+    cur, prev = samples[0], samples[1]
+    try:
+        t_cur = datetime.fromisoformat(cur["timestamp"])
+        t_prev = datetime.fromisoformat(prev["timestamp"])
+        delta_s = (t_cur - t_prev).total_seconds()
+        if delta_s <= 0:
+            return None
+        cur_io = cur["data"].get("disk_io", [])
+        prev_io = prev["data"].get("disk_io", [])
+        if not cur_io:
+            return None
+        prev_map = {d["device"]: d for d in prev_io}
+        rd = wd = 0
+        for dev in cur_io:
+            p = prev_map.get(dev["device"], {})
+            rd += max(0, dev.get("read_bytes", 0) - p.get("read_bytes", 0))
+            wd += max(0, dev.get("write_bytes", 0) - p.get("write_bytes", 0))
+        return {
+            "read_mbs": round(rd / delta_s / 1_000_000, 2),
+            "write_mbs": round(wd / delta_s / 1_000_000, 2),
+        }
+    except Exception:
+        return None
+
+
+def _handle_disk_io(question: str, match: re.Match) -> dict:
+    """Handle: 'disk io', 'disk throughput', 'read write speed', 'how busy are my disks'"""
+    labs = _scoped_list_labs()
+
+    if not labs:
+        return _build_response(
+            answer="No nodes registered yet.",
+            query_type="disk_io",
+            confidence=0.9,
+            sources=[],
+        )
+
+    # Check if asking about a specific node
+    specific_lab = None
+    for lab in labs:
+        if lab["hostname"].lower() in question.lower():
+            specific_lab = lab
+            break
+
+    if specific_lab:
+        online = _lab_is_online(specific_lab["last_seen"])
+        if not online:
+            return _build_response(
+                answer=f"{specific_lab['hostname']} is currently offline.",
+                query_type="disk_io",
+                confidence=0.9,
+                sources=[{"type": "disk_io", "node": specific_lab["hostname"]}],
+            )
+        rates = _get_disk_io_rates(specific_lab["id"])
+        if not rates:
+            return _build_response(
+                answer=f"No disk I/O data for {specific_lab['hostname']} yet. Agent may need updating to v0.3.3+.",
+                query_type="disk_io",
+                confidence=0.85,
+                sources=[{"type": "disk_io", "node": specific_lab["hostname"]}],
+            )
+        return _build_response(
+            answer=f"{specific_lab['hostname']}: {rates['read_mbs']:.1f} MB/s read / {rates['write_mbs']:.1f} MB/s write",
+            query_type="disk_io",
+            confidence=0.92,
+            sources=[{"type": "disk_io", "node": specific_lab["hostname"], **rates}],
+        )
+
+    # All labs
+    parts = ["Disk I/O across all nodes:"]
+    any_data = False
+    for lab in labs:
+        online = _lab_is_online(lab["last_seen"])
+        if not online:
+            parts.append(f"  - {lab['hostname']}: OFFLINE")
+            continue
+        rates = _get_disk_io_rates(lab["id"])
+        if rates:
+            any_data = True
+            parts.append(
+                f"  - {lab['hostname']}: {rates['read_mbs']:.1f} MB/s read / {rates['write_mbs']:.1f} MB/s write"
+            )
+        else:
+            parts.append(f"  - {lab['hostname']}: no I/O data (agent < v0.3.3?)")
+
+    if not any_data:
+        return _build_response(
+            answer="No disk I/O data available. Agents need v0.3.3+ to collect disk I/O metrics.",
+            query_type="disk_io",
+            confidence=0.85,
+            sources=[],
+        )
+
+    return _build_response(
+        answer="\n".join(parts),
+        query_type="disk_io",
+        confidence=0.9,
+        sources=[{"type": "disk_io", "node_count": len(labs)}],
+    )
+
+
+# ---------------------------------------------------------------------------
 # Handler: Node inventory queries
 # ---------------------------------------------------------------------------
 
@@ -3256,6 +3376,8 @@ HANDLERS = [
     {"pattern": _CAPACITY_PATTERN, "func": _handle_capacity, "name": "capacity"},
     # Container queries — before comparative and status (prevents misrouting)
     {"pattern": _CONTAINER_PATTERN, "func": _handle_containers, "name": "containers"},
+    # Disk I/O queries — before network (both match "throughput", disk is more specific)
+    {"pattern": _DISK_IO_PATTERN, "func": _handle_disk_io, "name": "disk_io"},
     # Network queries — before comparative ("network usage" != "which uses most")
     {"pattern": _NETWORK_PATTERN, "func": _handle_network, "name": "network"},
     # Comparative queries (try all patterns)
