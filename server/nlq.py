@@ -3337,6 +3337,8 @@ _LOG_PATTERN = re.compile(
     r"|(?:error|warning)\s+logs?"
     r"|(?:recent|latest|last)\s+logs?"
     r"|(?:show|get)\s+(?:me\s+)?(?:recent\s+)?(?:errors?|warnings?)"
+    r"|what\s+(?:errors?|warnings?)\s+(?:happened|occurred|showed up)"
+    r"|(?:journald|systemd|syslog|docker)\s+(?:errors?|warnings?|logs?)"
 )
 
 
