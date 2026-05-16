@@ -33,6 +33,17 @@ def init_db() -> None:
     """Create tables and data directory if they don't exist."""
     Path(DATABASE_PATH).parent.mkdir(parents=True, exist_ok=True)
 
+    # Enable incremental auto_vacuum if not already set (requires VACUUM to take effect)
+    conn = _connect()
+    try:
+        mode = conn.execute("PRAGMA auto_vacuum").fetchone()[0]
+        if mode == 0:
+            conn.execute("PRAGMA auto_vacuum=INCREMENTAL")
+            conn.execute("VACUUM")
+            logger.info("Enabled incremental auto_vacuum (one-time VACUUM)")
+    finally:
+        conn.close()
+
     conn = _connect()
     try:
         # Schema version tracking
@@ -979,7 +990,10 @@ def purge_old_metrics(hours: int = 24) -> int:
             "DELETE FROM metrics WHERE created_at < ?", (cutoff,)
         )
         conn.commit()
-        return cursor.rowcount
+        deleted = cursor.rowcount
+        if deleted > 100:
+            conn.execute("PRAGMA incremental_vacuum(500)")
+        return deleted
     finally:
         conn.close()
 
